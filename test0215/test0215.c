@@ -27,12 +27,12 @@
 
 #define ERROR_STR_LENGTH 2048
 
-//#define BEBOP_IP_ADDRESS "192.168.2.1"
-#define BEBOP_IP_ADDRESS "10.202.0.1"
+#define BEBOP_IP_ADDRESS "192.168.2.1"
+//#define BEBOP_IP_ADDRESS "10.202.0.1"
 #define BEBOP_DISCOVERY_PORT 44444
 
-//#define DISPLAY_WITH_MPLAYER 0
-#define DISPLAY_WITH_MPLAYER 1
+#define DISPLAY_WITH_MPLAYER 0
+//#define DISPLAY_WITH_MPLAYER 1
 
 #define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
 #define FIFO_NAME "arsdk_fifo"
@@ -110,6 +110,8 @@ int main (int argc, char *argv[])
     }
 
     ARSAL_Sem_Init (&(stateSem), 0, 0);
+    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "--Test takeoff->rotate->rise->forward->stop->land--");
+
 
 
     if (!failed)
@@ -131,18 +133,6 @@ int main (int argc, char *argv[])
         }
     }
 
-
-if (!failed)
-    {
-        raw();                  // Line buffering disabled
-        keypad(stdscr, TRUE);
-        noecho();               // Don't echo() while we do getch
-        timeout(100);
-        
-        refresh();
-    }
-
-
     // create a discovery device
     if (!failed)
     {
@@ -156,7 +146,7 @@ if (!failed)
             ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - ARDISCOVERY_Device_InitWifi ...");
             // create a Bebop drone discovery device (ARDISCOVERY_PRODUCT_ARDRONE)
             errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
-
+    
             if (errorDiscovery != ARDISCOVERY_OK)
             {
                 failed = 1;
@@ -203,7 +193,7 @@ if (!failed)
     // add the command received callback to be informed when a command has been received from the device
     if (!failed)
     {
-        //error = ARCONTROLLER_Device_AddCommandReceivedCallback (deviceController, commandReceived, deviceController);
+        error = ARCONTROLLER_Device_AddCommandReceivedCallback (deviceController, commandReceived, deviceController);
 
         if (error != ARCONTROLLER_OK)
         {
@@ -388,7 +378,7 @@ static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, A
     }
 
     // update UI
-    batteryStateChanged(arg->value.U8);
+    //batteryStateChanged(arg->value.U8);
 }
 
 static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)
