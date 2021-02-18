@@ -3,13 +3,15 @@
 echo "Searching..."
 i=1
 cmp=""
+wifi=$(iw dev | grep Interface | cut -d ' ' -f 2)
+nmcli dev wifi rescan
 while [ $i -le 5 ]
 do
-  ssid=$(iwlist wlxd0374523a03c scan | grep ESSID:\"milos_pc_ | cut -d '"' -f 2)
+  ssid=$(iwlist $wifi scan | grep ESSID:\"milos_pc_ | cut -d '"' -f 2)
   
   if [ "$ssid" = "" ]
   then 
-    nmcli dev wifi rescan
+    sleep 1
     i=$(($i + 1)) 
   else
     echo "Connecting..."
