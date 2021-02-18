@@ -5,7 +5,7 @@ i=1
 cmp=""
 while [ $i -le 5 ]
 do
-  ssid=$(iwlist wlan0 scan | grep ESSID:\"milos_pc_ | cut -d '"' -f 2)
+  ssid=$(iwlist wlxd0374523a03c scan | grep ESSID:\"milos_pc_ | cut -d '"' -f 2)
   
   if [ "$ssid" = "" ]
   then 
