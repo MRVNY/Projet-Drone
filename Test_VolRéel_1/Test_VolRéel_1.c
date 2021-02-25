@@ -64,7 +64,9 @@
 
 #define ERROR_STR_LENGTH 2048
 
-#define BEBOP_IP_ADDRESS "192.168.42.1"
+//#define BEBOP_IP_ADDRESS "192.168.42.1"
+#define BEBOP_IP_ADDRESS "10.202.0.1"
+
 #define BEBOP_DISCOVERY_PORT 44444
 
 #define DISPLAY_WITH_MPLAYER 1
@@ -96,7 +98,7 @@ char gErrorStr[ERROR_STR_LENGTH];
 FILE *videoOut = NULL;
 int frameNb = 0;
 ARSAL_Sem_t stateSem;
-int isBebop2 = 0;
+int isBebop2 = 1;
 
 static void signal_handler(int signal)
 {
@@ -333,6 +335,22 @@ int main (int argc, char *argv[])
         {
             //On attend tant que le drone n'est pas en vol stationaire
         }
+        //Tilt 60->-60->0
+        error = deviceController->aRDrone3->sendCameraOrientation(deviceController->aRDrone3, (int8_t)60, (int8_t)0);
+        sleep(10);
+        error = deviceController->aRDrone3->sendCameraOrientation(deviceController->aRDrone3, (int8_t)-60, (int8_t)0);
+        sleep(10);
+        error = deviceController->aRDrone3->sendCameraOrientation(deviceController->aRDrone3, (int8_t)0, (int8_t)0);
+        sleep(10);
+
+        //Pan 60->-60->0
+        error = deviceController->aRDrone3->sendCameraOrientation(deviceController->aRDrone3, (int8_t)0, (int8_t)60);
+        sleep(10);
+        error = deviceController->aRDrone3->sendCameraOrientation(deviceController->aRDrone3, (int8_t)0, (int8_t)-60);
+        sleep(10);
+        error = deviceController->aRDrone3->sendCameraOrientation(deviceController->aRDrone3, (int8_t)0, (int8_t)0);
+        sleep(10);
+
         //On monte d'environ un mètre 
         error = deviceController->aRDrone3->setPilotingPCMDGaz(deviceController->aRDrone3, 100);
         sleep(1);

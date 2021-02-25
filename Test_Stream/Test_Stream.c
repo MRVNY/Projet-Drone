@@ -409,7 +409,7 @@ int main (int argc, char *argv[])
 
         if (DISPLAY_WITH_MPLAYER)
         {
-            //fflush (videoOut);
+            fflush (videoOut);
             fclose (videoOut);
 
             if (child > 0)
@@ -558,7 +558,7 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
                 fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
 
-                //fflush (videoOut);
+                fflush (videoOut);
             }
         }
 
@@ -582,7 +582,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
             {
                 fwrite(frame->data, frame->used, 1, videoOut);
 
-                //fflush (videoOut);
+                fflush (videoOut);
             }
         }
         else

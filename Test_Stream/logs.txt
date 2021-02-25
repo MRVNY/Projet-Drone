@@ -3,3 +3,4 @@
 [h264 @ 0x560c90a61fc0] no frame!
 execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", fifo_name, "-benchmark", "-really-quiet", NULL);
 ffmpeg -y -f h264 -i arsdk_fifo output.jpeg
+fwrite(frame->data, frame->used, 1, videoOut);
