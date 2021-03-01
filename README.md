@@ -1,6 +1,6 @@
 # Projet-Drone
 
-## Instruction pour lancer les test:
+## Instruction pour lancer les tests:
 
 - Avoir télecharger et build le SDK3 de Parrot (UNIX): https://developer.parrot.com/docs/SDK3/#how-to-build-the-sdk
 
