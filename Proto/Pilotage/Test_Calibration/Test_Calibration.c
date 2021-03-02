@@ -323,13 +323,64 @@ int main (int argc, char *argv[])
  *****************************************/
     
      if (!failed){
-         //Test bête des fonction
-        takeOff(deviceController);
-        gaz(deviceController,100,5);
-        pitch(deviceController,50,5);
-        roll(deviceController,50,5);
-        yaw(deviceController,50,5);
-        land(deviceController);
+         int tmp;
+        //On définit la vitesse max de rotation et  vitesse max verticale (75 °/s et 1 m/s)
+        deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,1 );
+        deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 75);
+
+        printf("\n\n\n Démarage des test de calibrage\n\n\n");
+        printf("r: Roll / f: Pitch front/ b: Pitch back / u: Gaz up / d: Gaz down / t: rotate\n\n ");
+        char input;
+        scanf(input,"%c");
+
+        switch (input):
+        {
+        case 'r':
+            printf("Demarrage des test de Roll a temps variable\n\n");
+            takeOff(deviceController);
+
+            print("value:100 / tmps:0.125 s\n Taper sur une touche pour commencer\n"); 
+            scanf(tmp,"%d");
+            roll(deviceController,100,0.125);
+
+            print("value:100 / tmps:0.25 s\n Taper sur une touche pour commencer\n"); 
+            scanf(tmp,"%d");
+            roll(deviceController,100,0.25);
+
+            print("value:100 / tmps:0.5 s\n Taper sur une touche pour commencer\n"); 
+            scanf(tmp,"%d");
+            roll(deviceController,100,0.5);
+
+            print("value:100 / tmps:0.75 s\n Taper sur une touche pour commencer\n"); 
+            scanf(tmp,"%d");
+            roll(deviceController,100,0.75);
+
+            print("value:100 / tmps:1 s\n Taper sur une touche pour commencer\n"); 
+            scanf(tmp,"%d");
+            roll(deviceController,100,1);
+            break;
+        case 'f':
+            /* code */
+            break;
+        case 'b':
+            /* code */
+            break;
+        case 'u':
+            /* code */
+            break;
+        case 'd':
+            /* code */
+            break;
+        case 't':
+            /* code */
+            break;
+        
+        default:
+            break;
+        }
+       
+        
+      
     }
     
     
