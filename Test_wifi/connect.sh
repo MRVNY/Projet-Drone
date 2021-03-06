@@ -7,7 +7,8 @@ wifi=$(iw dev | grep Interface | cut -d ' ' -f 2)
 nmcli dev wifi rescan
 while [ $i -le 5 ]
 do
-  ssid=$(iwlist $wifi scan | grep ESSID:\"milos_pc_ | cut -d '"' -f 2)
+  #ssid=$(iwlist $wifi scan | grep ESSID:\"milos_pc_ | cut -d '"' -f 2)
+  ssid=$(iwlist $wifi scan | grep ESSID:\"Bebop2-089802 | cut -d '"' -f 2)
   
   if [ "$ssid" = "" ]
   then 
