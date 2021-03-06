@@ -1,0 +1,30 @@
+<?xml version='1.0'?>
+<sdf version='1.5'>
+  <model name='mire'>
+    <link name='link_0'>
+      <gravity>0</gravity>
+      <visual name='visual'>
+        <geometry>
+          <mesh>
+            <uri>model://mire/meshes/mire.dae</uri>
+          </mesh>
+        </geometry>
+        <material>
+          <script>
+            <uri>model://gate/materials/textures</uri>
+            <name>vrc/mire</name>
+          </script>
+          <shader type='pixel'/>
+          <ambient>0.3 0.3 0.3 1</ambient>
+          <diffuse>0.7 0.7 0.7 1</diffuse>
+          <specular>0.01 0.01 0.01 1</specular>
+          <emissive>0 0 0 1</emissive>
+        </material>
+        <cast_shadows>0</cast_shadows>
+        <transparency>0</transparency>
+      </visual>
+    </link>
+    <static>0</static>
+    <allow_auto_disable>1</allow_auto_disable>
+  </model>
+</sdf>
