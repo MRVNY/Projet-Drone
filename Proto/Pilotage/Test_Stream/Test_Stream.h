@@ -60,5 +60,4 @@ void takeOff(ARCONTROLLER_Device_t *deviceController);
 void land(ARCONTROLLER_Device_t *deviceController);
 
 
-
 #endif /* BEBOP_SAMPLE_H */

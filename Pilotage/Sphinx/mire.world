@@ -1,9 +1,8 @@
-<?xml version="1.0"?>
 <sdf version='1.5'>
   <world name='default'>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>0.081621 -6.71811 5.35973 0 0.564 1.48</pose>
+        <pose>-0.745981 0.066674 0.495006 0 0.101799 9e-06</pose>
         <track_visual>
           <static>1</static>
           <use_model_frame>1</use_model_frame>
@@ -140,7 +139,7 @@
     </scene>
     <wind/>
     <model name='mire'>
-      <link name='link_0'>
+      <link name='mire::link_0'>
         <gravity>0</gravity>
         <visual name='visual'>
           <geometry>
@@ -195,9 +194,9 @@
       <direction>0 0 -1</direction>
     </light>
     <state world_name='default'>
-      <sim_time>208 9000000</sim_time>
-      <real_time>435 458716683</real_time>
-      <wall_time>1615043298 170643785</wall_time>
+      <sim_time>248 869000000</sim_time>
+      <real_time>537 1723126</real_time>
+      <wall_time>1615234268 277406457</wall_time>
       <iterations>0</iterations>
       <model name='bebop2'>
         <pose>-0.000331 0.000628 0.004874 1e-06 -0.000115 0.030304</pose>
@@ -218,9 +217,9 @@
         </link>
       </model>
       <model name='mire'>
-        <pose>2.52991 0 0.36544 0 -0.750001 0</pose>
-        <link name='link_0'>
-          <pose>2.52991 0 0.36544 0 -0.750001 0</pose>
+        <pose>3 0 0.5 1.50018 -0.005018 -1.57082</pose>
+        <link name='mire::link_0'>
+          <pose>3 0 0.5 1.50018 -0.005018 -1.57082</pose>
           <velocity>0 0 0 0 -0 0</velocity>
           <acceleration>0 0 0 0 -0 0</acceleration>
           <wrench>0 0 0 0 -0 0</wrench>
@@ -230,7 +229,7 @@
         <pose>0 0 10 0 -0 0</pose>
       </light>
       <light name='user_point_light_0'>
-        <pose>1.03537 -0.036316 15 0 -0 0</pose>
+        <pose>-1.32554 -0.036316 1 0 -0 0</pose>
       </light>
     </state>
   </world>
