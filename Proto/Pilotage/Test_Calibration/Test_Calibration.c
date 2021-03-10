@@ -324,60 +324,59 @@ int main (int argc, char *argv[])
     
      if (!failed){
          int tmp;
-        //On définit la vitesse max de rotation et  vitesse max verticale (75 °/s et 1 m/s)
+        //On définit la vitesse max de rotation et  vitesse max verticale (85 °/s et 1 m/s)
         deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,1 );
-        deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 75);
-
-        printf("\n\n\n Démarage des test de calibrage\n\n\n");
-        printf("r: Roll / f: Pitch front/ b: Pitch back / u: Gaz up / d: Gaz down / t: rotate\n\n ");
-        char input;
-        scanf(input,"%c");
-
-        switch (input):
-        {
-        case 'r':
-            printf("Demarrage des test de Roll a temps variable\n\n");
-            takeOff(deviceController);
-
-            print("value:100 / tmps:0.125 s\n Taper sur une touche pour commencer\n"); 
-            scanf(tmp,"%d");
-            roll(deviceController,100,0.125);
-
-            print("value:100 / tmps:0.25 s\n Taper sur une touche pour commencer\n"); 
-            scanf(tmp,"%d");
-            roll(deviceController,100,0.25);
-
-            print("value:100 / tmps:0.5 s\n Taper sur une touche pour commencer\n"); 
-            scanf(tmp,"%d");
-            roll(deviceController,100,0.5);
-
-            print("value:100 / tmps:0.75 s\n Taper sur une touche pour commencer\n"); 
-            scanf(tmp,"%d");
-            roll(deviceController,100,0.75);
-
-            print("value:100 / tmps:1 s\n Taper sur une touche pour commencer\n"); 
-            scanf(tmp,"%d");
-            roll(deviceController,100,1);
-            break;
-        case 'f':
-            /* code */
-            break;
-        case 'b':
-            /* code */
-            break;
-        case 'u':
-            /* code */
-            break;
-        case 'd':
-            /* code */
-            break;
-        case 't':
-            /* code */
-            break;
+        deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
-        default:
-            break;
+        takeOff(deviceController);
+        while (getFlyingState(deviceController)!=ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING)
+        {   
+            usleep(500000);
+            //On attend tant que le drone n'est pas en vol stationaire
         }
+        sleep(3);
+        int temps=24; //ms
+        int prcAngle=10; 
+        int prcVitt=25;
+        
+        /*for (int i = 0; i < 24; i++)
+        {
+            roll(deviceController,prcAngle,temps);
+        }
+        for (int i = 0; i < 24; i++)
+        {
+            pitch(deviceController,prcAngle,temps);
+        }*/
+        
+        /*for (int i = 0; i < 192; i++)
+        {
+            yaw(deviceController,prcVitt,temps);
+            
+        }*/
+        for (int i = 0; i < 24; i++)
+        {
+            gaz(deviceController,prcVitt,temps);
+            
+        }
+
+        sleep(5);
+        land(deviceController);
+       
+        /*YAW
+        24ms/100 -> 45°/s
+        */
+
+        /*GAZ
+        24ms/100 -> 50 cm/s
+        */
+
+        /*PITCH / ROLL
+        24ms/10 -> 6 cm/s
+        24ms/30 -> 20 cm/s
+        24ms/50 -> 50 cm/s
+        */
+       
+
        
         
       
@@ -672,7 +671,7 @@ void land(ARCONTROLLER_Device_t *deviceController)
 void gaz(ARCONTROLLER_Device_t *deviceController,int valeur,int temps){
     
     deviceController->aRDrone3->setPilotingPCMDGaz(deviceController->aRDrone3, valeur);
-    sleep(temps);
+    usleep(temps*1000);
     deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
 
 }
@@ -680,7 +679,7 @@ void gaz(ARCONTROLLER_Device_t *deviceController,int valeur,int temps){
 void yaw(ARCONTROLLER_Device_t *deviceController,int valeur,int temps){
     
     deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, valeur);
-    sleep(temps);
+    usleep(temps*1000);
     deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
     
 }
@@ -689,7 +688,7 @@ void roll(ARCONTROLLER_Device_t *deviceController,int valeur,int temps){
     
     deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
     deviceController->aRDrone3->setPilotingPCMDRoll(deviceController->aRDrone3, valeur);
-    sleep(temps);
+    usleep(temps*1000);
     deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
     
 }
@@ -698,7 +697,7 @@ void pitch(ARCONTROLLER_Device_t *deviceController,int valeur,int temps){
 
     deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
     deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, valeur);
-    sleep(temps);
+    usleep(temps*1000);
     deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
 }
 
