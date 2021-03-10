@@ -158,7 +158,7 @@ int main(int argc, char *argv[])
             if ((child = fork()) == 0)
             {
                 //execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", fifo_name, "-benchmark", "-really-quiet", NULL);
-                execlp("ffmpeg", "ffmpeg", "-f", "h264", "-i", fifo_name, "-r","2", "outputs/%04d.jpeg", NULL);
+                execlp("ffmpeg", "ffmpeg", "-f", "h264", "-i", fifo_name, "-vf", "scale=-1:720", "-r","2", "outputs/%04d.jpeg", NULL);
                 ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
                 return -1;
             }
@@ -319,56 +319,18 @@ int main(int argc, char *argv[])
 
     if (!failed)
     {
-        //On définit la vitesse max de rotation et  vitesse max verticale (75 °/s et 1 m/s)
-        deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3, 1);
-        deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 75);
-
-        //Décollage
         takeOff(deviceController);
         while (getFlyingState(deviceController) != ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING)
         {
             //On attend tant que le drone n'est pas en vol stationaire
         }
-        //On monte d'environ un mètre
-        error = deviceController->aRDrone3->setPilotingPCMDGaz(deviceController->aRDrone3, 100);
-        sleep(1);
-        //On stop les mouvements
-        error = deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
-        sleep(1);
-
-        //On fait un tour de 360°
-        error = deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, 100);
-        sleep(5);
-        error = deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
-
-        //Roll gauche puis droite
-        error = deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
-        error = deviceController->aRDrone3->setPilotingPCMDRoll(deviceController->aRDrone3, 30);
+        error = deviceController->aRDrone3->setPilotingPCMDGaz(deviceController->aRDrone3, -50);
         sleep(1);
         error = deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
-        sleep(3);
-        error = deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
-        error = deviceController->aRDrone3->setPilotingPCMDRoll(deviceController->aRDrone3, -30);
         sleep(1);
-
-        //Deplacement avant puis arrière
-        error = deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
-        sleep(3);
-        error = deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
-        error = deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, 30);
-        sleep(2);
-
-        error = deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
-        sleep(3);
-        error = deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
-        error = deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, -30);
-        sleep(2);
-
-        //stop and land
-        error = deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
-        sleep(3);
         land(deviceController);
-        //sleep(1000);
+        
+        sleep(20);
     }
 
     /*****************************************

@@ -1,18 +1,20 @@
 <?xml version='1.0'?>
 <sdf version='1.5'>
-  <model name='mire'>
+  <model name='Mire'>
     <link name='link_0'>
-      <gravity>0</gravity>
+    <gravity>0</gravity>
       <visual name='visual'>
         <geometry>
           <mesh>
-            <uri>model://mire/meshes/mire.dae</uri>
+            <uri>model://Mire/meshes/mire.dae</uri>
+            <scale>0.13 0.13 0.13</scale>
           </mesh>
         </geometry>
         <material>
+          <lighting>5</lighting>
           <script>
-            <uri>model://gate/materials/textures</uri>
-            <name>vrc/mire</name>
+            <uri>model://Mire/materials/textures</uri>
+            <name>vrc/Mire</name>
           </script>
           <shader type='pixel'/>
           <ambient>0.3 0.3 0.3 1</ambient>

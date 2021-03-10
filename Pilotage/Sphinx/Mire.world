@@ -1,8 +1,9 @@
+<?xml version="1.0"?>
 <sdf version='1.5'>
   <world name='default'>
     <gui fullscreen='0'>
       <camera name='user_camera'>
-        <pose>-0.745981 0.066674 0.495006 0 0.101799 9e-06</pose>
+        <pose>-1.14858 -1.10633 1.14544 0 0.6 0.428001</pose>
         <track_visual>
           <static>1</static>
           <use_model_frame>1</use_model_frame>
@@ -138,19 +139,21 @@
       <shadows>0</shadows>
     </scene>
     <wind/>
-    <model name='mire'>
-      <link name='mire::link_0'>
+    <model name='Mire'>
+      <link name='link_0'>
         <gravity>0</gravity>
         <visual name='visual'>
           <geometry>
             <mesh>
-              <uri>model://mire/meshes/mire.dae</uri>
+              <uri>model://Mire/meshes/mire.dae</uri>
+              <scale>0.13 0.13 0.13</scale>
             </mesh>
           </geometry>
           <material>
+            <lighting>1</lighting>
             <script>
-              <uri>model://gate/materials/textures</uri>
-              <name>vrc/mire</name>
+              <uri>model://Mire/materials/textures</uri>
+              <name>vrc/Mire</name>
             </script>
             <shader type='pixel'/>
             <ambient>0.3 0.3 0.3 1</ambient>
@@ -178,10 +181,10 @@
       </link>
       <static>0</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose>2.52273 0.045542 0 0 -0 0</pose>
+      <pose>1.00309 -0.011333 0 0 -0 0</pose>
     </model>
     <light name='user_point_light_0' type='point'>
-      <pose>1.03537 -0.036316 1 0 -0 0</pose>
+      <pose>-2.14102 -0.002631 1 0 -0 0</pose>
       <diffuse>0.5 0.5 0.5 1</diffuse>
       <specular>0.1 0.1 0.1 1</specular>
       <attenuation>
@@ -194,10 +197,19 @@
       <direction>0 0 -1</direction>
     </light>
     <state world_name='default'>
-      <sim_time>248 869000000</sim_time>
-      <real_time>537 1723126</real_time>
-      <wall_time>1615234268 277406457</wall_time>
+      <sim_time>70 889000000</sim_time>
+      <real_time>198 760192187</real_time>
+      <wall_time>1615380380 758935047</wall_time>
       <iterations>0</iterations>
+      <model name='Mire'>
+        <pose>1 0 0.065 0 -0 0</pose>
+        <link name='link_0'>
+          <pose>1 0 0.065 0 -0 0</pose>
+          <velocity>0 0 0 0 -0 0</velocity>
+          <acceleration>0 0 0 0 -0 0</acceleration>
+          <wrench>0 0 0 0 -0 0</wrench>
+        </link>
+      </model>
       <model name='bebop2'>
         <pose>-0.000331 0.000628 0.004874 1e-06 -0.000115 0.030304</pose>
         <link name='body'>
@@ -216,20 +228,11 @@
           <wrench>0 0 0 0 -0 0</wrench>
         </link>
       </model>
-      <model name='mire'>
-        <pose>3 0 0.5 1.50018 -0.005018 -1.57082</pose>
-        <link name='mire::link_0'>
-          <pose>3 0 0.5 1.50018 -0.005018 -1.57082</pose>
-          <velocity>0 0 0 0 -0 0</velocity>
-          <acceleration>0 0 0 0 -0 0</acceleration>
-          <wrench>0 0 0 0 -0 0</wrench>
-        </link>
-      </model>
       <light name='sun'>
         <pose>0 0 10 0 -0 0</pose>
       </light>
       <light name='user_point_light_0'>
-        <pose>-1.32554 -0.036316 1 0 -0 0</pose>
+        <pose>-2.14102 -0.002631 1 0 -0 0</pose>
       </light>
     </state>
   </world>
