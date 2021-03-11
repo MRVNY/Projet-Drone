@@ -65,6 +65,7 @@
 #define ERROR_STR_LENGTH 2048
 
 #define BEBOP_IP_ADDRESS "192.168.42.1"
+//#define BEBOP_IP_ADDRESS "10.202.0.1"
 #define BEBOP_DISCOVERY_PORT 44444
 
 #define DISPLAY_WITH_MPLAYER 1
@@ -105,6 +106,24 @@ static void signal_handler(int signal)
 
 int main (int argc, char *argv[])
 {
+    // MPLAYER ou FFMPEG
+    int choice;
+    int fps;
+    printf("\nmplayer(1) ou ffmpeg(2)?\n");
+    if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1)){
+        printf("Entree non connue, mplayer par defaut\n");
+        choice = 1;
+        sleep(1);
+    }
+    if(choice==2){
+        printf("FPS(1-24)?\n");
+        if(scanf("%d",&fps)==0 || fps>24 || fps<1){
+            printf("Entree non connue, 2 fps par defaut\n");
+            fps = 2;
+            sleep(1);
+        }
+    }
+
     // local declarations
     int failed = 0;
     ARDISCOVERY_Device_t *device = NULL;
@@ -159,8 +178,15 @@ int main (int argc, char *argv[])
             // fork the process to launch mplayer
             if ((child = fork()) == 0)
             {
-                execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", fifo_name, "-benchmark", "-really-quiet", NULL);
-                ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
+                if(choice==2){
+                    char str[5];
+                    sprintf(str,"%d",fps);
+                    execlp("ffmpeg", "ffmpeg", "-f", "h264", "-i", fifo_name, "-vf", "scale=-1:720", "-r",str, "outputs/%04d.jpeg", NULL);
+                }
+                else{
+                    execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", fifo_name, "-benchmark", "-really-quiet", NULL);
+                    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
+                }
                 return -1;
             }
         }
@@ -377,9 +403,7 @@ int main (int argc, char *argv[])
         */
        
 
-       
-        
-      
+             
     }
     
     
