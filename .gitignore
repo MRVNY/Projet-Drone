@@ -42,10 +42,10 @@
 .tmp_versions/
 
 #vscode
-.vscode
+*.vscode
 modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
 
-.DS_Store
+*.DS_Store
