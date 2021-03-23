@@ -5,7 +5,7 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_CATEGORY_PATH := samples
-LOCAL_MODULE := main
+LOCAL_MODULE := Proto_commun
 LOCAL_DESCRIPTION := Proto_commun
 
 LOCAL_LIBRARIES := \

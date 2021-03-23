@@ -62,11 +62,6 @@
 
 
 
-static void signal_handler(int signal)
-{
-    gIHMRun = 0;
-}
-
 
 // called when the state of the device controller has changed
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData)
@@ -156,6 +151,7 @@ static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "sensorName %d ; sensorState: %d", sensorName, sensorState);
     }
 }
+
 
 // called when a command has been received from the drone
 void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, void *customData)

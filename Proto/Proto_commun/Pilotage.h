@@ -6,13 +6,31 @@
 #define ERROR_STR_LENGTH 2048
 
 #define BEBOP_IP_ADDRESS "192.168.42.1"
-//#define BEBOP_IP_ADDRESS "10.202.0.1"
 #define BEBOP_DISCOVERY_PORT 44444
 
 #define DISPLAY_WITH_MPLAYER 1
 
 #define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
 #define FIFO_NAME "arsdk_fifo"
+
+static char fifo_dir[] = FIFO_DIR_PATTERN;
+static char fifo_name[128] = "";
+
+int gIHMRun = 1;
+char gErrorStr[ERROR_STR_LENGTH];
+//IHM_t *ihm = NULL;
+
+FILE *videoOut = NULL;
+int frameNb = 0;
+ARSAL_Sem_t stateSem;
+int isBebop2 = 1;
+
+static void signal_handler(int signal)
+{
+    gIHMRun = 0;
+}
+
+
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
 

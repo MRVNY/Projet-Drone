@@ -11,18 +11,9 @@
 #include <libARDiscovery/ARDiscovery.h>
 #include "Pilotage.h"
 
-static char fifo_dir[] = FIFO_DIR_PATTERN;
-static char fifo_name[128] = "";
 
-int gIHMRun = 1;
-char gErrorStr[ERROR_STR_LENGTH];
-//IHM_t *ihm = NULL;
 
-FILE *videoOut = NULL;
-int frameNb = 0;
-ARSAL_Sem_t stateSem;
-int isBebop2 = 1;
-int main (int argc, char *argv[]);
+int main (int argc, char *argv[])
 
 {
     // MPLAYER ou FFMPEG
