@@ -25,11 +25,6 @@ int frameNb = 0;
 ARSAL_Sem_t stateSem;
 int isBebop2 = 1;
 
-static void signal_handler(int signal)
-{
-    gIHMRun = 0;
-}
-
 
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
