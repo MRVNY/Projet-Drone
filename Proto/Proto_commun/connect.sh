@@ -20,6 +20,3 @@ do
 done
 
 [ $i = 10 ] && echo "Connected to $ssid" || echo "Can't find wifi"
-
-/home/johan/Parrot/build.sh -p native -A Test_Calibration
-/home/johan/Parrot/out/arsdk-native/staging/native-wrapper.sh /home/johan/Parrot/out/arsdk-native/staging/usr/bin/Test_Calibration
