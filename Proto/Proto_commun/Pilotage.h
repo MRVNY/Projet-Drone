@@ -13,6 +13,12 @@
 #define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
 #define FIFO_NAME "arsdk_fifo"
 
+#define LOW_ANGLE 10
+#define HIGH_ANGLE 30
+
+#define HIGH_SPEED 10
+#define LOW_SPEED 30
+
 static char fifo_dir[] = FIFO_DIR_PATTERN;
 static char fifo_name[128] = "";
 
@@ -24,7 +30,6 @@ FILE *videoOut = NULL;
 int frameNb = 0;
 ARSAL_Sem_t stateSem;
 int isBebop2 = 1;
-
 
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
@@ -45,13 +50,15 @@ void takeOff(ARCONTROLLER_Device_t *deviceController);
 
 void land(ARCONTROLLER_Device_t *deviceController);
 
-void gaz(ARCONTROLLER_Device_t *deviceController,int valeur,int temps);
+void gaz(ARCONTROLLER_Device_t *deviceController,int valeur);
 
-void yaw(ARCONTROLLER_Device_t *deviceController,int valeur,int temps);
+void yaw(ARCONTROLLER_Device_t *deviceController,int valeur);
 
-void roll(ARCONTROLLER_Device_t *deviceController,int valeur,int temps);
+void roll(ARCONTROLLER_Device_t *deviceController,int valeur);
 
-void pitch(ARCONTROLLER_Device_t *deviceController,int valeur,int temps);
+void pitch(ARCONTROLLER_Device_t *deviceController,int valeur);
+
+void stop(ARCONTROLLER_Device_t *deviceController);
 
 void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
 
