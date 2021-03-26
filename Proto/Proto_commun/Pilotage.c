@@ -84,17 +84,17 @@ int main (int argc, char *argv[])
     pid_t child = 0;
 
     //Chargement des coordonées
-    int **tabCoord=tableauCoord("coord.txt");
+    int **tabCoord=tableauCoord("coord1.txt");
 
     //Test des fonctions des bouchons 
-    for (int i = 0; i < n; i++)
+    /*for (int i = 0; i < n; i++)
     {
         int *coord = malloc(sizeof(int*)*2);
         coord=tabCoord[i];
         int *dec = malloc(sizeof(int*)*2);
-        dec=bouchDecisionTab1(coord,0,10,-10);
+        dec=bouchDecisionTab1(coord,0,430,-430);
         printf("dir:%d/ amp:%d\n\n",dec[0],dec[1]);
-    }
+    }*/
     
 
     // MPLAYER ou FFMPEG
@@ -335,10 +335,9 @@ int main (int argc, char *argv[])
         deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,1 );
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
-        takeOff(deviceController);
-      
+        int k=0;
         while(state!='e'){
-            int k=0;
+            
             //Arrêt de la commande en cour
             stop(deviceController);
 
@@ -394,13 +393,16 @@ int main (int argc, char *argv[])
                 else{
                 int *coord = tabCoord[k];
                 int *dec;
-                dec=bouchDecisionTab1(coord,0,10,-10);
+                dec=bouchDecisionTab1(coord,0,430,-430);
 
                 //bonchon traduciton décision
                 if(dec[0]==1){
                     state='d';
                     if(dec[1]==1){
-                        
+                        angleAmp=LOW_ANGLE;
+                    }
+                    else{
+                        angleAmp=HIGH_ANGLE;
                     }
                 }
                 else{
@@ -408,6 +410,8 @@ int main (int argc, char *argv[])
                 }
                 
                 }
+
+                k++;
               
         }
     
