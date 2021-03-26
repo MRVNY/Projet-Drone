@@ -62,6 +62,10 @@
  *
  *****************************************/
 
+static void signal_handler(int signal)
+{
+    gIHMRun = 0;
+}
 
 int main (int argc, char *argv[])
 
@@ -78,6 +82,19 @@ int main (int argc, char *argv[])
     eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
     eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
     pid_t child = 0;
+
+    //Chargement des coordonées
+    int **tabCoord=tableauCoord("coord.txt");
+
+    //Test des fonctions des bouchons 
+    for (int i = 0; i < n; i++)
+    {
+        int *coord = malloc(sizeof(int*)*2);
+        coord=tabCoord[i];
+        int *dec = malloc(sizeof(int*)*2);
+        dec=bouchDecisionTab1(coord,0,10,-10);
+        printf("dir:%d/ amp:%d\n\n",dec[0],dec[1]);
+    }
     
 
     // MPLAYER ou FFMPEG
@@ -321,6 +338,7 @@ int main (int argc, char *argv[])
         takeOff(deviceController);
       
         while(state!='e'){
+            int k=0;
             //Arrêt de la commande en cour
             stop(deviceController);
 
@@ -340,7 +358,7 @@ int main (int argc, char *argv[])
                     roll(deviceController,angleAmp);
                     break;
                 case 'h':
-                    gaz(deviceController,angleAmp);
+                    gaz(deviceController,speedAmp);
                     break;
                 case 'b':
                     gaz(deviceController,-speedAmp);
@@ -367,8 +385,30 @@ int main (int argc, char *argv[])
                 }
 
                 //Recupération du flux par la partie imagerie
+                bouchTraitementImage1();
+
+                //décision
+                if(k==n){
+                    state='e';
+                }
+                else{
+                int *coord = tabCoord[k];
+                int *dec;
+                dec=bouchDecisionTab1(coord,0,10,-10);
+
+                //bonchon traduciton décision
+                if(dec[0]==1){
+                    state='d';
+                    if(dec[1]==1){
+                        
+                    }
+                }
+                else{
+                    state='g';
+                }
                 
-                //Prise de décision 
+                }
+              
         }
     
   
@@ -431,10 +471,7 @@ int main (int argc, char *argv[])
 
 /*Définitions des fonctions de pilotage*/
 
-static void signal_handler(int signal)
-{
-    gIHMRun = 0;
-}
+
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)
 {

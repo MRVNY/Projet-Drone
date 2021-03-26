@@ -1,6 +1,6 @@
 ROOT = /home/johan/Parrot
 #ROOT = /Users/Marvin/PARROT/PARROT-SDK
-TEST = Test_Calibration
+TEST = Proto_commun
 
 help:
 	@echo
