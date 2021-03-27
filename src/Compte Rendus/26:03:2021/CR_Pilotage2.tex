@@ -1,0 +1,33 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Compte rendu Pilotage, réunion du 26 Mars}
+\author{Johan Rossi, Qingyuan Yao}
+
+\date{March 27 2021}
+
+\begin{document}
+
+\maketitle
+
+\section{Finaliser l'architecture:}
+\begin{itemize}
+    \item Restructurer le git en définissant précisément l'architecture du projet
+    \item Définir quasi-définitivement les headers de chaque partie du projet et un header commun, ne plus différencier les appels des bouchons de l'appel des méthodes définitives.
+\end{itemize}
+
+\section{Création de bouchons}
+Gérer les appel en call-back, la boucle évènementielle sera gérée par la partie imagerie (boucle des images du drone toute les 1/24s). 
+On décompose les appels de commande de cette manière:
+\begin{itemize}
+    \item Appel de la méthode de traitement d'images avec le flux vidéo en paramètre.
+    \item Boucle de traitement d'image avec appel a la décision a chaque traitement
+    \item Analyse de l'image traitée et appel du call-back de la partie pilote pour définir la commande a envoyer au drone.
+    \item Mise à jour du compteur partagé avec le watchdog (cf.3) pour qu'il ne lance pas un recovery.
+\end{itemize}
+
+\section{Implémenter un watchog}
+Lancer un thread (pthread) au démarrage du programme depuis le main, le role de ce thread sera de rattraper les exceptions du programme et de vérifier en tout les x intervalle de temps que la mise à jour de commande est correctement effectuée (exemple: commande durant trop longtemps) enfin exécuter un code de recovery du drone (ex: arrêter et atterrir le drone lors d'un crash du programme).
+
+
+\end{document}
