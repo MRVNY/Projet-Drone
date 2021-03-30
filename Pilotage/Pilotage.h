@@ -19,18 +19,6 @@
 #define HIGH_SPEED 10
 #define LOW_SPEED 30
 
-static char fifo_dir[] = FIFO_DIR_PATTERN;
-static char fifo_name[128] = "";
-
-int gIHMRun = 1;
-char gErrorStr[ERROR_STR_LENGTH];
-//IHM_t *ihm = NULL;
-
-FILE *videoOut = NULL;
-int frameNb = 0;
-ARSAL_Sem_t stateSem;
-int isBebop2 = 1;
-
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
 

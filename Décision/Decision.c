@@ -1,5 +1,9 @@
-
+#include <libARSAL/ARSAL.h>
+#include <libARController/ARController.h>
+#include <libARDiscovery/ARDiscovery.h>
 #include "Decision.h"
+#include "../Pilotage/Pilotage.h"
+
 #include <stdio.h>
 
 int n=0;

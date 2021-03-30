@@ -5,8 +5,8 @@ LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
 LOCAL_CATEGORY_PATH := samples
-LOCAL_MODULE := Proto_commun
-LOCAL_DESCRIPTION := Proto_commun
+LOCAL_MODULE := Projet-Drone
+LOCAL_DESCRIPTION := Projet-Drone
 
 LOCAL_LIBRARIES := \
 	libARSAL \
@@ -19,10 +19,12 @@ LOCAL_LIBRARIES := \
 	libARDiscovery \
 	libARStream \
 	libARStream2 \
-	ncurses
+	
 
 LOCAL_SRC_FILES := \
-	$(call all-c-files-under,.)
+	$(call all-c-files-under,.)\
+	$(call all-c-files-under,../Décision)\
+	$(call all-c-files-under,../Image)
 
 include $(BUILD_EXECUTABLE)
 

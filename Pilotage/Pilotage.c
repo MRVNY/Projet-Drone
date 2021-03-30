@@ -53,15 +53,30 @@
 #include <libARDiscovery/ARDiscovery.h>
 
 #include "Pilotage.h"
-#include "Decision.h"
-#include "Imagerie.h"
+#include "../Image/Imagerie.h"
+
+static char fifo_dir[] = FIFO_DIR_PATTERN;
+static char fifo_name[128] = "";
+
+int gIHMRun = 1;
+char gErrorStr[ERROR_STR_LENGTH];
+//IHM_t *ihm = NULL;
+
+FILE *videoOut = NULL;
+int frameNb = 0;
+ARSAL_Sem_t stateSem;
+int isBebop2 = 1;
+
 
 /*****************************************
  *
  *             implementation :
  *
  *****************************************/
-
+static void signal_handler(int signal)
+{
+    gIHMRun = 0;
+}
 
 int main (int argc, char *argv[])
 
@@ -431,10 +446,7 @@ int main (int argc, char *argv[])
 
 /*Définitions des fonctions de pilotage*/
 
-static void signal_handler(int signal)
-{
-    gIHMRun = 0;
-}
+
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)
 {

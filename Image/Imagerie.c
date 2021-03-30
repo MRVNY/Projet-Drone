@@ -1,5 +1,6 @@
 #include <unistd.h>
 #include "Imagerie.h"
+#include "../Décision/Decision.h"
 
 
 void bouchTraitementImage1(){
