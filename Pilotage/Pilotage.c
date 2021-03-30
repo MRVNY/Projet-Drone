@@ -47,6 +47,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include <libARSAL/ARSAL.h>
 #include <libARController/ARController.h>
@@ -66,7 +67,7 @@ FILE *videoOut = NULL;
 int frameNb = 0;
 ARSAL_Sem_t stateSem;
 int isBebop2 = 1;
-
+int watch_dog_counter = 0;
 
 /*****************************************
  *
@@ -76,6 +77,14 @@ int isBebop2 = 1;
 static void signal_handler(int signal)
 {
     gIHMRun = 0;
+}
+
+void *watch_dog(){
+    while(watch_dog_counter>=0){
+        sleep(1);
+        printf("////////WATCH DOG %d////////\n", watch_dog_counter);
+        watch_dog_counter++;
+    }
 }
 
 int main (int argc, char *argv[])
@@ -93,6 +102,8 @@ int main (int argc, char *argv[])
     eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
     eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
     pid_t child = 0;
+    pthread_t threads;
+    int thread_args;
     
 
     // MPLAYER ou FFMPEG
@@ -111,6 +122,9 @@ int main (int argc, char *argv[])
             sleep(1);
         }
     } 
+
+    // Watch Dog
+    pthread_create(&threads, NULL, watch_dog, NULL);
 
     /* Set signal handlers */
     struct sigaction sig_action = {
@@ -441,8 +455,22 @@ int main (int argc, char *argv[])
 
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
 
+    //END Watch Dog
+    printf("Before join, sleep 5\n");
+    sleep(5);
+    watch_dog_counter = -10;
+    pthread_join(threads, NULL);
+    printf("After join, sleep 5\n");
+    sleep(5);
+    printf("Final watch dog: %d\n", watch_dog_counter);
+
     return EXIT_SUCCESS;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*Définitions des fonctions de pilotage*/
 
