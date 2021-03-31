@@ -1,6 +1,7 @@
 #include<stdio.h> 
 #include<stdlib.h> 
 #include "decision.h"
+#include "../Pilotage/Pilotage.h"
 
 //convention pour les etats
 // -1 : proche à droite || un peu en haut 
@@ -186,46 +187,3 @@ void commande(int *vecteur, int **cordonnees){
 }
 
 
-int main(int argc, int *argv){ 
-  
-
-    // on suppose qu'on a recu les 4 hirondelle 
-    int *vecteur=malloc(sizeof(int)*2);
-
-    int **cordonnees=(int **)malloc(sizeof(int*)*4);
-    for(int i=0;i<4;i++){
-        cordonnees[i]=(int*)malloc(sizeof(int)*2);
-    }
-    int i,j;
-    for(i=0;i<4;i++){
-        for (j=0;j<2;j++){
-            scanf("%d",&cordonnees[i][j]);
-        }
-
-    }
-    commande(vecteur, cordonnees);
-    switch(vecteur[0]){
-
-        case 1 : printf("aller à gauche \n");break;
-        case -1 : printf("aller à droite \n");break;
-        case 2 : printf("monter \n");break;
-        case -2 : printf("descendre \n");break;
-        case 3 :  printf("avancer \n");break;
-        case -3 : printf("reculer \n");break;
-        case 4 : printf("rotation à gauche \n");break;
-        case -4 : printf("rotation à droite \n");break;
-        default : printf("erreur on arrive pas à renvoyer la commande \n");break;
-
-    }
-
-    switch(vecteur[1]){
-
-        case 1 : printf("avec une commande élémentaire \n");break;
-        case 2: printf("avec une double commande élémentaire \n");break;
-
-    }
-
-return 0; 
-    
-
-}
