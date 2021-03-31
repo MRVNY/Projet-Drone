@@ -19,10 +19,13 @@
 #define HIGH_SPEED 10
 #define LOW_SPEED 30
 
+<<<<<<< HEAD:Pilotage/Pilotage.h
 #include <libARSAL/ARSAL.h>
 #include <libARController/ARController.h>
 #include <libARDiscovery/ARDiscovery.h>
 
+=======
+>>>>>>> bouchonPilote:Proto/Proto_commun/Pilotage.h
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
 
 void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, void *customData);

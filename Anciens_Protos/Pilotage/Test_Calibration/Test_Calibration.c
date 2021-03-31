@@ -1,3 +1,45 @@
+/*
+  Copyright (C) 2014 Parrot SA
+
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+  * Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in
+  the documentation and/or other materials provided with the
+  distribution.
+  * Neither the name of Parrot nor the names
+  of its contributors may be used to endorse or promote products
+  derived from this software without specific prior written
+  permission.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+  FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+  COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+  BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
+  OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+  AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
+  OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+  SUCH DAMAGE.
+*/
+/**
+ * @file BebopSample.c
+ * @brief This file contains sources about basic arsdk example sending commands to a bebop drone to pilot it,
+ * receive its battery level and display the video stream.
+ * @date 15/01/2015
+ */
+
+/*****************************************
+ *
+ *             include file :
+ *
+ *****************************************/
 
 #include <stdlib.h>
 #include <curses.h>
@@ -5,33 +47,46 @@
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
-#include <pthread.h>
 
-#include "Pilotage.h"
-<<<<<<< HEAD:Pilotage/Pilotage.c
-=======
-#include "../Image/Imagerie.h"
+#include <libARSAL/ARSAL.h>
+#include <libARController/ARController.h>
+#include <libARDiscovery/ARDiscovery.h>
 
-static char fifo_dir[] = FIFO_DIR_PATTERN;
-static char fifo_name[128] = "";
+#include "Test_Calibration.h"
+//#include "ihm.h"
 
-int gIHMRun = 1;
-char gErrorStr[ERROR_STR_LENGTH];
-//IHM_t *ihm = NULL;
+/*****************************************
+ *
+ *             define :
+ *
+ *****************************************/
+#define TAG "BebopSample"
 
-FILE *videoOut = NULL;
-int frameNb = 0;
-ARSAL_Sem_t stateSem;
-int isBebop2 = 1;
-int watch_dog_counter = 0;
->>>>>>> bouchonPilote:Proto/Proto_commun/Pilotage.c
+#define ERROR_STR_LENGTH 2048
+
+#define BEBOP_IP_ADDRESS "192.168.42.1"
+//#define BEBOP_IP_ADDRESS "10.202.0.1"
+#define BEBOP_DISCOVERY_PORT 44444
+
+#define DISPLAY_WITH_MPLAYER 1
+
+#define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
+#define FIFO_NAME "arsdk_fifo"
+
+//#define IHM
+/*****************************************
+ *
+ *             private header:
+ *
+ ****************************************/
+
 
 /*****************************************
  *
  *             implementation :
  *
  *****************************************/
-<<<<<<< HEAD:Pilotage/Pilotage.c
+
 static char fifo_dir[] = FIFO_DIR_PATTERN;
 static char fifo_name[128] = "";
 
@@ -40,50 +95,20 @@ char gErrorStr[ERROR_STR_LENGTH];
 //IHM_t *ihm = NULL;
 
 FILE *videoOut = NULL;
-
 int frameNb = 0;
 ARSAL_Sem_t stateSem;
 int isBebop2 = 1;
 
-=======
->>>>>>> bouchonPilote:Proto/Proto_commun/Pilotage.c
 static void signal_handler(int signal)
 {
     gIHMRun = 0;
 }
 
-void *watch_dog(){
-    while(watch_dog_counter>=0){
-        sleep(1);
-        printf("////////WATCH DOG %d////////\n", watch_dog_counter);
-        watch_dog_counter++;
-    }
-}
-
 int main (int argc, char *argv[])
-
 {
-
-    //Test//
-
-     // local declarations
-    int failed = 0;
+    // MPLAYER ou FFMPEG
     int choice;
     int fps;
-    char state='t'; //état qui définit la direction a prendre
-    int angleAmp = HIGH_ANGLE; 
-    int speedAmp = HIGH_SPEED;
-    ARDISCOVERY_Device_t *device = NULL;
-    ARCONTROLLER_Device_t *deviceController = NULL;
-    eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
-    eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
-    pid_t child = 0;
-    pthread_t threads;
-    int thread_args;
-    
-
-    // MPLAYER ou FFMPEG
-   
     printf("\nmplayer(1) ou ffmpeg(2)?\n");
     if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1)){
         printf("Entree non connue, mplayer par defaut\n");
@@ -99,8 +124,25 @@ int main (int argc, char *argv[])
         }
     } 
 
-    // Watch Dog
-    pthread_create(&threads, NULL, watch_dog, NULL);
+    //Selection des variable de déplacement
+    int temps; //ms
+    int prcAngle; 
+    int prcVitt;
+    printf("Durée impulsion (ms)\n");
+    scanf("%d",&temps);
+    printf("Pourcentage angle max\n");
+    scanf("%d",&prcAngle);
+    printf("Pourcentage vitesse max\n");
+    scanf("%d",&prcVitt);
+
+
+    // local declarations
+    int failed = 0;
+    ARDISCOVERY_Device_t *device = NULL;
+    ARCONTROLLER_Device_t *deviceController = NULL;
+    eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
+    eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
+    pid_t child = 0;
 
     /* Set signal handlers */
     struct sigaction sig_action = {
@@ -121,6 +163,7 @@ int main (int argc, char *argv[])
                     errno, strerror(errno));
         return 1;
     }
+
 
     if (mkdtemp(fifo_dir) == NULL)
     {
@@ -319,67 +362,106 @@ int main (int argc, char *argv[])
     
      if (!failed){
        
+
         //On définit la vitesse max de rotation et  vitesse max verticale (85 °/s et 1 m/s)
         deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,1 );
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
         takeOff(deviceController);
-      
-        while(state!='e'){
-            //Arrêt de la commande en cour
-            stop(deviceController);
-
-            //Selection de la prochaine commande selon state 
-            switch (state)
-                {
-                case 'a':
-                    pitch(deviceController,angleAmp);
-                    break;
-                case 'r':
-                    pitch(deviceController,-angleAmp);
-                    break;
-                case 'g':
-                    roll(deviceController,-angleAmp);
-                    break;
-                case 'd':
-                    roll(deviceController,angleAmp);
-                    break;
-                case 'h':
-                    gaz(deviceController,angleAmp);
-                    break;
-                case 'b':
-                    gaz(deviceController,-speedAmp);
-                case 'q':
-                    yaw(deviceController,-speedAmp);
-                    break;
-                case 's':
-                    yaw(deviceController,speedAmp);
-                    break;
-                case 'l':
-                    land(deviceController);
-                    break;
-                case 't':
-                    takeOff(deviceController);
-                        while (getFlyingState(deviceController)!=ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING)
-                        {   
-                            //On attend tant que le drone n'est pas en vol stationaire
-                        }
-                        sleep(1);
-                    break;
-                default:
-                    stop(deviceController);
-                    break;
-                }
-
-                //Recupération du flux par la partie imagerie
-                
-                //Prise de décision 
+        while (getFlyingState(deviceController)!=ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING)
+        {   
+            //On attend tant que le drone n'est pas en vol stationaire
         }
+        sleep(1);
+        
     
-  
+    char c;
+    char bff;
+    int it;
+    //sleep(5);
+    do
+    {   
+        deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
+        printf("Commande a(avancer), r(reculer),g(gauche),d(droit),h(haut),b(bas),t(takeoff),l(land),q(rotgauche),s(rotdroit)\n");
+        scanf("%c",&bff);
+        scanf("%c",&c);
+
+        if(c=='e'|| c=='l'|| c=='t'){
+            it=1;
+        }
+        else{
+            printf("Nombre itération\n");
+            scanf("%d",&it);
+        }
+       
+        
+        for (int i = 0; i < it; i++)
+        {   
+            //Arrêt du déplacement
+            deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
+
+            switch (c)
+            {
+            case 'a':
+                deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
+                deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, prcAngle);
+                break;
+            case 'r':
+                deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
+                deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, -prcAngle);                
+                break;
+            case 'g':
+                deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
+                deviceController->aRDrone3->setPilotingPCMDRoll(deviceController->aRDrone3, -prcAngle);                
+                break;
+            case 'd':
+                deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
+                deviceController->aRDrone3->setPilotingPCMDRoll(deviceController->aRDrone3, prcAngle);                    
+                break;
+            case 'h':
+                deviceController->aRDrone3->setPilotingPCMDGaz(deviceController->aRDrone3, prcVitt);
+                break;
+            case 'b':
+                deviceController->aRDrone3->setPilotingPCMDGaz(deviceController->aRDrone3, -prcVitt);
+            case 'q':
+                deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, -prcVitt);
+                break;
+            case 's':
+                deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, prcVitt);
+                break;
+            case 'l':
+                land(deviceController);
+                break;
+            case 't':
+                takeOff(deviceController);
+                break;
+            
+            default:
+            deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
+
+                break;
+            }
+            //Temps du reste du traitement 
+            usleep(1000*temps);
+        }
+        
+
+    } while (c!='e');
+    
     sleep(2);
     land(deviceController);   
-                 
+    
+    
+    
+
+        /*PITCH / ROLL
+        1/24s/10 -> 17 cm/s
+        1/24s/30 -> 60 cm/s
+        1/24s/50 -> 1 m/s
+        */
+       
+
+             
     }
     
     
@@ -431,29 +513,37 @@ int main (int argc, char *argv[])
 
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
 
-    //END Watch Dog
-    printf("Before join, sleep 5\n");
-    sleep(5);
-    watch_dog_counter = -10;
-    pthread_join(threads, NULL);
-    printf("After join, sleep 5\n");
-    sleep(5);
-    printf("Final watch dog: %d\n", watch_dog_counter);
-
     return EXIT_SUCCESS;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*****************************************
+ *
+ *             private implementation:
+ *
+ ****************************************/
 
-/*Définitions des fonctions de pilotage*/
+// called when the state of the device controller has changed
+void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData)
+{
+    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - stateChanged newState: %d .....", newState);
 
-<<<<<<< HEAD:Pilotage/Pilotage.c
-=======
+    switch (newState)
+    {
+    case ARCONTROLLER_DEVICE_STATE_STOPPED:
+        ARSAL_Sem_Post (&(stateSem));
+        //stop
+        gIHMRun = 0;
 
->>>>>>> bouchonPilote:Proto/Proto_commun/Pilotage.c
+        break;
+
+    case ARCONTROLLER_DEVICE_STATE_RUNNING:
+        ARSAL_Sem_Post (&(stateSem));
+        break;
+
+    default:
+        break;
+    }
+}
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)
 {
@@ -520,31 +610,6 @@ static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "sensorName %d ; sensorState: %d", sensorName, sensorState);
     }
 }
-
-// called when the state of the device controller has changed
-void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData)
-{
-    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - stateChanged newState: %d .....", newState);
-
-    switch (newState)
-    {
-    case ARCONTROLLER_DEVICE_STATE_STOPPED:
-        ARSAL_Sem_Post (&(stateSem));
-        //stop
-        gIHMRun = 0;
-
-        break;
-
-    case ARCONTROLLER_DEVICE_STATE_RUNNING:
-        ARSAL_Sem_Post (&(stateSem));
-        break;
-
-    default:
-        break;
-    }
-}
-
-
 
 // called when a command has been received from the drone
 void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, void *customData)
@@ -684,29 +749,37 @@ void land(ARCONTROLLER_Device_t *deviceController)
     }
 }
 
-void gaz(ARCONTROLLER_Device_t *deviceController,int valeur){
+//Fonctions regroupant les déplacements du drone, 
+void gaz(ARCONTROLLER_Device_t *deviceController,int valeur,int temps){
     
     deviceController->aRDrone3->setPilotingPCMDGaz(deviceController->aRDrone3, valeur);
+    usleep(temps*1000);
+    deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
+
 }
 
-void yaw(ARCONTROLLER_Device_t *deviceController,int valeur){
+void yaw(ARCONTROLLER_Device_t *deviceController,int valeur,int temps){
     
-    deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, valeur);    
+    deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, valeur);
+    usleep(temps*1000);
+    deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
+    
 }
 
-void roll(ARCONTROLLER_Device_t *deviceController,int valeur){
+void roll(ARCONTROLLER_Device_t *deviceController,int valeur,int temps){
     
     deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
     deviceController->aRDrone3->setPilotingPCMDRoll(deviceController->aRDrone3, valeur);
+    usleep(temps*1000);
+    deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
+    
 }
 
-void pitch(ARCONTROLLER_Device_t *deviceController,int valeur){
+void pitch(ARCONTROLLER_Device_t *deviceController,int valeur,int temps){
 
     deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
     deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, valeur);
-}
-
-void stop(ARCONTROLLER_Device_t *deviceController){
+    usleep(temps*1000);
     deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
 }
 
