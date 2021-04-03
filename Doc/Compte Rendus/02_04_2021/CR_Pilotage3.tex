@@ -1,0 +1,32 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Compte rendu Pilotage, réunion du 2 Avril}
+\author{Johan Rossi, Qingyuan Yao}
+
+\date{April 3 2021}
+
+\begin{document}
+
+\maketitle
+
+\section{Architecture:}
+\begin{itemize}
+    \item Gérer le l'interface C/C++ du projet. Créer un main en c++, définir ce qu'il faut wrapper , explorer les différente méthodes ...
+    \item Créer un commun.h, variables de communication entre les parties...
+    \item Déménager les commandes de contrôle dans une fonction callback séparée
+\end{itemize}
+
+\section{Création de bouchons}
+\begin{itemize}
+    \item Une fois l'architecture fixée, on démarre les protos (Méthodes de proto déjà définies)
+\end{itemize}
+
+\section{Implémenter un watchdog}
+\begin{itemize}
+    \item On a réussi à créer le pthread dans le main, en testant les codes, on a compris le fonctionnement principal de pthread
+    \item Le prochain étape sera implémenter le watchdog qui vérifie un compteur visible uniquement pour la partie Pilotage. Ce compteur sera mis à jour à la fin de la fonction callback dans laquelle on va déménager les commandes de contrôle.
+\end{itemize}
+
+
+\end{document}
