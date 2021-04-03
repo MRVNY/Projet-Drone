@@ -2,6 +2,8 @@
 #include "../Décision/decision.h"
 #include <typeinfo>
 
+
+
 int** video_reader_process(const char* infile) {
     
     int ret;

@@ -37,9 +37,11 @@ LOCAL_LIBRARIES := \
 	libARStream \
 	libARStream2 \
 	ncurses \
+	ffmpeg\
 	opencv2
 
 LOCAL_SRC_FILES := \
+	$(call all-cpp-files-under,./Pilotage)\
 	$(call all-c-files-under,./Pilotage)\
 	$(call all-cpp-files-under,./Bas_niveau)\
 	$(call all-c-files-under,./Décision)
