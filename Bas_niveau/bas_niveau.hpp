@@ -29,7 +29,7 @@ class SPoint {       // The class
     SPoint() : x(0),y(0),somme(0) {}
 };
 
-//int ** video_reader_process(const char* infile);
+int ** video_reader_process(const char* infile);
 void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_ctx, AVFrame* av_frame, AVFrame* decrame);
 void image_processing(cv::Mat image,int*** resultat);
 

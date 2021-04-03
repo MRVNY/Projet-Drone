@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <curses.h>
 #include <string.h>
@@ -8,9 +7,6 @@
 #include <pthread.h>
 
 #include "Pilotage.h"
-<<<<<<< HEAD:Pilotage/Pilotage.c
-=======
-#include "../Image/Imagerie.h"
 
 static char fifo_dir[] = FIFO_DIR_PATTERN;
 static char fifo_name[128] = "";
@@ -24,29 +20,13 @@ int frameNb = 0;
 ARSAL_Sem_t stateSem;
 int isBebop2 = 1;
 int watch_dog_counter = 0;
->>>>>>> bouchonPilote:Proto/Proto_commun/Pilotage.c
 
 /*****************************************
  *
  *             implementation :
  *
  *****************************************/
-<<<<<<< HEAD:Pilotage/Pilotage.c
-static char fifo_dir[] = FIFO_DIR_PATTERN;
-static char fifo_name[128] = "";
 
-int gIHMRun = 1;
-char gErrorStr[ERROR_STR_LENGTH];
-//IHM_t *ihm = NULL;
-
-FILE *videoOut = NULL;
-
-int frameNb = 0;
-ARSAL_Sem_t stateSem;
-int isBebop2 = 1;
-
-=======
->>>>>>> bouchonPilote:Proto/Proto_commun/Pilotage.c
 static void signal_handler(int signal)
 {
     gIHMRun = 0;
@@ -60,12 +40,11 @@ void *watch_dog(){
     }
 }
 
-int main (int argc, char *argv[])
-
+int main_Pilotage (int **(*functionPtr)(const char*))
 {
 
     //Test//
-
+    (*functionPtr)("toto");
      // local declarations
     int failed = 0;
     int choice;
@@ -450,10 +429,7 @@ int main (int argc, char *argv[])
 
 /*Définitions des fonctions de pilotage*/
 
-<<<<<<< HEAD:Pilotage/Pilotage.c
-=======
 
->>>>>>> bouchonPilote:Proto/Proto_commun/Pilotage.c
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)
 {

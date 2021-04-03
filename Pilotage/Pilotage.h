@@ -1,7 +1,7 @@
 #ifndef _PILOTAGE_H_
 #define _PILOTAGE_H_
 
-#define TAG "Protocom"
+#define TAG "Projet-Drone"
 
 #define ERROR_STR_LENGTH 2048
 
@@ -19,13 +19,21 @@
 #define HIGH_SPEED 10
 #define LOW_SPEED 30
 
-<<<<<<< HEAD:Pilotage/Pilotage.h
 #include <libARSAL/ARSAL.h>
 #include <libARController/ARController.h>
 #include <libARDiscovery/ARDiscovery.h>
 
-=======
->>>>>>> bouchonPilote:Proto/Proto_commun/Pilotage.h
+#if defined (__cplusplus)
+extern "C" {
+#endif
+
+int main_Pilotage (int **(*functionPtr)(const char*));
+ 
+#if defined (__cplusplus)
+}
+#endif
+
+
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
 
 void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, void *customData);
