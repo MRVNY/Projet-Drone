@@ -7,6 +7,7 @@
 #include <vector>
 
 extern "C" {
+    #include "../Décision/decision.h"
     #include <libavformat/avformat.h>
     #include <libavcodec/avcodec.h>
     #include <libavutil/avutil.h>

@@ -1,3 +1,4 @@
+
 #ifndef _PILOTAGE_H_
 #define _PILOTAGE_H_
 
@@ -22,6 +23,7 @@
 #include <libARSAL/ARSAL.h>
 #include <libARController/ARController.h>
 #include <libARDiscovery/ARDiscovery.h>
+
 #include "../commun.h"
 
 #if defined (__cplusplus)
@@ -61,6 +63,12 @@ eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 pid_t child = 0;
 pthread_t threads;
 int thread_args;
+
+void *watch_dog();
+
+void callback(int state);
+
+void end();
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
 

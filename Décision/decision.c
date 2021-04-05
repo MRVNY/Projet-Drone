@@ -167,40 +167,32 @@ int nombre_de_cordonnee_recu(int **vecteur){
 
 
 
-void analyseInterpretation(int **cordonnees,int *ETAT_PRECEDENT0,int *ETAT_PRECEDENT1,float *DISTANCE_PRECEDENTE){
-    /*
-        Cette fonction renvoie la commande à transmettre selon l'état du drone 
-        vecteur : le résultat de la partie 
-        cordonnees: les cordonnées des hirondelles 
-    */
-    int *vecteur=(int *)malloc(sizeof(int)*2);
-    int nb_cordonnee = nombre_de_cordonnee_recu(cordonnees);    // on appelle la fonction pour calculer le nombre d'hirondelle recues 
-    if(nb_cordonnee <=2 ){  // i.e on a recu que 2 ou 1 ou 0 hirondelle donc si on a un état précedent on pourai l'utilisé pour savoir si vraiment on est à l'extrémité ou c'est juste une erreur de la partie imageri 
-        vecteur[0]=*ETAT_PRECEDENT0;  
-        vecteur[1]=3;
+void analyseInterpretation(int *tab,int min, int max, int ref){
+    
+
+    int *tabDec=(int *)malloc(sizeof(int)*2);
+
+    if(tab[0]-ref<0)
+    {
+        tabDec[0]=-1;
+        if(tab[0]<(min+ref)/2){
+            tabDec[1]=1;
+        }
+        else{
+            tabDec[1]=2;
+        }
     }
     else{
-        current_state_y(cordonnees,vecteur);
-        if(vecteur[0]==0){
-            current_state_x(cordonnees,vecteur); // la normamlement on appelle directement une fonction de la partie pilotage en donnant en paramètre nos resulat 
+        tabDec[0]=1;
+        if(tab[0]<(max-ref)/2){
+            tabDec[1]=1;
         }
-    }
-    if((vecteur[0]==*ETAT_PRECEDENT0) && (vecteur[1]==*ETAT_PRECEDENT1)){ // je suis tjr dans la mm zone 
-        if(nb_cordonnee!=0){
-            if(evaluation(cordonnees,DISTANCE_PRECEDENTE)==0){ // on envoie un ko 
-                vecteur[0]=-5;  
-                vecteur[1]=0;   
-            }
-            else{ // on envoie un ok 
-                vecteur[0]=5;  
-                vecteur[1]=0; 
-            }
+        else{
+            tabDec[1]=2;
         }
+
     }
-    int k;
-    for(k=0;k<2;k++){
-       printf(" etat: %d \n intensité: %d \n",vecteur[0],vecteur[1]); 
-    }
+    
     // pilotage(vecteur) 
 }
 
