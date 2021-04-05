@@ -1,3 +1,6 @@
+#ifndef _COMMUN_H_
+#define _COMMUN_H_
+
 // La convention sur les états 
 
 #define STOP 0

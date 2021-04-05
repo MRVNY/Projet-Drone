@@ -1,6 +1,12 @@
 #ifndef _PILOTAGE_H_
 #define _PILOTAGE_H_
 
+#include <libARSAL/ARSAL.h>
+#include <libARController/ARController.h>
+#include <libARDiscovery/ARDiscovery.h>
+
+#include "../commun.h"
+
 #define TAG "Projet-Drone"
 
 #define ERROR_STR_LENGTH 2048
@@ -18,12 +24,6 @@
 
 #define HIGH_SPEED 10
 #define LOW_SPEED 30
-
-#include <libARSAL/ARSAL.h>
-#include <libARController/ARController.h>
-#include <libARDiscovery/ARDiscovery.h>
-
-#include "../commun.h"
 
 #if defined (__cplusplus)
 extern "C" {
