@@ -7,6 +7,10 @@
 #include <pthread.h>
 
 #include "Pilotage.h"
+<<<<<<< HEAD
+#include "../commun.h"
+=======
+>>>>>>> a624c4e60914d61a4ff7b72ac2d56c2706a66cde
 
 /*****************************************
  *
