@@ -33,6 +33,33 @@ int main_Pilotage (int **(*functionPtr)(const char*));
 }
 #endif
 
+static char fifo_dir[] = FIFO_DIR_PATTERN;
+static char fifo_name[128] = "";
+
+int gIHMRun = 1;
+char gErrorStr[ERROR_STR_LENGTH];
+//IHM_t *ihm = NULL;
+
+FILE *videoOut = NULL;
+int frameNb = 0;
+ARSAL_Sem_t stateSem;
+int isBebop2 = 1;
+int watch_dog_counter = 0;
+
+// local declarations
+int failed = 0;
+int choice;
+int fps;
+//char state='t'; //état qui définit la direction a prendre
+int angleAmp = HIGH_ANGLE;
+int speedAmp = HIGH_SPEED;
+ARDISCOVERY_Device_t *device = NULL;
+ARCONTROLLER_Device_t *deviceController = NULL;
+eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
+eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
+pid_t child = 0;
+pthread_t threads;
+int thread_args;
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
 
