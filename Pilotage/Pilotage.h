@@ -22,6 +22,7 @@
 #include <libARSAL/ARSAL.h>
 #include <libARController/ARController.h>
 #include <libARDiscovery/ARDiscovery.h>
+#include "../commun.h"
 
 #if defined (__cplusplus)
 extern "C" {
