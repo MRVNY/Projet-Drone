@@ -7,19 +7,7 @@
 #include <pthread.h>
 
 #include "Pilotage.h"
-
-static char fifo_dir[] = FIFO_DIR_PATTERN;
-static char fifo_name[128] = "";
-
-int gIHMRun = 1;
-char gErrorStr[ERROR_STR_LENGTH];
-//IHM_t *ihm = NULL;
-
-FILE *videoOut = NULL;
-int frameNb = 0;
-ARSAL_Sem_t stateSem;
-int isBebop2 = 1;
-int watch_dog_counter = 0;
+#include "commun.h"
 
 /*****************************************
  *
@@ -38,30 +26,14 @@ void *watch_dog(){
         printf("////////WATCH DOG %d////////\n", watch_dog_counter);
         watch_dog_counter++;
     }
+
+    //end()
+
 }
 
 int main_Pilotage (int **(*functionPtr)(const char*))
 {
 
-    //Test//
-    printf("Début du test\n");
-    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone/Bas_niveau/mire-petits-cercles-3m.mp4");
-    sleep(5);
-     // local declarations
-    int failed = 0;
-    int choice;
-    int fps;
-    char state='t'; //état qui définit la direction a prendre
-    int angleAmp = HIGH_ANGLE; 
-    int speedAmp = HIGH_SPEED;
-    ARDISCOVERY_Device_t *device = NULL;
-    ARCONTROLLER_Device_t *deviceController = NULL;
-    eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
-    eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
-    pid_t child = 0;
-    pthread_t threads;
-    int thread_args;
-    
 
     // MPLAYER ou FFMPEG
    
@@ -298,68 +270,21 @@ int main_Pilotage (int **(*functionPtr)(const char*))
  *
  *****************************************/
     
-     if (!failed){
+    if (!failed){
        
         //On définit la vitesse max de rotation et  vitesse max verticale (85 °/s et 1 m/s)
         deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,1 );
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
         takeOff(deviceController);
-      
-        while(state!='e'){
-            //Arrêt de la commande en cour
-            stop(deviceController);
 
-            //Selection de la prochaine commande selon state 
-            switch (state)
-                {
-                case 'a':
-                    pitch(deviceController,angleAmp);
-                    break;
-                case 'r':
-                    pitch(deviceController,-angleAmp);
-                    break;
-                case 'g':
-                    roll(deviceController,-angleAmp);
-                    break;
-                case 'd':
-                    roll(deviceController,angleAmp);
-                    break;
-                case 'h':
-                    gaz(deviceController,angleAmp);
-                    break;
-                case 'b':
-                    gaz(deviceController,-speedAmp);
-                case 'q':
-                    yaw(deviceController,-speedAmp);
-                    break;
-                case 's':
-                    yaw(deviceController,speedAmp);
-                    break;
-                case 'l':
-                    land(deviceController);
-                    break;
-                case 't':
-                    takeOff(deviceController);
-                        while (getFlyingState(deviceController)!=ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING)
-                        {   
-                            //On attend tant que le drone n'est pas en vol stationaire
-                        }
-                        sleep(1);
-                    break;
-                default:
-                    stop(deviceController);
-                    break;
-                }
-
-                //Recupération du flux par la partie imagerie
-                
-                //Prise de décision 
-        }
-    
+        //Test//
+        printf("Début du test\n");
+        (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone/Bas_niveau/mire-petits-cercles-3m.mp4");
+        sleep(5);
   
-    sleep(2);
-    land(deviceController);   
+        sleep(2);
+        land(deviceController);   
                  
     }
     
@@ -372,6 +297,75 @@ int main_Pilotage (int **(*functionPtr)(const char*))
  *****************************************/
 
 // we are here because of a disconnection or user has quit IHM, so safely delete everything
+    end();
+
+    //END Watch Dog
+    printf("Before join, sleep 5\n");
+    sleep(5);
+    watch_dog_counter = -10;
+    pthread_join(threads, NULL);
+    printf("After join, sleep 5\n");
+    sleep(5);
+    printf("Final watch dog: %d\n", watch_dog_counter);
+
+    return EXIT_SUCCESS;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/*Définitions des fonctions de pilotage*/
+
+void callback(int state){
+    //Arrêt de la commande en cour
+    stop(deviceController);
+
+    //Selection de la prochaine commande selon state 
+    switch (state)
+    {
+        case AVANT:
+            pitch(deviceController,angleAmp);
+            break;
+        case ARRIERE:
+            pitch(deviceController,-angleAmp);
+            break;
+        case GAUCHE:
+            roll(deviceController,-angleAmp);
+            break;
+        case DROITE:
+            roll(deviceController,angleAmp);
+            break;
+        case HAUT:
+            gaz(deviceController,angleAmp);
+            break;
+        case BAS:
+            gaz(deviceController,-speedAmp);
+        case TOURNEGAUCHE:
+            yaw(deviceController,-speedAmp);
+            break;
+        case TOURNEDROITE:
+            yaw(deviceController,speedAmp);
+            break;
+        case LAND:
+            land(deviceController);
+            break;
+        case TAKEOFF:
+            takeOff(deviceController);
+                while (getFlyingState(deviceController)!=ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING)
+                {   
+                    //On attend tant que le drone n'est pas en vol stationaire
+                }
+                sleep(1);
+            break;
+        default:
+            stop(deviceController);
+            break;
+    }
+}
+
+void end(){
     if (deviceController != NULL)
     {
 
@@ -411,27 +405,7 @@ int main_Pilotage (int **(*functionPtr)(const char*))
     rmdir(fifo_dir);
 
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
-
-    //END Watch Dog
-    printf("Before join, sleep 5\n");
-    sleep(5);
-    watch_dog_counter = -10;
-    pthread_join(threads, NULL);
-    printf("After join, sleep 5\n");
-    sleep(5);
-    printf("Final watch dog: %d\n", watch_dog_counter);
-
-    return EXIT_SUCCESS;
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*Définitions des fonctions de pilotage*/
-
-
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)
 {
