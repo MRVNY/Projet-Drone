@@ -7,7 +7,7 @@
 #include <pthread.h>
 
 #include "Pilotage.h"
-#include "commun.h"
+#include "../commun.h"
 
 /*****************************************
  *
