@@ -1,3 +1,5 @@
+#ifndef _COMMUN_H_
+#define _COMMUN_H_
 // La convention sur les états 
 
 #define STOP 0
@@ -11,8 +13,6 @@
 #define TOURNEDROITE -4
 #define OK 5
 #define KO -5
-#define TAKEOFF 6
-#define LAND -6
 
 // Pour les intensités: 
 #define CLOSE 1
