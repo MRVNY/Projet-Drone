@@ -44,7 +44,9 @@ int main_Pilotage (int **(*functionPtr)(const char*))
 {
 
     //Test//
-    (*functionPtr)("toto");
+    printf("Début du test\n");
+    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone/Bas_niveau/mire-petits-cercles-3m.mp4");
+    sleep(5);
      // local declarations
     int failed = 0;
     int choice;

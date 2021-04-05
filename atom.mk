@@ -36,7 +36,7 @@ LOCAL_LIBRARIES := \
 	libARDiscovery \
 	libARStream \
 	libARStream2 \
-	ncurses \
+	ncurses\
 	ffmpeg\
 	opencv2
 
@@ -45,7 +45,7 @@ LOCAL_SRC_FILES := \
 	$(call all-c-files-under,./Pilotage)\
 	$(call all-cpp-files-under,./Bas_niveau)\
 	$(call all-c-files-under,./Décision)
-
+	
 include $(BUILD_EXECUTABLE)
 
 endif
