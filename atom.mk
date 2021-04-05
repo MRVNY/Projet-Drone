@@ -22,8 +22,8 @@ include $(BUILD_PREBUILT)
 include $(CLEAR_VARS)
 
 LOCAL_CATEGORY_PATH := samples
-LOCAL_MODULE := Projet-Drone
-LOCAL_DESCRIPTION := Projet-Drone
+LOCAL_MODULE := Projet-Drone-b
+LOCAL_DESCRIPTION := Projet-Drone-b
 
 LOCAL_LIBRARIES := \
 	libARSAL \
