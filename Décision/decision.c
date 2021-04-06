@@ -166,12 +166,17 @@ int nombre_de_cordonnee_recu(int **vecteur){
 }
 
 
-
+/*-----------------Métohde bouchon----------------*/
 void analyseInterpretation(int *tab,int min, int max, int ref){
     
 
     int *tabDec=(int *)malloc(sizeof(int)*2);
-
+    //Test fin de coordonées
+    if(tab[0]>max){
+        tabDec[0]=LAND;
+        tabDec[1]=LAND;
+    }
+    
     if(tab[0]-ref<0)
     {
         tabDec[0]=GAUCHE;
@@ -193,7 +198,7 @@ void analyseInterpretation(int *tab,int min, int max, int ref){
 
     }
     
-    // pilotage(vecteur) 
+     callback(tab);
 }
 
 

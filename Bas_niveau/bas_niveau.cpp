@@ -8,6 +8,7 @@
 #define MAXCOORD 430
 #define MINCOORD -430
 
+/*-----------------Métohde bouchon----------------*/
 void video_reader_process(const char* infile) {
     std::fstream f;
     f.open(infile,std::fstream::out);
@@ -22,7 +23,11 @@ void video_reader_process(const char* infile) {
         tab[1]=j;
         analyseInterpretation(tab,REF,MINCOORD,MAXCOORD);
     }
-      
+    //Indication de fin de fichier de coords
+    int tab[2];
+    tab[0]=MAXCOORD+1;
+    tab[1]=0;
+
     f.close();
 }
     

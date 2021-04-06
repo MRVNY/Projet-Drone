@@ -38,8 +38,6 @@ int main_Pilotage (void(*functionPtr)(const char*));
 
 void *watch_dog();
 
-void callback(int *state);
-
 void end();
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);

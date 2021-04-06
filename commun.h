@@ -21,4 +21,7 @@
 #define FAR 2
 #define EXTREME 3
 
+/*---------------Methodes partagées---------------*/
+void callback(int *state);
+
 #endif
