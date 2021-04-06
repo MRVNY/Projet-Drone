@@ -22,8 +22,8 @@ include $(BUILD_PREBUILT)
 include $(CLEAR_VARS)
 
 LOCAL_CATEGORY_PATH := samples
-LOCAL_MODULE := Projet-Drone
-LOCAL_DESCRIPTION := Projet-Drone
+LOCAL_MODULE := Projet-Drone-b
+LOCAL_DESCRIPTION := Projet-Drone-b
 
 LOCAL_LIBRARIES := \
 	libARSAL \
@@ -45,6 +45,7 @@ LOCAL_SRC_FILES := \
 	$(call all-c-files-under,./Pilotage)\
 	$(call all-cpp-files-under,./Bas_niveau)\
 	$(call all-c-files-under,./Décision)
+
 	
 include $(BUILD_EXECUTABLE)
 

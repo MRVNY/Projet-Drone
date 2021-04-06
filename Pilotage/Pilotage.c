@@ -8,6 +8,25 @@
 
 #include "Pilotage.h"
 
+/*--------------Variable globales---------------*/
+//Vars globl Parrot
+static char fifo_dir[] = FIFO_DIR_PATTERN;
+static char fifo_name[128] = "";
+int gIHMRun = 1;
+char gErrorStr[ERROR_STR_LENGTH];
+FILE *videoOut = NULL;
+ARCONTROLLER_Device_t *deviceController = NULL;
+ARSAL_Sem_t stateSem;
+ARDISCOVERY_Device_t *device = NULL;
+eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
+eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
+
+//Vars globl watchdog 
+int watch_dog_counter = 0;
+pid_t child = 0;
+pthread_t threads;
+int thread_args;
+
 /*****************************************
  *
  *             implementation :
@@ -30,9 +49,14 @@ void *watch_dog(){
 
 }
 
-int main_Pilotage (int **(*functionPtr)(const char*))
+int main_Pilotage (void (*functionPtr)(const char*))
 {
-
+    //Local declaration
+    int failed = 0;
+    int choice;
+    int fps;
+    int frameNb = 0;
+    int isBebop2 = 1;
 
     // MPLAYER ou FFMPEG
    
@@ -317,12 +341,14 @@ int main_Pilotage (int **(*functionPtr)(const char*))
 
 /*Définitions des fonctions de pilotage*/
 
-void callback(int state){
+void callback(int *state){
     //Arrêt de la commande en cour
     stop(deviceController);
-
+    int angleAmp=state[1];
+    int speedAmp=state[1];
+    
     //Selection de la prochaine commande selon state 
-    switch (state)
+    switch (state[0])
     {
         case AVANT:
             pitch(deviceController,angleAmp);

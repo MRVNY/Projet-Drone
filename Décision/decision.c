@@ -174,21 +174,21 @@ void analyseInterpretation(int *tab,int min, int max, int ref){
 
     if(tab[0]-ref<0)
     {
-        tabDec[0]=-1;
+        tabDec[0]=GAUCHE;
         if(tab[0]<(min+ref)/2){
-            tabDec[1]=1;
+            tabDec[1]=CLOSE;
         }
         else{
-            tabDec[1]=2;
+            tabDec[1]=FAR;
         }
     }
     else{
-        tabDec[0]=1;
+        tabDec[0]=DROITE;
         if(tab[0]<(max-ref)/2){
-            tabDec[1]=1;
+            tabDec[1]=CLOSE;
         }
         else{
-            tabDec[1]=2;
+            tabDec[1]=FAR;
         }
 
     }
