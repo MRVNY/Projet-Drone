@@ -1,26 +1,34 @@
 #include "bas_niveau.hpp"
 #include <fstream>      
 #include <typeinfo>
+#include <iostream>
 
+//Define uniquement pour le bouhon 
+#define REF 0
+#define MAXCOORD 430
+#define MINCOORD -430
 
-
+/*-----------------Métohde bouchon----------------*/
 void video_reader_process(const char* infile) {
     std::fstream f;
     f.open(infile,std::fstream::out);
-    char chr = getc(f);
     
     int i;
     int j;
 
-    while ((fscanf (f, "%d",&i)!=EOF)&&(fscanf(f,"%d" ,&j)!= EOF))
+    while ((f>>i)&&(f>>j))
     {
         int tab[2];
-        tab[0]]=i;
+        tab[0]=i;
         tab[1]=j;
-        analyseInterpretation(tab);
+        analyseInterpretation(tab,REF,MINCOORD,MAXCOORD);
     }
-      
-    fclose(f);
+    //Indication de fin de fichier de coords
+    int tab[2];
+    tab[0]=MAXCOORD+1;
+    tab[1]=0;
+
+    f.close();
 }
     
 void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_ctx, AVFrame* av_frame, AVFrame* decframe) {

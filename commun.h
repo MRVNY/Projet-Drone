@@ -11,10 +11,17 @@
 #define ARRIERE -3
 #define TOURNEGAUCHE 4
 #define TOURNEDROITE -4
-#define OK 5
-#define KO -5
+#define TAKEOFF 6
+#define LAND -6
+//#define OK 5
+//#define KO -5
 
 // Pour les intensités: 
 #define CLOSE 1
 #define FAR 2
 #define EXTREME 3
+
+/*---------------Methodes partagées---------------*/
+void callback(int *state);
+
+#endif

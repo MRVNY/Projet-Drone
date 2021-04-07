@@ -14,4 +14,6 @@ float distance_euclidienne(int x,int y);
 float distanceCentre(int **cordonnee);
 int evaluation(int **cordonnee,float *DISTANCE_PRECEDENTE);
 int nombre_de_cordonnee_recu(int **vecteur);
+
+//En-tête modifiée pour le bouchon, à regularisé avec la décision
 void analyseInterpretation(int *tab,int min, int max, int ref);
