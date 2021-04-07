@@ -7,6 +7,7 @@
 #include <vector>
 
 extern "C" {
+    #include "../Décision/decision.h"
     #include <libavformat/avformat.h>
     #include <libavcodec/avcodec.h>
     #include <libavutil/avutil.h>
@@ -21,7 +22,7 @@ extern "C" {
 using namespace cv;
 
 class SPoint {       // The class
-      public:       // Access specifier
+    public:       // Access specifier
     int x;
     int y;// Attribute (int variable)
     int somme;

@@ -1,8 +1,5 @@
 #include "bas_niveau.hpp"
-#include "../Décision/decision.h"
 #include <typeinfo>
-
-
 
 int** video_reader_process(const char* infile) {
     

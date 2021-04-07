@@ -43,11 +43,14 @@ void *watch_dog(){
 int main_Pilotage (int **(*functionPtr)(const char*))
 {
 
-    //Test//
-    printf("Début du test\n");
-    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone/Bas_niveau/mire-petits-cercles-3m.mp4");
+    /*-----------Test interface C++/C/C++---------------*/
+    //Appel de la fonction vidéo_reader_process() utilisant opencv (c++) a travers le pointeur passer en paramètre//
+    printf("Début du test interface C++\n");
+    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone/Data/Videos/mire-petits-cercles-3m.mp4");
     sleep(5);
-     // local declarations
+
+    /*-----------Gestion du drone---------------*/
+    // local declarations
     int failed = 0;
     int choice;
     int fps;

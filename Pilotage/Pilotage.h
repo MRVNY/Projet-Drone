@@ -23,6 +23,7 @@
 #include <libARController/ARController.h>
 #include <libARDiscovery/ARDiscovery.h>
 
+//Définition pour le l'appel depuis le main.cpp
 #if defined (__cplusplus)
 extern "C" {
 #endif
