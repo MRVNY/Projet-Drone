@@ -58,6 +58,11 @@ int main_Pilotage (void (*functionPtr)(const char*))
     int frameNb = 0;
     int isBebop2 = 1;
 
+    /*-----Test du bouchon sans drone (affichages)-------*/
+    /*printf("Début du test\n");
+    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
+    */
+
     // MPLAYER ou FFMPEG
    
     printf("\nmplayer(1) ou ffmpeg(2)?\n");
@@ -301,13 +306,16 @@ int main_Pilotage (void (*functionPtr)(const char*))
         
         takeOff(deviceController);
 
-        //Test//
+        //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
         printf("Début du test\n");
-        (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone/Bas_niveau/mire-petits-cercles-3m.mp4");
-        sleep(5);
-  
+        (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
+    
+        //Si on arrive ici on arrête peux importe ce qu'il se passe 
+        stop(deviceController);
         sleep(2);
-        land(deviceController);   
+        land(deviceController); 
+        
+          
                  
     }
     
@@ -344,8 +352,28 @@ int main_Pilotage (void (*functionPtr)(const char*))
 void callback(int *state){
     //Arrêt de la commande en cour
     stop(deviceController);
-    int angleAmp=state[1];
-    int speedAmp=state[1];
+    int angleAmp;
+    int speedAmp;
+    //Selection de l'amplitude de mouvement de la prochaine commande
+    switch (state[1])
+    {
+    case CLOSE:
+        speedAmp=LOW_SPEED;
+        angleAmp=LOW_ANGLE;
+        printf("Près\n");
+        break;
+    case FAR:
+        speedAmp=HIGH_SPEED;
+        angleAmp=HIGH_ANGLE;
+        printf("Loin\n");
+
+        break;
+    
+    default:
+        speedAmp=0;
+        angleAmp=0;
+        break;
+    }
     
     //Selection de la prochaine commande selon state 
     switch (state[0])
@@ -358,9 +386,11 @@ void callback(int *state){
             break;
         case GAUCHE:
             roll(deviceController,-angleAmp);
+            printf("Gauche\n");
             break;
         case DROITE:
             roll(deviceController,angleAmp);
+            printf("Droite\n");
             break;
         case HAUT:
             gaz(deviceController,angleAmp);
@@ -393,7 +423,6 @@ void callback(int *state){
 void end(){
     if (deviceController != NULL)
     {
-
 
         deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
         if ((error == ARCONTROLLER_OK) && (deviceState != ARCONTROLLER_DEVICE_STATE_STOPPED))

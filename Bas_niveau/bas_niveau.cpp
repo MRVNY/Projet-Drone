@@ -8,27 +8,39 @@
 #define MAXCOORD 430
 #define MINCOORD -430
 
+using std::cout; using std::cerr;
+using std::endl; using std::string;
+using std::ifstream;
+
 /*-----------------Métohde bouchon----------------*/
 void video_reader_process(const char* infile) {
-    std::fstream f;
-    f.open(infile,std::fstream::out);
+
+    string filename(infile);
+
+    ifstream input_file(filename);
+    if (!input_file.is_open()) {
+        cerr << "Could not open the file - '"
+             << filename << "'" << endl;
+    
+    }
     
     int i;
     int j;
-
-    while ((f>>i)&&(f>>j))
+    int *tab=(int*)malloc(sizeof(int)*2);        
+    cout<<"Début boucle évènementielle\n"<<endl;
+    while ((input_file>>i)&&(input_file>>j))
     {
-        int tab[2];
         tab[0]=i;
         tab[1]=j;
         analyseInterpretation(tab,REF,MINCOORD,MAXCOORD);
+
     }
     //Indication de fin de fichier de coords
-    int tab[2];
+    
     tab[0]=MAXCOORD+1;
     tab[1]=0;
 
-    f.close();
+    input_file.close();
 }
     
 void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_ctx, AVFrame* av_frame, AVFrame* decframe) {
