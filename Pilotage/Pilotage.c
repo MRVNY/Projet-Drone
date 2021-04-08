@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <errno.h>
 #include <pthread.h>
+#include <time.h>
 
 #include "Pilotage.h"
 
@@ -22,7 +23,7 @@ eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
 eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
 //Vars globl watchdog 
-int watch_dog_counter = 0;
+time_t counter = NULL;
 pid_t child = 0;
 pthread_t threads;
 int thread_args;
@@ -37,17 +38,19 @@ static void signal_handler(int signal)
 {
     gIHMRun = 0;
 }
-
+/*
 void *watch_dog(){
-    while(watch_dog_counter>=0){
+    while(counter){
         sleep(1);
-        printf("////////WATCH DOG %d////////\n", watch_dog_counter);
-        watch_dog_counter++;
+        if(counter!=NULL){
+            printf("%d\n",counter)
+        }
+        //else time(&counter);
     }
 
     //end()
 
-}
+}*/
 
 int main_Pilotage (void (*functionPtr)(const char*))
 {
@@ -81,7 +84,7 @@ int main_Pilotage (void (*functionPtr)(const char*))
     } 
 
     // Watch Dog
-    pthread_create(&threads, NULL, watch_dog, NULL);
+    //pthread_create(&threads, NULL, watch_dog, NULL);
 
     /* Set signal handlers */
     struct sigaction sig_action = {
@@ -330,15 +333,6 @@ int main_Pilotage (void (*functionPtr)(const char*))
 // we are here because of a disconnection or user has quit IHM, so safely delete everything
     end();
 
-    //END Watch Dog
-    printf("Before join, sleep 5\n");
-    sleep(5);
-    watch_dog_counter = -10;
-    pthread_join(threads, NULL);
-    printf("After join, sleep 5\n");
-    sleep(5);
-    printf("Final watch dog: %d\n", watch_dog_counter);
-
     return EXIT_SUCCESS;
 }
 
@@ -418,6 +412,7 @@ void callback(int *state){
             stop(deviceController);
             break;
     }
+    //time(&counter);
 }
 
 void end(){
@@ -459,6 +454,9 @@ void end(){
     rmdir(fifo_dir);
 
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
+
+    //END Watch Dog
+    //pthread_join(threads, NULL);
 }
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)
