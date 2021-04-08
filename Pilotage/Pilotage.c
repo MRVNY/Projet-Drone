@@ -23,7 +23,7 @@ eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
 eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
 //Vars globl watchdog 
-time_t counter = NULL;
+time_t counter = 0;
 pid_t child = 0;
 pthread_t threads;
 int thread_args;
@@ -391,6 +391,7 @@ void callback(int *state){
             break;
         case BAS:
             gaz(deviceController,-speedAmp);
+            break;
         case TOURNEGAUCHE:
             yaw(deviceController,-speedAmp);
             break;
