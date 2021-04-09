@@ -36,7 +36,7 @@ int main_Pilotage (void(*functionPtr)(const char*));
 }
 #endif
 
-void *watch_dog();
+//void *watch_dog();
 
 void end();
 
