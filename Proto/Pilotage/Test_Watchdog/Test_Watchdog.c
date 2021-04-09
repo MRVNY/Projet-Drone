@@ -47,8 +47,11 @@ void catch(){
 int main(){
     int i = 0;
     signal(SIGINT,catch);
+    signal(SIGSEGV,catch);
     //signal(SIGTSTP,catch);
     pthread_create(&threads, NULL, watch_dog, NULL);
+
+    raise(SIGSEGV); //Segmentation fault
 
     for(i=0;i<5;i++){
         sleep(1);
@@ -58,8 +61,6 @@ int main(){
     while(1){
         if(counter==0) break;
     }
-
-    //pthread_join(threads, NULL);
     
     printf("end_main\n");
     //pthread_join(threads, NULL);
