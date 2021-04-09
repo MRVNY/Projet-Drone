@@ -44,7 +44,7 @@ LOCAL_SRC_FILES := \
 	$(call all-cpp-files-under,./Pilotage)\
 	$(call all-c-files-under,./Pilotage)\
 	$(call all-cpp-files-under,./Bas_niveau)\
-	$(call all-c-files-under,./Décision)
+	$(call all-c-files-under,./Decision)
 
 	
 include $(BUILD_EXECUTABLE)
