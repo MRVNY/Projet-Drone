@@ -13,7 +13,7 @@ LOCAL_EXPORT_C_INCLUDES := $(shell pkg-config --cflags libavcodec libavformat li
 LOCAL_EXPORT_LDLIBS := $(shell pkg-config --libs libavcodec libavformat libswscale libavutil)
 include $(BUILD_PREBUILT)
 
-include $(CLEAR_VARS)
+include $(CLEAR_VARS) 
 LOCAL_MODULE := opencv2
 LOCAL_EXPORT_C_INCLUDES := $(shell pkg-config --cflags opencv4)
 LOCAL_EXPORT_LDLIBS := $(shell pkg-config --libs opencv4)
@@ -22,8 +22,8 @@ include $(BUILD_PREBUILT)
 include $(CLEAR_VARS)
 
 LOCAL_CATEGORY_PATH := samples
-LOCAL_MODULE := Projet-Drone
-LOCAL_DESCRIPTION := Projet-Drone
+LOCAL_MODULE := Projet-Drone-b
+LOCAL_DESCRIPTION := Projet-Drone-b
 
 LOCAL_LIBRARIES := \
 	libARSAL \

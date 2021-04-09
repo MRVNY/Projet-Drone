@@ -3,10 +3,9 @@
 #include <typeinfo>
 #include <iostream>
 
+
 //Define uniquement pour le bouhon 
-#define REF 0
-#define MAXCOORD 430
-#define MINCOORD -430
+
 
 using std::cout; using std::cerr;
 using std::endl; using std::string;
@@ -26,19 +25,25 @@ void video_reader_process(const char* infile) {
     
     int i;
     int j;
-    int *tab=(int*)malloc(sizeof(int)*2);        
+
+    int **tab=(int**)malloc(sizeof(int*)); 
+    for (int i = 0; i < 2; i++)
+    {
+        tab[i]=(int*)malloc(sizeof(int)*2);
+    }
+           
     cout<<"Début boucle évènementielle\n"<<endl;
     while ((input_file>>i)&&(input_file>>j))
     {
-        tab[0]=i;
-        tab[1]=j;
-        analyseInterpretation(tab,REF,MINCOORD,MAXCOORD);
+        tab[0][0]=i;
+        tab[0][1]=j;
+        analyseInterpretation(tab,NULL,NULL,NULL);
 
     }
     //Indication de fin de fichier de coords
-    
-    tab[0]=MAXCOORD+1;
-    tab[1]=0;
+    //MAGICNUMBER pour le bouchon ...
+    tab[0][0]=1000;
+    tab[0][1]=0;
 
     input_file.close();
 }

@@ -3,6 +3,10 @@
 #include "decision.h"
 #include <math.h>
 
+#define REF 0
+#define MAXCOORD 430
+#define MINCOORD -430
+
 // #include "../Pilotage/Pilotage.h"
 
 
@@ -167,19 +171,19 @@ int nombre_de_cordonnee_recu(int **vecteur){
 
 
 /*-----------------Métohde bouchon----------------*/
-void analyseInterpretation(int *tab,int min, int max, int ref){
-    
+void analyseInterpretation(int **cordonnees,int *ETAT_PRECEDENT0,int *ETAT_PRECEDENT1,float *DISTANCE_PRECEDENTE)
+{
+    int x =cordonnees[0][0];
     int *tabDec=(int *)malloc(sizeof(int)*2);
     //Test fin de coordonées
-    if(tab[0]>max){
-        tabDec[0]=LAND;
+    if(x>MAXCOORD){
         tabDec[1]=LAND;
     }
     
-    if(tab[0]-ref<0)
+    if(x-REF<0)
     {
         tabDec[0]=GAUCHE;
-        if(tab[0]<(min+ref)/2){
+        if(x<(MINCOORD+REF)/2){
             tabDec[1]=CLOSE;
         }
         else{
@@ -188,7 +192,7 @@ void analyseInterpretation(int *tab,int min, int max, int ref){
     }
     else{
         tabDec[0]=DROITE;
-        if(tab[0]<(max-ref)/2){
+        if(x<(MAXCOORD-REF)/2){
             tabDec[1]=CLOSE;
         }
         else{
