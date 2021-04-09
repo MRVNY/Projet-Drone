@@ -1,22 +1,84 @@
 #include "bas_niveau.hpp"
 #include <typeinfo>
 
-int** video_reader_process(const char* infile) {
+
+
+int intervalle (int x1,int y1,int x2,int y2){
+    //Fonction qui retourne true si les deux coordonnées sont eloignées : pas la meme hirondelle
     
+    double distance_euclidienne=sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+    return  (distance_euclidienne > EUCLID);
+     
+}
+
+void voisinage(int voisin,int i, int j,int* S0,int* S1,int* S2,int* S3,cv::Mat image){
+
+    int x,y;
+    (*S0)=0;
+    (*S1)=0;
+    (*S2)=0;
+    (*S3)=0;
+    
+    for( x=i ; x>i-voisin ; x-- ){
+        for( y=j ; y>j-voisin ; y-- ){
+            (*S0)+=image.ptr<uchar>(x)[y];
+        }
+    }
+
+    for( x=i ; x>i-voisin ; x-- ){
+        for( y=j+1 ; y<=j+voisin ; y++ ){
+            (*S1)+=image.ptr<uchar>(x)[y];
+        }
+    }
+
+    for( x=i+1 ; x<=i+voisin ; x++ ){
+        for( y=j ; y>j-voisin ; y-- ){
+            (*S2)+=image.ptr<uchar>(x)[y];
+        }
+    }
+
+    for( x=i+1 ; x<=i+voisin ; x++ ){
+        for( y=j+1 ; y<=j+voisin ; y++ ){
+            (*S3)+=image.ptr<uchar>(x)[y];
+        }
+    }
+
+}
+
+
+int video_reader_process(const char* infile) {
+
+    int ** resultat= (int**) malloc( 4 * sizeof (int*) );
+
+    if(resultat == NULL){
+        fprintf(stderr,"probleme d'allocation\n");
+        return 1;
+    }
+
+    for ( int i = 0 ; i < 4 ; ++i ) {       
+        resultat[i] = ( int * ) malloc( 2 * sizeof(int) ) ;       
+        if (  resultat[i]== NULL ){
+            fprintf(stderr,"probleme d'allocation\n");
+            return 1;
+        }
+       
+    } //resultat a donner a la partie haut niveau
+
     int ret;
+    
     av_register_all();
-    int** res; //resultat a retrourner
+    
     AVFormatContext* inctx = nullptr;
     ret = avformat_open_input(&inctx, infile, nullptr, nullptr);
     if (ret < 0) {
         std::cerr << "fail to avforamt_open_input(\"" << infile << "\"): ret=" << ret;
-        exit(1);
+        return 1;
     }
 
     ret = avformat_find_stream_info(inctx, nullptr);
     if (ret < 0) {
         std::cerr << "fail to avformat_find_stream_info: ret=" << ret;
-        exit(1);
+        return 1;
     }
 
 
@@ -24,7 +86,7 @@ int** video_reader_process(const char* infile) {
     ret = av_find_best_stream(inctx, AVMEDIA_TYPE_VIDEO, -1, -1, &vcodec, 0);
     if (ret < 0) {
         std::cerr << "fail to av_find_best_stream: ret=" << ret;
-        exit(1);
+        return 1;
     }
     const int vstrm_idx = ret;
     AVStream* vstrm = inctx->streams[vstrm_idx];
@@ -33,7 +95,7 @@ int** video_reader_process(const char* infile) {
     ret = avcodec_open2(vstrm->codec, vcodec, nullptr);
     if (ret < 0) {
         std::cerr << "fail to avcodec_open2: ret=" << ret;
-        exit(1);
+        return 1;
     }
 
 
@@ -59,7 +121,7 @@ int** video_reader_process(const char* infile) {
         dst_width, dst_height, dst_pix_fmt, SWS_BICUBIC, nullptr, nullptr, nullptr);
     if (!swsctx) {
         std::cerr << "fail to sws_getCachedContext";
-        exit(1);
+        return 1;
     }
     std::cout << "output: " << dst_width << 'x' << dst_height << ',' << av_get_pix_fmt_name(dst_pix_fmt) << std::endl;
 
@@ -67,6 +129,13 @@ int** video_reader_process(const char* infile) {
     std::vector<uint8_t> framebuf(av_image_get_buffer_size(dst_pix_fmt, dst_width, dst_height,16
                                                            ));
     avpicture_fill(reinterpret_cast<AVPicture*>(frame), framebuf.data(), dst_pix_fmt, dst_width, dst_height);
+    
+    /*AVFrame* frame = av_frame_alloc();
+    int numBytes=av_image_get_buffer_size(dst_pix_fmt, dst_width, dst_height,16);
+    uint8_t * framebuf = NULL;
+    framebuf =(uint8_t *)av_malloc(numBytes*sizeof(uint8_t)); 
+    avpicture_fill((AVPicture*)frame, framebuf, dst_pix_fmt, dst_width, dst_height);*/
+
     
     AVFrame* decframe = av_frame_alloc();
     unsigned nb_frames = 0;
@@ -81,7 +150,7 @@ int** video_reader_process(const char* infile) {
             ret = av_read_frame(inctx, &pkt);
             if (ret < 0 && ret != AVERROR_EOF) {
                 std::cerr << "fail to av_read_frame: ret=" << ret;
-                exit(1);
+                return 1;
             }
             if (ret == 0 && pkt.stream_index != vstrm_idx)
                 goto next_packet;
@@ -101,11 +170,14 @@ int** video_reader_process(const char* infile) {
         sws_scale(swsctx, decframe->data, decframe->linesize, 0, decframe->height, frame->data, frame->linesize);
         {
         cv::Mat image(dst_height, dst_width, CV_8UC1, framebuf.data(), frame->linesize[0]);
-        if(nb_frames==20){
+       
+        
+            image_processing(image,&resultat);
+        //traitement haut niveau
+        //pilotage
             
-             image_processing(image,&res);
              
-        }
+        
         }
         
             ++nb_frames;
@@ -115,7 +187,7 @@ int** video_reader_process(const char* infile) {
     } while (!end_of_stream || got_pic);
     
     video_reader_close(swsctx, inctx, frame, decframe);
-    return res;
+    return 0;
 }
     
 void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_ctx, AVFrame* av_frame, AVFrame* decframe) {
@@ -132,151 +204,178 @@ void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_c
 
 void image_processing(cv::Mat image,int*** resultat){
         
-        int width = image.rows;
-        int height = image.cols;
-        int somme=0;
-        int somme2=0;
-        
-                       int S0,S1,S2,S3;
-                       //res contient deux min et deux max triés
-                       //int* res=(int*)malloc(4*sizeof(int));
-                       *resultat = (int**)malloc(4*sizeof(int*));
-                       for(int i=0;i<4;i++)
-                            (*resultat)[i]= (int*)malloc(2*sizeof(int));
-                      
-                       SPoint res[6];
-                       res[2].somme=255*36;
-                       res[1].somme=255*36;
-                       res[0].somme=255*36;
-                       res[3].somme=255*36;
-                       res[4].somme=255*36;
-                       res[5].somme=255*36;
-                        
-      
-        
+    int width = image.rows;
+    int height = image.cols;
 
-        for(int x=2;x<image.rows-3;x++){
-            for(int y=2;y<image.cols-3;y++){
-                
-               /* S0=image.at<uchar>(y,x) + image.at<uchar>(y,x-1) + image.at<uchar>(y-1,x-1) + image.at<uchar>(y,x-1);
-                S1=image.at<uchar>(y+1,x) + image.at<uchar>(y+2,x) + image.at<uchar>(y+1,x-1) + image.at<uchar>(y+2,x-1);
-                S2=image.at<uchar>(y,x+1) + image.at<uchar>(y-1,x+1) + image.at<uchar>(y,x+2) + image.at<uchar>(y-1,x+2);
-                S3=image.at<uchar>(y+1,x+1) + image.at<uchar>(y+2,x+1) + image.at<uchar>(y+1,x+2) + image.at<uchar>(y+2,x+2);*/
-                
-                
-                // voisine 2x2
-                S0=image.ptr<uchar>(x)[y]+ image.ptr<uchar>(x-1)[y] + image.ptr<uchar>(x-1)[y-1]+image.ptr<uchar>(x)[y-1];
-                S1=image.ptr<uchar>(x)[y+1]+image.ptr<uchar>(x)[y+2]+image.ptr<uchar>(x-1)[y+1]+image.ptr<uchar>(x-1)[y+2];
-                S2=image.ptr<uchar>(x+1)[y]+image.ptr<uchar>(x+1)[y-1]+image.ptr<uchar>(x+2)[y]+image.ptr<uchar>(x+2)[y-1];
-                S3=image.ptr<uchar>(x+1)[y+1]+image.ptr<uchar>(x+1)[y+2]+image.ptr<uchar>(x+2)[y+1]+image.ptr<uchar>(x+2)[y+2];
+    int somme=0; //Somme relative aux hirondelles du haut
+    int somme2=0; //Somme relative aux hirondelles du bas
+ 
+    int S0=0;
+    int S1=0;
+    int S2=0;
+    int S3=0;
 
-      
+    struct SPoint res[6];
+    for (int i=0;i<6;i++){
+        res[i].somme=255*(VOISINAGE*VOISINAGE*2);
+        res[i].x=0;
+        res[i].y=0; 
+    }
+                                  
+                                  
+                 
+                  
 
-                somme=255*8+S0-S1-S2+S3;
-                
-                //minimum 0 1 2 
-                if(somme <= res[0].somme ) {
-                    res[2].somme=res[1].somme;
-                    res[2].x=res[1].x;
-                    res[2].y=res[1].y;
-                    res[1].somme=res[0].somme;
-                    res[1].x=res[0].x;
-                    res[1].y=res[0].y;
-                    res[0].somme=somme;
-                    res[0].x=x;
-                    res[0].y=y;
-                }
-                 if(somme <= res[1].somme && somme > res[0].somme ){
-                     
-                    res[2].somme=res[1].somme;
-                    res[2].x=res[1].x;
-                    res[2].y=res[1].y;
-                    res[1].somme=somme;
-                    res[1].x=x;
-                    res[1].y=y;
-                }
-                
-                 if(somme <= res[2].somme && somme > res[1].somme && somme > res[0].somme){
-                    res[2].somme=somme;
-                    res[2].x=x;
-                    res[2].y=y;
-                }
-                
-            
-            }
-        }
-        
-
-        for(int x=2;x<image.rows-3;x++){
-            for(int y=2;y<image.cols-3;y++){
-                
-               /* S0=image.at<uchar>(y,x) + image.at<uchar>(y,x-1) + image.at<uchar>(y-1,x-1) + image.at<uchar>(y,x-1);
-                S1=image.at<uchar>(y+1,x) + image.at<uchar>(y+2,x) + image.at<uchar>(y+1,x-1) + image.at<uchar>(y+2,x-1);
-                S2=image.at<uchar>(y,x+1) + image.at<uchar>(y-1,x+1) + image.at<uchar>(y,x+2) + image.at<uchar>(y-1,x+2);
-                S3=image.at<uchar>(y+1,x+1) + image.at<uchar>(y+2,x+1) + image.at<uchar>(y+1,x+2) + image.at<uchar>(y+2,x+2);*/
-                
-                
-                // voisine 2x2
-                S0=image.ptr<uchar>(x)[y]+ image.ptr<uchar>(x-1)[y] + image.ptr<uchar>(x-1)[y-1]+image.ptr<uchar>(x)[y-1];
-                S1=image.ptr<uchar>(x)[y+1]+image.ptr<uchar>(x)[y+2]+image.ptr<uchar>(x-1)[y+1]+image.ptr<uchar>(x-1)[y+2];
-                S2=image.ptr<uchar>(x+1)[y]+image.ptr<uchar>(x+1)[y-1]+image.ptr<uchar>(x+2)[y]+image.ptr<uchar>(x+2)[y-1];
-                S3=image.ptr<uchar>(x+1)[y+1]+image.ptr<uchar>(x+1)[y+2]+image.ptr<uchar>(x+2)[y+1]+image.ptr<uchar>(x+2)[y+2];
-
-      
-                somme=255*8-S0+S1+S2-S3;
-                
-                //minimum 3 4 5
-                if(somme <= res[3].somme ) {
+                   for( int x=VOISINAGE ; x<image.rows-VOISINAGE ; x++ ){
+                       for( int y=VOISINAGE ; y<image.cols-VOISINAGE ; y++ ){
+                           
+                        voisinage(VOISINAGE,x,y,&S0,&S1,&S2,&S3,image);
+                        somme=255*(VOISINAGE*VOISINAGE*2)+S0-S1-S2+S3;
+                           
+                           
+                           if(somme <= res[0].somme && intervalle(x,y,res[1].x,res[1].y) && intervalle(x,y,res[0].x,res[0].y) ) {
+                               
+                               res[2].somme=res[1].somme;
+                               res[2].x=res[1].x;
+                               res[2].y=res[1].y;
+                               res[1].somme=res[0].somme;
+                               res[1].x=res[0].x;
+                               res[1].y=res[0].y;
+                               res[0].somme=somme;
+                               res[0].x=x;
+                               res[0].y=y;
+                           }
+                            if(somme <= res[1].somme && somme > res[0].somme && intervalle(x,y,res[0].x,res[0].y) && intervalle(x,y,res[1].x,res[1].y) ){
+                                
+                               res[2].somme=res[1].somme;
+                               res[2].x=res[1].x;
+                               res[2].y=res[1].y;
+                               res[1].somme=somme;
+                               res[1].x=x;
+                               res[1].y=y;
+                           }
+                           
+                            if(somme <= res[2].somme && somme > res[1].somme && somme > res[0].somme && intervalle(x,y,res[0].x,res[0].y) && intervalle(x,y,res[1].x,res[1].y) ){
+                               res[2].somme=somme;
+                               res[2].x=x;
+                               res[2].y=y;
+                           }
+                           
+                       
+                       }
+                   }
                    
-                    res[5].somme=res[4].somme;
-                    res[5].x=res[4].x;
-                    res[5].y=res[4].y;
-                    res[4].somme=res[3].somme;
-                    res[4].x=res[3].x;
-                    res[4].y=res[3].y;
 
-                    res[3].somme=somme;
-                    res[3].x=x;
-                    res[3].y=y;
-                    
-                }
-                 if(somme <= res[4].somme && somme > res[3].somme ){
-                     
-                    res[5].somme=res[4].somme;
-                    res[5].x=res[4].x;
-                    res[5].y=res[4].y;
+                   for( int x=VOISINAGE ; x<image.rows-VOISINAGE ; x++ ){
+                       for( int y=VOISINAGE ; y<image.cols-VOISINAGE ; y++ ){
+                           
+                         
+                           
+                           voisinage(VOISINAGE,x,y,&S0,&S1,&S2,&S3,image);
+                           somme=255*(VOISINAGE*VOISINAGE*2)-S0+S1+S2-S3;
 
-                    res[4].somme=somme;
-                    res[4].x=x;
-                    res[4].y=y;
-                    
-                }
-                
-                 if(somme <= res[5].somme && somme > res[4].somme && somme > res[3].somme){
-                     
-                    res[5].somme=somme;
-                    res[5].x=x;
-                    res[5].y=y;
-                    
-                }
-                
-            
-            }
-        }
+                           
+                           if(somme <= res[3].somme && intervalle(x,y,res[4].x,res[4].y) && intervalle(x,y,res[3].x,res[3].y) ) {
+                              
+                               res[5].somme=res[4].somme;
+                               res[5].x=res[4].x;
+                               res[5].y=res[4].y;
+                               res[4].somme=res[3].somme;
+                               res[4].x=res[3].x;
+                               res[4].y=res[3].y;
+
+                               res[3].somme=somme;
+                               res[3].x=x;
+                               res[3].y=y;
+                               
+                           }
+                            if(somme <= res[4].somme && somme > res[3].somme && intervalle(x,y,res[3].x,res[3].y) && intervalle(x,y,res[4].x,res[4].y)   ){
+                                
+                               res[5].somme=res[4].somme;
+                               res[5].x=res[4].x;
+                               res[5].y=res[4].y;
+
+                               res[4].somme=somme;
+                               res[4].x=x;
+                               res[4].y=y;
+                               
+                           }
+                           
+                            if(somme <= res[5].somme && somme > res[4].somme && somme > res[3].somme && intervalle(x,y,res[4].x,res[4].y) && intervalle(x,y,res[3].x,res[3].y) ){
+                            
+
+
+                            
+                               res[5].somme=somme;
+                               res[5].x=x;
+                               res[5].y=y;
+                               
+                            }
+                           
+                       
+                       }
+                   }
+                   
+
         
 
         (*resultat)[0][0]=res[0].x;
-        
         (*resultat)[0][1]=res[0].y;
 
         (*resultat)[1][0]=res[1].x;
         (*resultat)[1][1]=res[1].y;
 
-       (*resultat)[2][0]=res[2].x;
+        (*resultat)[2][0]=res[2].x;
         (*resultat)[2][1]=res[2].y;
 
         (*resultat)[3][0]=res[3].x;
         (*resultat)[3][1]=res[3].y;
+
+
+         /*cv::Mat3b grayBGR;
+                               
+                cv::cvtColor(image, grayBGR, COLOR_GRAY2BGR);
+
+                for(int i=0;i<6;i++){
+
+                    std::cout << res[i].somme << " RESS" << std::endl;
+                    std::cout << res[i].x << " X " << std::endl;
+                    std::cout << res[i].y << " Y" << std::endl;
+                    if(i==0){
+                        
+                        ellipse(grayBGR, Point(res[i].y,res[i].x),Size(10, 10), 0, 0,360, Scalar(255, 144, 30),-1, LINE_AA);} //dodger blue
+                        
+                    if(i==1){
+                                           
+                        ellipse(grayBGR, Point(res[i].y,res[i].x),Size(10, 10), 0, 0,360, Scalar(255, 144, 30),-1, LINE_AA);} //dodger blue
+                    if(i==2){
+                                           
+                        ellipse(grayBGR, Point(res[i].y,res[i].x),Size(10, 10), 0, 0,360, Scalar(0,0,255),-1, LINE_AA);} //crimson 
+                     if(i==3){
+                                           
+                        ellipse(grayBGR, Point(res[i].y,res[i].x),Size(10, 10), 0, 0,360, Scalar(34,139,34),-1, LINE_AA);} //forest green
+                    
+
+                     if(i==4){
+                                           
+                        ellipse(grayBGR, Point(res[i].y,res[i].x),Size(10, 10), 0, 0,360, Scalar(34,139,34),-1, LINE_AA);} //forest green
+
+                     if(i==5){
+                                           
+                        ellipse(grayBGR, Point(res[i].y,res[i].x),Size(10, 10), 0, 0,360, Scalar(0,165,255),-1, LINE_AA); //orange
+                       
+                        } //violet                         
+                                              
+                }
+
+               
+               // cv::imwrite("image.jpg", image);
+               // cv::imwrite("imagebgr.jpg", grayBGR);
+                cv::imshow("defilement",grayBGR);
+                cv::waitKey(1);*/
+               
+                
+               
        
     
        

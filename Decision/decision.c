@@ -265,6 +265,7 @@ void analyseInterpretation(int **cordonnees){
                 sortie[STRAFER][EVALUATION] = BAD;
             }
         }
+<<<<<<< HEAD
         else{
             sortie[STRAFER][POSITION]=vecteur[STRAFER][POSITION];
             sortie[STRAFER][INTENSITE]=vecteur[STRAFER][INTENSITE];
@@ -309,3 +310,13 @@ void analyseInterpretation(int **cordonnees){
 }
 
 
+=======
+    }
+    int k;
+    for(k=0;k<2;k++){
+       printf(" etat: %d \n intensité: %d \n",vecteur[0],vecteur[1]); 
+    }
+    // pilotage(vecteur) 
+}
+
+>>>>>>> 90e95d1ce4c8652fbd75e54af77c4e16e28e47fa

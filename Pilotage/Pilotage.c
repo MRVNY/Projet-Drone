@@ -40,7 +40,7 @@ void *watch_dog(){
     }
 }
 
-int main_Pilotage (int **(*functionPtr)(const char*))
+int main_Pilotage (int (*functionPtr)(const char*))
 {
 
     /*-----------Test interface C++/C/C++---------------*/

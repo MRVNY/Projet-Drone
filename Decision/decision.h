@@ -9,6 +9,15 @@
 
 void current_state_y(int **cordonnee,int **tab); // renvoie la position du drone sur l'axe des y 
 void current_state_x(int **cordonnee, int **tab);  // renvoie la position du drone sur l'a
+<<<<<<< HEAD
 void isDefine(int **cordonnee,int *hirondelle_defined, int *nb_hirondelle_valide); //  pour une hirondelle(x,y) verifie si elle est bien renseigné par la partie imagerie
 void calcule_dx_dy(int **cordonnee, float *dx, float *dy);
 void analyseInterpretation(int **cordonnees);
+=======
+int isDefine(int x, int y); //  pour une hirondelle(x,y) verifie si elle est bien renseigné par la partie imagerie
+float distance_euclidienne(int x,int y); 
+float distanceCentre(int **cordonnee);
+int evaluation(int **cordonnee,float *DISTANCE_PRECEDENTE);
+int nombre_de_cordonnee_recu(int **vecteur);
+void analyseInterpretation(int **cordonnees,int *ETAT_PRECEDENT0,int *ETAT_PRECEDENT1,float *DISTANCE_PRECEDENTE);
+>>>>>>> 90e95d1ce4c8652fbd75e54af77c4e16e28e47fa
