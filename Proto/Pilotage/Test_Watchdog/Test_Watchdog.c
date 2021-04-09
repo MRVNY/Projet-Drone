@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <time.h>
+#include <signal.h>
 
 time_t counter = 0;
 time_t watch = 0;
@@ -39,8 +40,14 @@ void *watch_dog(){
     return 0;
 }
 
+void catch(){
+    printf("can't die\n");
+}
+
 int main(){
     int i = 0;
+    signal(SIGINT,catch);
+    //signal(SIGTSTP,catch);
     pthread_create(&threads, NULL, watch_dog, NULL);
 
     for(i=0;i<5;i++){
