@@ -43,7 +43,7 @@ void *watch_dog(){
     while(counter){
         sleep(1);
         if(counter!=NULL){
-            printf("%d\n",counter)
+            printf("%d\n",counter);
         }
         //else time(&counter);
     }
