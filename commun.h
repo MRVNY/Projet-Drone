@@ -1,17 +1,21 @@
 #ifndef _COMMUN_H_
 #define _COMMUN_H_
 
-// La convention sur les états 
 
+// La taille du vecteur de sortie 
+#define TAILLE_SORTIE 4 
+#define INFO_SORTIE 3
+
+// La convention sur les états 
 #define STOP 0
 #define DROITE 1
 #define GAUCHE -1
-#define HAUT 1
-#define BAS -1
-#define AVANT 1
-#define ARRIERE -1
-#define TOURNEGAUCHE -1
-#define TOURNEDROITE 1
+#define HAUT 2
+#define BAS -2
+#define AVANT 3
+#define ARRIERE -3
+#define TOURNEGAUCHE -4
+#define TOURNEDROITE 4
 #define GOOD 1
 #define BAD -1
 
