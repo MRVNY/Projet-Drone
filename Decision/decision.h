@@ -7,8 +7,8 @@
 // la taille de vecteur d'entrée (les hirondelle)
 #define TAILLE 4 
 
-void current_state_y(int **cordonnee,int *tab); // renvoie la position du drone sur l'axe des y 
-void current_state_x(int **cordonnee, int *tab);  // renvoie la position du drone sur l'a
+void current_state_y(int **cordonnee,int **tab); // renvoie la position du drone sur l'axe des y 
+void current_state_x(int **cordonnee, int **tab);  // renvoie la position du drone sur l'a
 int isDefine(int x, int y); //  pour une hirondelle(x,y) verifie si elle est bien renseigné par la partie imagerie
 float distance_euclidienne(int x,int y); 
 float distanceCentre(int **cordonnee);

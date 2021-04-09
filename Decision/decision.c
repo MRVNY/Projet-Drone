@@ -260,12 +260,3 @@ void analyseInterpretation(int **cordonnees,int *ETAT_PRECEDENT0,int *ETAT_PRECE
     // pilotage(vecteur) 
 }
 
-int main(){
-    int 
-
-
-
-
-
-    return 0; 
-}
