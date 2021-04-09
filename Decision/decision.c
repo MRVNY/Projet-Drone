@@ -2,66 +2,64 @@
 #include<stdlib.h> 
 #include "decision.h"
 #include <math.h>
-
+#include "../commun.h" 
 // #include "../Pilotage/Pilotage.h"
 
 
-// la convention sur les états 
 
-//  1 : droite
-// -1 : gauche
-//  2 : haut
-// -2 : bas
-//  3 : avant
-// -3 : arriére
-//  4 : tourné à gauche
-// -4 : tourné à droite 
-// ///////////////// pour l'instant 
-//  5  :  ok 
-// -5 : ko
-
-/*
-Pour les intensités: 
-    1 : pour loin un peu 
-    2 : pour tres loin 
-    3 : pour les extrémités
-
-*/
+// les variable globales
+int sortie[4][3]; // le tableau de la sortie 
+float dx_precedent, dy_precedent ; // la distance entre le centre de la mire et celui de l'image 
+int hirondelle_defined[4][2]; // un tableau de bool sur la disponiblité ou pas des horondelles
 
 
-void current_state_y(int **cordonnee,int *tab){  
+
+#define STOP 0
+#define DROITE 1
+#define GAUCHE -1
+#define HAUT 1
+#define BAS -1
+#define AVANT 1
+#define ARRIERE -1
+#define TOURNEGAUCHE -1
+#define TOURNEDROITE 1
+#define GOOD 1
+#define BAD -1
+
+
+
+void current_state_y(int **cordonnee,int **tab){  
     /*
     Cette fonction renvoie l'etat du dronne selon l'image actuellement recue 
     y1 étant le deuxième cordonnée de la première abeille et y2 de la deuxième abeille
     args : 
         cordonnee: les cordonnee des hirondelle recu sous forme d'une matrice 4*2 
-        info : 
+        tab:  le vecteur de sortie
     */
 
     if((cordonnee[0][1]<(TAILLE_Y/8)*2)||(cordonnee[2][1]<(TAILLE_Y/8)*2)){
-        tab[0]=-1;
-        tab[1]=2;
+        tab[STRAFER][POSITION]=GAUCHE;
+        tab[STRAFER][INTENSITE]=FAR;
 
     }
     else{
-
         if((cordonnee[0][1]<(TAILLE_Y/8)*3)||(cordonnee[2][1]<(TAILLE_Y/8)*3)){
-            tab[0]=-1;
-            tab[1]=1;
+            tab[STRAFER][POSITION]=GAUCHE;
+            tab[STRAFER][INTENSITE]=CLOSE;
         }
         else{
             if((cordonnee[1][1]>(TAILLE_Y/8)*6)||(cordonnee[3][1]>(TAILLE_Y/8)*6)){
-                tab[0]=1;
-                tab[1]=2;
+                tab[STRAFER][POSITION]=DROITE;
+                tab[STRAFER][INTENSITE]=FAR;
             }
             else{
                 if((cordonnee[1][1]>(TAILLE_Y/8)*5)||(cordonnee[3][1]>(TAILLE_Y/8)*5)){
-                    tab[0]=1;
-                    tab[1]=1;
+                    tab[STRAFER][POSITION]=DROITE;
+                    tab[STRAFER][INTENSITE]=CLOSE;
                 }
                 else{
-                    tab[0]=0;
-                    tab[1]=0;
+                    tab[STRAFER][POSITION]=AXE;
+                    tab[STRAFER][INTENSITE]=AXE;
                 }
             }
 
@@ -69,7 +67,9 @@ void current_state_y(int **cordonnee,int *tab){
     }
 }
 
-void current_state_x(int **cordonnee, int *tab){
+
+
+void current_state_x(int **cordonnee, int **tab){
     /*
     Cette fonction renvoie l'etat du dronne selon l'image actuellement recue 
     y1 étant le deuxième cordonnée de la première abeille et y2 de la deuxième abeille
@@ -78,28 +78,28 @@ void current_state_x(int **cordonnee, int *tab){
     // on calcule la différence entre les y pour extimer l'état du drone
 
     if ((cordonnee[0][0]<(TAILLE_X/8)*2)||(cordonnee[1][0]<(TAILLE_X/8)*2)){
-        tab[0]=2;
-        tab[1]=2;
+        tab[MONTER_DESCENDRE][POSITION]=HAUT;
+        tab[MONTER_DESCENDRE][INTENSITE]=FAR;
     }
     else{
         if((cordonnee[0][0]<(TAILLE_X/8)*3)||(cordonnee[1][0]<(TAILLE_X/8)*3)){
-            tab[0]=2;
-            tab[1]=1;
+            tab[MONTER_DESCENDRE][POSITION]=HAUT;
+            tab[MONTER_DESCENDRE][INTENSITE]=CLOSE;
         }
         else{
             if((cordonnee[2][0]>(TAILLE_X/8)*6)||(cordonnee[3][0]>(TAILLE_X/8)*6)){
-                tab[0]=-2;
-                tab[1]=2;
+                tab[MONTER_DESCENDRE][POSITION]=BAS;
+                tab[MONTER_DESCENDRE][INTENSITE]=FAR;
             }
             else{
                 if((cordonnee[2][0]>(TAILLE_X/8)*5)||(cordonnee[3][0]>(TAILLE_X/8)*5)){
-                    tab[0]=-2;
-                    tab[1]=1;
+                    tab[MONTER_DESCENDRE][POSITION]=BAS;
+                    tab[MONTER_DESCENDRE][INTENSITE]=CLOSE;
                 
                 }
                 else{
-                    tab[0]=0;
-                    tab[1]=0;
+                    tab[MONTER_DESCENDRE][POSITION]=AXE;
+                    tab[MONTER_DESCENDRE][INTENSITE]=AXE;
                 }
             }
         }
@@ -108,20 +108,74 @@ void current_state_x(int **cordonnee, int *tab){
 }
 
 
+
+
 int isDefine(int x, int y){
+    // test si l'hirondelle(x,y) est définie
     return (x>=0 && y>=0);
 }
 
 
-float distance_euclidienne(int x,int y){
-    return sqrt(pow((x-CENTREIMAGEx),2)+pow((y-CENTREIMAGEy),2));
+
+void calcule_dx_dy(int **cordonnee, float *dx, float *dy, int nombre_de_cordonnee_recu){
+    // calcule la distance entre le centre de l'image et celui de la mire 
+    int a1, a2;
+
+    if(nombre_de_cordonnee_recu >=3){ // donc la on aura une bonne evaluation du déplacement car on peut calculer le bon centre 
+        // traitement sur y 
+        if(isDefine(cordonnee[0][0],cordonnee[0][1]) && isDefine(cordonnee[1][0],cordonnee[1][1])){
+            a1 = cordonnee[0][1];
+            a2 = cordonnee[1][1];
+        }
+        else{
+            a1 = cordonnee[2][1];
+            a2 = cordonnee[3][1];
+        }
+        *dy= abs(CENTREIMAGEY-(a1+a2)/2);
+
+        // traitement sur x
+        if(isDefine(cordonnee[0][0],cordonnee[0][1]) && isDefine(cordonnee[2][0],cordonnee[2][1])){
+                a1 = cordonnee[0][0];
+                a2 = cordonnee[2][0];
+            }
+            else{
+                a1 = cordonnee[1][0];
+                a2 = cordonnee[3][0];
+            }
+            *dx= abs(CENTREIMAGEX-(a1+a2)/2);
+    }
+    else{
+        if(nombre_de_cordonnee_recu ==2){
+
+
+
+
+
+        }
+        else{
+            if(nombre_de_cordonnee_recu ==1){
+
+            }
+        }
+
+
+    }
+
+
+
+
+
+
+
 }
 
 
+
 float distanceCentre(int **cordonnee){
-    float som = 0.0;
-    int i;
-    int nb=0;
+    //  
+    float som = 0.0; 
+    int i; 
+    int nb=0; 
     for(i=0;i<TAILLE;i++){
         if(isDefine(cordonnee[i][0],cordonnee[i][1])){
             nb++;
@@ -132,6 +186,7 @@ float distanceCentre(int **cordonnee){
         return som/nb;
     }
 }
+
 
 
 int evaluation(int **cordonnee,float *DISTANCE_PRECEDENTE){
@@ -145,7 +200,8 @@ int evaluation(int **cordonnee,float *DISTANCE_PRECEDENTE){
 
 }
     
-    
+
+
 
 int nombre_de_cordonnee_recu(int **vecteur){
     /*
@@ -204,4 +260,12 @@ void analyseInterpretation(int **cordonnees,int *ETAT_PRECEDENT0,int *ETAT_PRECE
     // pilotage(vecteur) 
 }
 
+int main(){
+    int 
 
+
+
+
+
+    return 0; 
+}
