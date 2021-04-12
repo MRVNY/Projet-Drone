@@ -7,15 +7,11 @@
 #define INFO_SORTIE 3
 
 // La convention sur les états 
+
+#define POSITIVE 1
 #define STOP 0
-#define DROITE 1
-#define GAUCHE -1
-#define HAUT 2
-#define BAS -2
-#define AVANT 3
-#define ARRIERE -3
-#define TOURNEGAUCHE -4
-#define TOURNEDROITE 4
+#define NEGATIVE -1
+
 #define GOOD 1
 #define BAD -1
 

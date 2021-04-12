@@ -34,6 +34,15 @@ int main_Pilotage (int (*functionPtr)(const char*));
 }
 #endif
 
+#define DROITE 1
+#define GAUCHE -1
+#define HAUT 2
+#define BAS -2
+#define AVANT 3
+#define ARRIERE -3
+#define TOURNEGAUCHE -4
+#define TOURNEDROITE 4
+
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
 

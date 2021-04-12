@@ -24,12 +24,12 @@ void current_state_y(int **cordonnee,int **tab){
     */
     int y1,y2;
     if(nb_hirondelle_valide==2){
-        if(hirondelle_defined[0]==0 && hirondelle_defined[2]==0){ // on est à l'extrémité gauche 
-            tab[STRAFER][POSITION]=GAUCHE;
+        if(hirondelle_defined[0]==0 && hirondelle_defined[2]==0){ // on est à l'extrémité NEGATIVE 
+            tab[STRAFER][POSITION]=NEGATIVE;
             tab[STRAFER][INTENSITE]=EXTREME;
         }
-        if(hirondelle_defined[1]==0 && hirondelle_defined[3]==0){ // on est à l'extrémité droite 
-            tab[STRAFER][POSITION]=DROITE;
+        if(hirondelle_defined[1]==0 && hirondelle_defined[3]==0){ // on est à l'extrémité POSITIVE 
+            tab[STRAFER][POSITION]=POSITIVE;
             tab[STRAFER][INTENSITE]=EXTREME;
         }
     }    
@@ -48,23 +48,23 @@ void current_state_y(int **cordonnee,int **tab){
             y2= cordonnee[3][1]; 
         }
         if(y1<(TAILLE_Y/8)*2){
-            tab[STRAFER][POSITION]=GAUCHE;
+            tab[STRAFER][POSITION]=NEGATIVE;
             tab[STRAFER][INTENSITE]=FAR;
 
         }
         else{
             if(y1<(TAILLE_Y/8)*3){
-                tab[STRAFER][POSITION]=GAUCHE;
+                tab[STRAFER][POSITION]=NEGATIVE;
                 tab[STRAFER][INTENSITE]=CLOSE;
             }
             else{
                 if(y2>(TAILLE_Y/8)*6){
-                    tab[STRAFER][POSITION]=DROITE;
+                    tab[STRAFER][POSITION]=POSITIVE;
                     tab[STRAFER][INTENSITE]=FAR;
                 }
                 else{
                     if(y2>(TAILLE_Y/8)*5){
-                        tab[STRAFER][POSITION]=DROITE;
+                        tab[STRAFER][POSITION]=POSITIVE;
                         tab[STRAFER][INTENSITE]=CLOSE;
                     }
                     else{
@@ -89,12 +89,12 @@ void current_state_x(int **cordonnee, int **tab){
 
     int y1,y2;
     if(nb_hirondelle_valide==2){
-        if(hirondelle_defined[0]==0 && hirondelle_defined[1]==0){ // on est à l'extrémité gauche 
-            tab[STRAFER][POSITION]=HAUT;
+        if(hirondelle_defined[0]==0 && hirondelle_defined[1]==0){ // on est à l'extrémité NEGATIVE 
+            tab[STRAFER][POSITION]=POSITIVE;
             tab[STRAFER][INTENSITE]=EXTREME;
         }
-        if(hirondelle_defined[2]==0 && hirondelle_defined[3]==0){ // on est à l'extrémité droite 
-            tab[STRAFER][POSITION]=BAS;
+        if(hirondelle_defined[2]==0 && hirondelle_defined[3]==0){ // on est à l'extrémité POSITIVE 
+            tab[STRAFER][POSITION]=NEGATIVE;
             tab[STRAFER][INTENSITE]=EXTREME;
         }
     }    
@@ -114,22 +114,22 @@ void current_state_x(int **cordonnee, int **tab){
         }
 
         if(y1<(TAILLE_X/8)*2){
-            tab[MONTER_DESCENDRE][POSITION]=HAUT;
+            tab[MONTER_DESCENDRE][POSITION]=POSITIVE;
             tab[MONTER_DESCENDRE][INTENSITE]=FAR;
         }
         else{
             if(y1<(TAILLE_X/8)*3){
-                tab[MONTER_DESCENDRE][POSITION]=HAUT;
+                tab[MONTER_DESCENDRE][POSITION]=POSITIVE;
                 tab[MONTER_DESCENDRE][INTENSITE]=CLOSE;
             }
             else{
                 if(y2>(TAILLE_X/8)*6){
-                    tab[MONTER_DESCENDRE][POSITION]=BAS;
+                    tab[MONTER_DESCENDRE][POSITION]=NEGATIVE;
                     tab[MONTER_DESCENDRE][INTENSITE]=FAR;
                 }
                 else{
                     if(y2>(TAILLE_X/8)*5){
-                        tab[MONTER_DESCENDRE][POSITION]=BAS;
+                        tab[MONTER_DESCENDRE][POSITION]=NEGATIVE;
                         tab[MONTER_DESCENDRE][INTENSITE]=CLOSE;
                     }
                     else{
