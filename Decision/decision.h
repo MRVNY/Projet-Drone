@@ -7,6 +7,16 @@
 // la taille de vecteur d'entrée (les hirondelle)
 #define TAILLE 4 
 
+// La convention sur les états 
+#define DROITE 1
+#define GAUCHE -1
+#define HAUT 1
+#define BAS -1
+#define AVANT 1
+#define ARRIERE -1
+#define TOURNEGAUCHE -1
+#define TOURNEDROITE 1
+
 void current_state_y(int **cordonnee,int **tab); // renvoie la position du drone sur l'axe des y 
 void current_state_x(int **cordonnee, int **tab);  // renvoie la position du drone sur l'a
 <<<<<<< HEAD

@@ -6,12 +6,7 @@
 #define TAILLE_SORTIE 4 
 #define INFO_SORTIE 3
 
-// La convention sur les états 
-
-#define POSITIVE 1
 #define STOP 0
-#define NEGATIVE -1
-
 #define GOOD 1
 #define BAD -1
 
