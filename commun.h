@@ -6,7 +6,10 @@
 #define TAILLE_SORTIE 4 
 #define INFO_SORTIE 3
 
+// La convention sur les états 
 #define STOP 0
+#define NEGATIF -1 
+#define POSITIF  1
 #define GOOD 1
 #define BAD -1
 
@@ -18,13 +21,13 @@
 #define EXTREME 3
 
 // convention sur les index dans le tableau de sortie 
-#define POSITION 0
+#define POSITION 0 
 #define INTENSITE 1
 #define EVALUATION 2 
 
 // les convention sur les index de la matrice de sortie 
 #define STRAFER 0 
-#define avant_arriere 1
+#define AVANT_ARRIERE 1
 #define MONTER_DESCENDRE 2  
 #define ROTATION 3 
 
@@ -34,6 +37,4 @@
 
 
 #endif 
-
-
 

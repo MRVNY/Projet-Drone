@@ -5,29 +5,32 @@
 #define CENTREIMAGEX 539.5
 #define CENTREIMAGEY 959.5
 // la taille de vecteur d'entrée (les hirondelle)
-#define TAILLE 4 
+#define TAILLE 4
 
-// La convention sur les états 
-#define DROITE 1
-#define GAUCHE -1
-#define HAUT 1
-#define BAS -1
-#define AVANT 1
-#define ARRIERE -1
-#define TOURNEGAUCHE -1
-#define TOURNEDROITE 1
+#define BORNE_FAR_BACK 3 
+#define BORNE_CLOSE_BACK 1
+#define BORNE_AXE 0.5
+#define BORNE_CLOSE_FRONT 0.3
+#define BORNE_FAR_FRONT 0.1 
+#define BORNE_EXTREM_FRONT 0
+#define BORNE_EXTREM_BACK  4  // à définir avec le calibrage et la capacité de la partie imagerie 
+
+
+
 
 void current_state_y(int **cordonnee,int **tab); // renvoie la position du drone sur l'axe des y 
 void current_state_x(int **cordonnee, int **tab);  // renvoie la position du drone sur l'a
-<<<<<<< HEAD
+void current_state_z(int **cordonnee, int **tab);
 void isDefine(int **cordonnee,int *hirondelle_defined, int *nb_hirondelle_valide); //  pour une hirondelle(x,y) verifie si elle est bien renseigné par la partie imagerie
 void calcule_dx_dy(int **cordonnee, float *dx, float *dy);
+int get_nb_pixel(int **cordonnee);
 void analyseInterpretation(int **cordonnees);
-=======
-int isDefine(int x, int y); //  pour une hirondelle(x,y) verifie si elle est bien renseigné par la partie imagerie
-float distance_euclidienne(int x,int y); 
-float distanceCentre(int **cordonnee);
-int evaluation(int **cordonnee,float *DISTANCE_PRECEDENTE);
-int nombre_de_cordonnee_recu(int **vecteur);
-void analyseInterpretation(int **cordonnees,int *ETAT_PRECEDENT0,int *ETAT_PRECEDENT1,float *DISTANCE_PRECEDENTE);
->>>>>>> 90e95d1ce4c8652fbd75e54af77c4e16e28e47fa
+int is_far_left(int a);
+int is_left(int a);
+int is_far_right(int a);
+int is_right(int a);
+int is_top(int a);
+int is_mid_top(int a);
+int is_bottom(int a);
+int is_mid_bottom(int a);
+
