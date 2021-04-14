@@ -15,25 +15,32 @@
 
 
 // Pour les intensités: 
-#define AXE 0 
-#define CLOSE 1
-#define FAR 2
-#define EXTREME 3
-
-// convention sur les index dans le tableau de sortie 
-#define POSITION 0 
-#define INTENSITE 1
-#define EVALUATION 2 
+enum position {
+    AXE=0,
+    CLOSE=1,
+    FAR=2,
+    EXTREME=3    
+};
 
 // les convention sur les index de la matrice de sortie 
-#define STRAFER 0 
-#define AVANT_ARRIERE 1
-#define MONTER_DESCENDRE 2  
-#define ROTATION 3 
+enum mouvement {
+    STRAFER=0, 
+    AVANT_ARRIERE=1,
+    MONTER_DESCENDRE=2,  
+    ROTATION=3 
+};
+
+// convention sur les index dans le tableau de sortie 
+
+enum stateIndex{
+    POS_INTENSITE=0,
+    EVALUATION=1 
+};
 
 
 // -1 : pour gauche , en bas  ,rotation à gauche et aarière, ko 
-// 1 : pour droite , haut , rotation à droite et avancer, ok
+// 1 : pour droite , haut , rotation à droite et avancer, ok 
+
 
 
 #endif 
