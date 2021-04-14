@@ -1,7 +1,7 @@
 all: Test_Watchdog
 
 Test_Watchdog: Test_Watchdog.c
-	gcc -o $@ $<
+	gcc -pthread -o $@ $<
 
 clean: 
 	rm -f Test_Watchdog
