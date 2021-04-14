@@ -81,7 +81,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
-        if(i != SIGINT || i != SIGTSTP) signal(i,catchSig);
+        if(i != SIGINT && i != SIGTSTP) signal(i,catchSig);
     }
 
     // MPLAYER ou FFMPEG
