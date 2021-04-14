@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <time.h>
 #include <signal.h>
+#include <math.h>
 
 #include "Pilotage.h"
 
@@ -354,86 +355,83 @@ int main_Pilotage (int (*functionPtr)(const char*))
     return EXIT_SUCCESS;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /*Définitions des fonctions de pilotage*/
 
 //void callback(int **state, int ifStop);
-void callback(int *state){
+void callback(int **state,int stop){
+
     //Arrêt de la commande en cour
     stop(deviceController);
-    int angleAmp;
-    int speedAmp;
-    //Selection de l'amplitude de mouvement de la prochaine commande
-    switch (state[1])
-    {
-    case CLOSE:
-        speedAmp=LOW_SPEED;
-        angleAmp=LOW_ANGLE;
-        printf("Près\n");
-        break;
-    case FAR:
-        speedAmp=HIGH_SPEED;
-        angleAmp=HIGH_ANGLE;
-        printf("Loin\n");
 
-        break;
-    
-    default:
-        speedAmp=0;
-        angleAmp=0;
-        break;
+    //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
+    if(stop==STOP){
+        //Gerer d'autre signaux pour les autres parties ?
+        end();
+        return;
     }
-    
-    //Selection de la prochaine commande selon state 
-    switch (state[0])
-    {
-        case AVANT:
-            pitch(deviceController,angleAmp);
-            break;
-        case ARRIERE:
-            pitch(deviceController,-angleAmp);
-            break;
-        case GAUCHE:
-            roll(deviceController,-angleAmp);
-            printf("Gauche\n");
-            break;
-        case DROITE:
-            roll(deviceController,angleAmp);
-            printf("Droite\n");
-            break;
-        case HAUT:
-            gaz(deviceController,angleAmp);
-            break;
-        case BAS:
-            gaz(deviceController,-speedAmp);
-            break;
-        case TOURNEGAUCHE:
-            yaw(deviceController,-speedAmp);
-            break;
-        case TOURNEDROITE:
-            yaw(deviceController,speedAmp);
-            break;
-        case LAND:
-            land(deviceController);
-            break;
-        case TAKEOFF:
-            takeOff(deviceController);
-                while (getFlyingState(deviceController)!=ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING)
-                {   
-                    //On attend tant que le drone n'est pas en vol stationaire
-                }
-                sleep(1);
-            break;
-        default:
-            stop(deviceController);
-            break;
+
+    //Parcour des différents mouvements
+    for(int i=STRAFER; i<=ROTATION; i++) {
+
+        //Test de l'évaluation
+        if(state[i][EVALUATION]==GOOD){
+
+            int angleAmp;
+            int speedAmp;
+            int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
+
+            //Switch sur la position
+            switch (abs(state[i][POS_INTENSITE]))
+            {
+            case AXE:
+                angleAmp=0;
+                speedAmp=0;
+                break;
+            case CLOSE:
+                angleAmp=LOW_ANGLE;
+                speedAmp=LOW_SPEED;
+                break;
+            case FAR:
+                angleAmp=MID_ANGLE;
+                speedAmp=MID_SPEED;
+
+                break;
+            case EXTREME:
+                angleAmp=HIGH_ANGLE;
+                speedAmp=HIGH_SPEED;
+                break;
+            default:
+                break;
+            }
+
+            speedAmp=speedAmp*sign;
+            angleAmp=angleAmp*sign;
+            //Switch sur le mouvement
+            switch (i)
+            {
+            case STRAFER:
+                roll(deviceController,-angleAmp);
+                break;
+            case AVANT_ARRIERE:
+                pitch(deviceController,angleAmp);
+                break;
+            case MONTER_DESCENDRE:
+                gaz(deviceController,speedAmp);
+                break;
+            case ROTATION:
+                yaw(deviceController,speedAmp);
+                break;
+            default:
+                break;
+            }
+        }
     }
+
     time(&counter);
 }
+
+
 
 void end(){
     if (deviceController != NULL)

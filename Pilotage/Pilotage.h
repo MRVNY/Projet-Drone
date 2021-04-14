@@ -21,10 +21,13 @@
 #define FIFO_NAME "arsdk_fifo"
 
 #define LOW_ANGLE 10
+#define MID_ANGLE 20
 #define HIGH_ANGLE 30
 
 #define HIGH_SPEED 10
+#define MID_SPEED 20
 #define LOW_SPEED 30
+
 
 #if defined (__cplusplus)
 extern "C" {
@@ -36,11 +39,10 @@ int main_Pilotage (int(*functionPtr)(const char*));
 }
 #endif
 
-void callback(int *state);
 
 void *watch_dog();
 
-void catch();
+//void catch();
 
 void end();
 
