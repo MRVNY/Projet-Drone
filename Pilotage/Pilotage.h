@@ -30,7 +30,7 @@
 extern "C" {
 #endif
 
-int main_Pilotage (void(*functionPtr)(const char*));
+int main_Pilotage (int(*functionPtr)(const char*));
  
 #if defined (__cplusplus)
 }

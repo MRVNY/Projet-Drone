@@ -52,7 +52,7 @@ void *watch_dog(){
 
 }*/
 
-int main_Pilotage (void (*functionPtr)(const char*))
+int main_Pilotage (int (*functionPtr)(const char*))
 {
     //Local declaration
     int failed = 0;
