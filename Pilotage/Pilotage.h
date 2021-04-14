@@ -36,7 +36,11 @@ int main_Pilotage (int(*functionPtr)(const char*));
 }
 #endif
 
-//void *watch_dog();
+void callback(int *state);
+
+void *watch_dog();
+
+void catch();
 
 void end();
 

@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <pthread.h>
 #include <time.h>
+#include <signal.h>
 
 #include "Pilotage.h"
 
@@ -24,9 +25,9 @@ eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
 //Vars globl watchdog 
 time_t counter = 0;
+time_t watch = 0;
 pid_t child = 0;
 pthread_t threads;
-int thread_args;
 
 /*****************************************
  *
@@ -38,19 +39,28 @@ static void signal_handler(int signal)
 {
     gIHMRun = 0;
 }
-/*
+
 void *watch_dog(){
-    while(counter){
-        sleep(1);
-        if(counter!=NULL){
-            printf("%d\n",counter);
+    while(1){
+        if(counter!=0){
+            sleep(1);
+            time(&watch);
+            printf("watch:%ld counter:%ld\n",watch,counter);
+            if(watch-counter>3){
+                stop(deviceController);
+                end();
+                break;
+            }
+
         }
-        //else time(&counter);
     }
+    return 0;
+}
 
-    //end()
-
-}*/
+void catch(){
+    stop(deviceController);
+    end();
+}
 
 int main_Pilotage (int (*functionPtr)(const char*))
 {
@@ -65,6 +75,14 @@ int main_Pilotage (int (*functionPtr)(const char*))
     /*printf("Début du test\n");
     (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
     */
+
+
+   // catch signaux
+
+    int i;
+    for(i = 1; i <=SIGRTMIN ; i++){
+        if(i != SIGINT || i != SIGTSTP) signal(i,catch);
+    }
 
     // MPLAYER ou FFMPEG
    
@@ -84,7 +102,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
     } 
 
     // Watch Dog
-    //pthread_create(&threads, NULL, watch_dog, NULL);
+    pthread_create(&threads, NULL, watch_dog, NULL);
 
     /* Set signal handlers */
     struct sigaction sig_action = {
@@ -343,6 +361,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
 /*Définitions des fonctions de pilotage*/
 
+//void callback(int **state, int ifStop);
 void callback(int *state){
     //Arrêt de la commande en cour
     stop(deviceController);
@@ -413,7 +432,7 @@ void callback(int *state){
             stop(deviceController);
             break;
     }
-    //time(&counter);
+    time(&counter);
 }
 
 void end(){

@@ -12,7 +12,7 @@ using std::endl; using std::string;
 using std::ifstream;
 
 /*-----------------Métohde bouchon----------------*/
-void video_reader_process(const char* infile) {
+int video_reader_process(const char* infile) {
 
     string filename(infile);
 
@@ -44,8 +44,10 @@ void video_reader_process(const char* infile) {
     //MAGICNUMBER pour le bouchon ...
     tab[0][0]=1000;
     tab[0][1]=0;
-
     input_file.close();
+
+    return 0;
+
 }
     
 void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_ctx, AVFrame* av_frame, AVFrame* decframe) {

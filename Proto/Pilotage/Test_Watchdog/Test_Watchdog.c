@@ -45,13 +45,13 @@ void catch(){
 }
 
 int main(){
-    int i = 0;
-    signal(SIGINT,catch);
-    signal(SIGSEGV,catch);
-    //signal(SIGTSTP,catch);
-    pthread_create(&threads, NULL, watch_dog, NULL);
+    int i;
+    
+    for(i = 1; i <=SIGRTMIN ; i++){
+        if(i != SIGINT || i != SIGTSTP) signal(i,catch);
+    }
 
-    raise(SIGSEGV); //Segmentation fault
+    pthread_create(&threads, NULL, watch_dog, NULL);
 
     for(i=0;i<5;i++){
         sleep(1);
