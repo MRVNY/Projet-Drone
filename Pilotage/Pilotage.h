@@ -40,7 +40,7 @@ void callback(int *state);
 
 void *watch_dog();
 
-void catch();
+void catchSig();
 
 void end();
 
