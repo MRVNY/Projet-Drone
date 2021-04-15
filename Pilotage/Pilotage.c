@@ -358,7 +358,6 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
 /*Définitions des fonctions de pilotage*/
 
-//void callback(int **state, int ifStop);
 void callback(int **state,int ifStop){
     printf("callback\n");
     //Arrêt de la commande en cour

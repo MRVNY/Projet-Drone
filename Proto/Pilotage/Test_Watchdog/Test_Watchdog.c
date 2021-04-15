@@ -51,7 +51,7 @@ void *watch_dog(){
     return 0;
 }
 
-void catchE(){
+void catchSig(){
     printf("can't die\n");
 }
 
@@ -59,7 +59,7 @@ int main(){
     int i;
     
     for(i = 1; i <=SIGRTMIN ; i++){
-        if(i != SIGINT && i != SIGTSTP) signal(i,catchE);
+        if(i != SIGINT && i != SIGTSTP) signal(i,catchSig);
     }
 
     pthread_create(&threads, NULL, watch_dog, NULL);
