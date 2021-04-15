@@ -72,17 +72,17 @@ int main_Pilotage (int (*functionPtr)(const char*))
     int frameNb = 0;
     int isBebop2 = 1;
 
-    /*-----Test du bouchon sans drone (affichages)-------*/
-    /*printf("Début du test\n");
+    /*-----Test du bouchon sans drone ni simu (affichages)-------*/
+    printf("Début du test\n");
     (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
-    */
-
+    
+    
 
    // catch signaux
 
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
-        if(i != SIGINT && i != SIGTSTP) signal(i,catchSig);
+        if(i != SIGINT && i != SIGTSTP) signal(i,catchSig);  
     }
 
     // MPLAYER ou FFMPEG
@@ -359,14 +359,15 @@ int main_Pilotage (int (*functionPtr)(const char*))
 /*Définitions des fonctions de pilotage*/
 
 //void callback(int **state, int ifStop);
-void callback(int **state,int stop){
-
+void callback(int **state,int ifStop){
+    printf("callback\n");
     //Arrêt de la commande en cour
-    stop(deviceController);
+    //stop(deviceController);
 
     //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
-    if(stop==STOP){
+    if(ifStop==STOP){
         //Gerer d'autre signaux pour les autres parties ?
+        printf("Stop");
         end();
         return;
     }
@@ -385,19 +386,22 @@ void callback(int **state,int stop){
             switch (abs(state[i][POS_INTENSITE]))
             {
             case AXE:
+                printf("Centré\n");
                 angleAmp=0;
                 speedAmp=0;
                 break;
             case CLOSE:
+                printf("Près\n");
                 angleAmp=LOW_ANGLE;
                 speedAmp=LOW_SPEED;
                 break;
             case FAR:
+                printf("Loin\n");
                 angleAmp=MID_ANGLE;
                 speedAmp=MID_SPEED;
-
                 break;
             case EXTREME:
+                printf("Très Loin\n");
                 angleAmp=HIGH_ANGLE;
                 speedAmp=HIGH_SPEED;
                 break;
@@ -407,11 +411,13 @@ void callback(int **state,int stop){
 
             speedAmp=speedAmp*sign;
             angleAmp=angleAmp*sign;
+
             //Switch sur le mouvement
             switch (i)
             {
             case STRAFER:
-                roll(deviceController,-angleAmp);
+                printf("Straffer\n");
+                //roll(deviceController,-angleAmp);
                 break;
             case AVANT_ARRIERE:
                 pitch(deviceController,angleAmp);
@@ -423,6 +429,7 @@ void callback(int **state,int stop){
                 yaw(deviceController,speedAmp);
                 break;
             default:
+                stop(deviceController);
                 break;
             }
         }

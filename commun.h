@@ -42,6 +42,6 @@ enum stateIndex{
 // 1 : pour droite , haut , rotation à droite et avancer, ok 
 
 /*---------------Methodes partagées---------------*/
-void callback(int **state, int stop);
+void callback(int **state, int ifStop);
 
 #endif

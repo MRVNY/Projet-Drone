@@ -37,7 +37,7 @@ int video_reader_process(const char* infile) {
     {
         tab[0][0]=i;
         tab[0][1]=j;
-        analyseInterpretation(tab,NULL,NULL,NULL);
+        analyseInterpretation(tab);
 
     }
     //Indication de fin de fichier de coords

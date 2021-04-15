@@ -171,37 +171,52 @@ int nombre_de_cordonnee_recu(int **vecteur){
 
 
 /*-----------------Métohde bouchon----------------*/
-void analyseInterpretation(int **cordonnees,int *ETAT_PRECEDENT0,int *ETAT_PRECEDENT1,float *DISTANCE_PRECEDENTE)
-{
+//Methode bouhcon donc assez brouillon, principalment pour tester les mecanisme de control du drone
+void analyseInterpretation(int **cordonnees)
+{   
+    printf("analyse\n");
     int x =cordonnees[0][0];
-    int *tabDec=(int *)malloc(sizeof(int)*2);
+    int **tabDec=(int **)malloc(sizeof(int*)*4);
+
+    for (int i = 0; i < 4; i++)
+    {
+        tabDec[i]=(int*)malloc(sizeof(int)*2);
+    }
+    
+    int ifStop=1;
+    tabDec[STRAFER][EVALUATION]=GOOD;
+
     //Test fin de coordonées
     if(x>MAXCOORD){
-        tabDec[1]=LAND;
+        ifStop=STOP;
     }
     
     if(x-REF<0)
     {
-        tabDec[0]=GAUCHE;
         if(x<(MINCOORD+REF)/2){
-            tabDec[1]=CLOSE;
+            tabDec[STRAFER][POS_INTENSITE]=CLOSE*NEGATIF;
         }
         else{
-            tabDec[1]=FAR;
+            tabDec[STRAFER][POS_INTENSITE]=FAR*NEGATIF;
         }
     }
     else{
-        tabDec[0]=DROITE;
+
         if(x<(MAXCOORD-REF)/2){
-            tabDec[1]=CLOSE;
+            tabDec[STRAFER][POS_INTENSITE]=CLOSE*POSITIF;
         }
         else{
-            tabDec[1]=FAR;
+            tabDec[STRAFER][POS_INTENSITE]=FAR*POSITIF;
         }
 
     }
+
+    for (int i = AVANT_ARRIERE; i < ROTATION; i++){
+        tabDec[i][EVALUATION]=GOOD;
+        tabDec[i][POS_INTENSITE]=0;
+    }
     
-    callback(tabDec);
+    callback(tabDec,ifStop);
 }
 
 

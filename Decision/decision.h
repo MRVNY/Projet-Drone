@@ -14,4 +14,4 @@ float distance_euclidienne(int x,int y);
 float distanceCentre(int **cordonnee);
 int evaluation(int **cordonnee,float *DISTANCE_PRECEDENTE);
 int nombre_de_cordonnee_recu(int **vecteur);
-void analyseInterpretation(int **cordonnees,int *ETAT_PRECEDENT0,int *ETAT_PRECEDENT1,float *DISTANCE_PRECEDENTE);
+void analyseInterpretation(int **cordonnees);

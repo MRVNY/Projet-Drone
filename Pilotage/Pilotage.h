@@ -42,11 +42,7 @@ int main_Pilotage (int(*functionPtr)(const char*));
 
 void *watch_dog();
 
-<<<<<<< HEAD
 //void catch();
-=======
-void catchSig();
->>>>>>> f4062052d7cc7cf88df0cba0f508b84a8c68305e
 
 void end();
 
