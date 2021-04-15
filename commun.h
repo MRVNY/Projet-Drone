@@ -4,7 +4,7 @@
 
 // La taille du vecteur de sortie 
 #define TAILLE_SORTIE 4 
-#define INFO_SORTIE 3
+#define INFO_SORTIE 2
 
 // La convention sur les états 
 #define STOP 0
