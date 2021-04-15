@@ -12,6 +12,7 @@ int hirondelle_defined[4]; // un tableau de bool sur la disponiblité ou pas des
 int nb_hirondelle_valide = 0;  // le nombre des hirondelle définies 
 
 
+
 int is_far_left(int a){
     return(a<(TAILLE_Y/8)*2);
 }
@@ -57,13 +58,11 @@ void current_state_y(int **cordonnee,int **tab){
 
     if(nb_hirondelle_valide==2){
         if(hirondelle_defined[0]==0 && hirondelle_defined[2]==0){ // on est à l'extrémité gauche 
-            tab[STRAFER][POSITION]=NEGATIF;
-            tab[STRAFER][INTENSITE]=EXTREME;
+            tab[STRAFER][POS_INTENSITE]=POSITIF*EXTREME;
             verifier=1;
         }
         if(hirondelle_defined[1]==0 && hirondelle_defined[3]==0){ // on est à l'extrémité droite 
-            tab[STRAFER][POSITION]=POSITIF;
-            tab[STRAFER][INTENSITE]=EXTREME;
+            tab[STRAFER][POS_INTENSITE]=NEGATIF*EXTREME;
             verifier=1;
         }
     }    
@@ -82,28 +81,23 @@ void current_state_y(int **cordonnee,int **tab){
             y2= cordonnee[3][1]; 
         }
         if(is_far_left(y1)){
-            tab[STRAFER][POSITION]=NEGATIF;
-            tab[STRAFER][INTENSITE]=FAR;
+            tab[STRAFER][POS_INTENSITE]=POSITIF*FAR;
 
         }
         else{
             if(is_left(y1)){
-                tab[STRAFER][POSITION]=NEGATIF;
-                tab[STRAFER][INTENSITE]=CLOSE;
+                tab[STRAFER][POS_INTENSITE]=POSITIF*CLOSE;
             }
             else{
                 if(is_far_right(y2)){
-                    tab[STRAFER][POSITION]=POSITIF;
-                    tab[STRAFER][INTENSITE]=FAR;
+                    tab[STRAFER][POS_INTENSITE]=NEGATIF*FAR;
                 }
                 else{
                     if(is_right(y2)){
-                        tab[STRAFER][POSITION]=POSITIF;
-                        tab[STRAFER][INTENSITE]=CLOSE;
+                        tab[STRAFER][POS_INTENSITE]=NEGATIF*CLOSE;
                     }
                     else{
-                        tab[STRAFER][POSITION]=AXE;
-                        tab[STRAFER][INTENSITE]=AXE;
+                        tab[STRAFER][POS_INTENSITE]=AXE;
                     }
                 }
             }
@@ -124,14 +118,12 @@ void current_state_x(int **cordonnee, int **tab){
     if(nb_hirondelle_valide==2){
         
         if(hirondelle_defined[0]==0 && hirondelle_defined[1]==0){ // on est à l'extrémité haut
-            tab[MONTER_DESCENDRE][POSITION]=POSITIF;
-            tab[MONTER_DESCENDRE][INTENSITE]=EXTREME;
+            tab[MONTER_DESCENDRE][POS_INTENSITE]=NEGATIF*EXTREME;
             verifier=1;
         }
         if(hirondelle_defined[2]==0 && hirondelle_defined[3]==0){ // on est à l'extrémité bas
 
-            tab[MONTER_DESCENDRE][POSITION]=NEGATIF;
-            tab[MONTER_DESCENDRE][INTENSITE]=EXTREME;
+            tab[MONTER_DESCENDRE][POS_INTENSITE]=POSITIF*EXTREME;
             verifier=1;
         }
     }    
@@ -151,27 +143,22 @@ void current_state_x(int **cordonnee, int **tab){
         }
 
         if(is_top(y1)){
-            tab[MONTER_DESCENDRE][POSITION]=POSITIF;
-            tab[MONTER_DESCENDRE][INTENSITE]=FAR;
+            tab[MONTER_DESCENDRE][POS_INTENSITE]=NEGATIF*FAR;
         }
         else{
             if(is_mid_top(y1)){
-                tab[MONTER_DESCENDRE][POSITION]=POSITIF;
-                tab[MONTER_DESCENDRE][INTENSITE]=CLOSE;
+                tab[MONTER_DESCENDRE][POS_INTENSITE]=NEGATIF*CLOSE;
             }
             else{
                 if(is_bottom(y2)){
-                    tab[MONTER_DESCENDRE][POSITION]=NEGATIF;
-                    tab[MONTER_DESCENDRE][INTENSITE]=FAR;
+                    tab[MONTER_DESCENDRE][POS_INTENSITE]=POSITIF*FAR;
                 }
                 else{
                     if(is_mid_bottom(y2)){
-                        tab[MONTER_DESCENDRE][POSITION]=NEGATIF;
-                        tab[MONTER_DESCENDRE][INTENSITE]=CLOSE;
+                        tab[MONTER_DESCENDRE][POS_INTENSITE]=POSITIF*CLOSE;
                     }
                     else{
-                        tab[MONTER_DESCENDRE][POSITION]=AXE;
-                        tab[MONTER_DESCENDRE][INTENSITE]=AXE;
+                        tab[MONTER_DESCENDRE][POS_INTENSITE]=AXE;
                     }
                 }
             }
@@ -204,32 +191,130 @@ void current_state_z(int **cordonnee, int **tab){
     int nb_pixel = get_nb_pixel(cordonnee); // renvoie le nombre de pixels entre les hirondelles 
     
     if(nb_pixel>= BORNE_FAR_BACK){ // on est trop loin à l'arrière 
-        tab[MONTER_DESCENDRE][POSITION]=NEGATIF;
-        tab[MONTER_DESCENDRE][INTENSITE]=FAR;
+        tab[MONTER_DESCENDRE][POS_INTENSITE]=NEGATIF*FAR;
     }
     else{
         if(nb_pixel>= BORNE_CLOSE_BACK){ // on est trop loin à l'arrière 
-            tab[MONTER_DESCENDRE][POSITION]=NEGATIF;
-            tab[MONTER_DESCENDRE][INTENSITE]=CLOSE;
+            tab[MONTER_DESCENDRE][POS_INTENSITE]=NEGATIF*CLOSE;
         }
         else{
             if(nb_pixel >= BORNE_AXE){ // on est trop loin à l'arrière 
-                tab[MONTER_DESCENDRE][POSITION]=AXE;
-                tab[MONTER_DESCENDRE][INTENSITE]=AXE;
+                tab[MONTER_DESCENDRE][POS_INTENSITE]=AXE;
             }
             else{
                 if(nb_pixel >= BORNE_CLOSE_FRONT){ // on est trop loin à l'arrière 
-                    tab[MONTER_DESCENDRE][POSITION]= POSITIF;
-                    tab[MONTER_DESCENDRE][INTENSITE]=CLOSE;         
+                    tab[MONTER_DESCENDRE][POS_INTENSITE]= POSITIF*CLOSE;   
                 }
                 else{
                     if(nb_pixel >= BORNE_FAR_FRONT){ // on est trop loin à l'arrière 
-                        tab[MONTER_DESCENDRE][POSITION]=POSITIF;
-                        tab[MONTER_DESCENDRE][INTENSITE]=FAR;         
+                        tab[MONTER_DESCENDRE][POS_INTENSITE]=POSITIF*FAR;         
                     }
                 }
             }
 
+        }
+    }
+}
+
+
+#define BORNE_FAR_ROTATION 3/10 
+#define BORNE_CLOSE_ROTATION 1/10
+#define BORNE_AXE_ROTATION 0
+
+
+float calcul_ratio1( int a , int b , int c){
+    // calcule le ratio entre (a-b)/(a-c)
+    return abs(a-b)/abs(a-c);
+}
+float calcul_ratio2( int a , int b , int c){
+    // calcule le ratio entre (a-b)/(a-c)
+    return abs(a-b)/(2*abs(a-b)+abs(b-c));
+}
+
+int is_much_turned(float ratio){
+    return ratio > BORNE_FAR_ROTATION;
+}
+
+int is_less_turned(float ratio){
+    return ratio > BORNE_CLOSE_ROTATION;
+}
+int get_direction( int a , int b ){
+    if (a<b){
+        return POSITIF;
+    }else{
+        if (a>b){
+            return NEGATIF;
+        }else{
+            return AXE;
+        }
+    }
+}
+
+void direction_ratio( int **coordonnee, int *direction, float *ratio ){
+    int a1,a2,a3;
+    if(hirondelle_defined[0]==1 && hirondelle_defined[1]==1){ 
+        a1=0;
+        a2=1;
+        *direction=get_direction(a1,a2);
+        if (*direction==POSITIF){
+            if (hirondelle_defined[2]==1)
+                *ratio=calcul_ratio1(coordonnee[a1][0],coordonnee[a2][0],coordonnee[2][0]);
+            else
+                *ratio=calcul_ratio2(coordonnee[a1][0],coordonnee[a2][0],coordonnee[3][0]);
+        }else{
+            if(*direction==NEGATIF){
+                if (hirondelle_defined[3]==1)
+                    *ratio=calcul_ratio1(coordonnee[a2][0],coordonnee[a1][0],coordonnee[3][0]);
+                else
+                    *ratio=calcul_ratio2(coordonnee[a2][0],coordonnee[a1][0],coordonnee[2][0]);
+            }else{
+                *ratio=0;
+            }
+        }
+    }else{
+        if (hirondelle_defined[2]==1 && hirondelle_defined[3]==1){
+            a1=2;
+            a2=3;
+            *direction=get_direction(a1,a2);
+            if (*direction==POSITIF){
+                if (hirondelle_defined[0]==1)
+                    *ratio=calcul_ratio1(coordonnee[a1][0],coordonnee[a2][0],coordonnee[0][0]);
+                else
+                    *ratio=calcul_ratio2(coordonnee[a1][0],coordonnee[a2][0],coordonnee[1][0]);
+            }else{
+                if(*direction==NEGATIF){
+                    if (hirondelle_defined[1]==0)
+                        *ratio=calcul_ratio1(coordonnee[a2][0],coordonnee[a1][0],coordonnee[1][0]);
+                    else
+                        *ratio=calcul_ratio2(coordonnee[a2][0],coordonnee[a1][0],coordonnee[0][0]);
+                }else{
+                    *ratio=0;
+                }
+            }
+        }
+        
+    }    
+
+}
+
+void current_state_rotation(int **cordonnee,int **tab){
+    // cette fonction marche que dans le cas ou on a recu 4 ou 3 cordonnées
+    int direction;
+    float ratio;
+    direction_ratio(cordonnee, &direction, &ratio );
+    if(direction == AXE){
+        tab[ROTATION][POS_INTENSITE] = AXE ;
+    }else{
+        if(is_much_turned(ratio)){
+            tab[ROTATION][POS_INTENSITE] = direction * FAR ;
+        }
+        else{
+            if(is_less_turned(ratio)){
+                tab[ROTATION][POS_INTENSITE] = direction * CLOSE ; 
+            }
+            else{
+                tab[ROTATION][POS_INTENSITE] = AXE;
+            }
         }
     }
 }
@@ -341,9 +426,9 @@ void analyseInterpretation(int **cordonnees){
     if(nb_hirondelle_valide <=1){ // deja on sais avec que ca qu'on est à l'extrémité 
         // on regard deja la position de l'état précédent et on 
         for(int i=0;i<=TAILLE_SORTIE;i++){
-            if(sortie[i][INTENSITE]==FAR){
+            if(abs(sortie[i][POS_INTENSITE]) == FAR){
                 if(sortie[i][EVALUATION]==BAD){
-                    sortie[i][INTENSITE]==EXTREME;
+                    sortie[i][POS_INTENSITE]==EXTREME;
                     sortie[i][EVALUATION]==0;
                 }
             }
@@ -353,7 +438,7 @@ void analyseInterpretation(int **cordonnees){
         current_state_y(cordonnees,vecteur); // estimation de la position sur x 
         current_state_x(cordonnees,vecteur); // estimation de la position sur y 
         current_state_z(cordonnees, vecteur); // estimation de la position sur z
-
+        current_state_rotation(cordonnees,vecteur); // estimation de la rotation  
 
         
         calcule_dx_dy(cordonnees,&dx, &dy); // on calcule les nouvelle distances 
@@ -362,7 +447,7 @@ void analyseInterpretation(int **cordonnees){
             dy_precedent=dy;
         }
         // traitement de straffer:
-        if((sortie[STRAFER][POSITION]==vecteur[STRAFER][POSITION])&& (sortie[STRAFER][INTENSITE]==vecteur[STRAFER][INTENSITE])){ // on regarde si on est tjr dans la meme etat
+        if(sortie[STRAFER][POS_INTENSITE]==vecteur[STRAFER][POS_INTENSITE]){ // on regarde si on est tjr dans la meme etat
             if(dy <= dy_precedent){
                 sortie[STRAFER][EVALUATION] = GOOD;
             }
@@ -371,11 +456,10 @@ void analyseInterpretation(int **cordonnees){
             }
         }
         else{
-            sortie[STRAFER][POSITION]=vecteur[STRAFER][POSITION];
-            sortie[STRAFER][INTENSITE]=vecteur[STRAFER][INTENSITE];
+            sortie[STRAFER][POS_INTENSITE]=vecteur[STRAFER][POS_INTENSITE];
             sortie[STRAFER][EVALUATION]=0;
         }
-        if((sortie[MONTER_DESCENDRE][POSITION]==vecteur[MONTER_DESCENDRE][POSITION])&& (sortie[MONTER_DESCENDRE][INTENSITE]==vecteur[MONTER_DESCENDRE][INTENSITE])){ // on regarde si on est tjr dans la mm zone 
+        if(sortie[MONTER_DESCENDRE][POS_INTENSITE]==vecteur[MONTER_DESCENDRE][POS_INTENSITE]){ // on regarde si on est tjr dans la mm zone 
             if(dx <= dx_precedent){
                 sortie[MONTER_DESCENDRE][EVALUATION] = GOOD;
             }
@@ -384,8 +468,7 @@ void analyseInterpretation(int **cordonnees){
             }
         }
         else{
-            sortie[MONTER_DESCENDRE][POSITION]=vecteur[MONTER_DESCENDRE][POSITION];
-            sortie[MONTER_DESCENDRE][INTENSITE]=vecteur[MONTER_DESCENDRE][INTENSITE];
+            sortie[MONTER_DESCENDRE][POS_INTENSITE]=vecteur[MONTER_DESCENDRE][POS_INTENSITE];
             sortie[MONTER_DESCENDRE][EVALUATION]=0;
         }
         dx_precedent = dx; //mettre ajour les distance d'Evaluation
@@ -399,7 +482,10 @@ void analyseInterpretation(int **cordonnees){
         //         sortie[ROTATION][EVALUATION] = BAD;
         //     }
         // }
-        if((sortie[AVANT_ARRIERE][POSITION]==vecteur[AVANT_ARRIERE][POSITION]) && (sortie[AVANT_ARRIERE][INTENSITE]==vecteur[AVANT_ARRIERE][INTENSITE])){ // on regarde si on est tjr dans la mm zone 
+        if ( dz_precedent==0 ){ // initialiser dz_precedent  avec la premiere valeur dz dans la nouvelle etat
+            dz_precedent=get_nb_pixel(cordonnees);
+        }
+        if(sortie[AVANT_ARRIERE][POS_INTENSITE]==vecteur[AVANT_ARRIERE][POS_INTENSITE]){ // on regarde si on est tjr dans la mm zone 
             if(get_nb_pixel(cordonnees)<= dz_precedent){
                 sortie[AVANT_ARRIERE][EVALUATION] = GOOD;
             }
@@ -407,11 +493,12 @@ void analyseInterpretation(int **cordonnees){
                 sortie[AVANT_ARRIERE][EVALUATION] = BAD;
             }
         }
+        else{
+            sortie[AVANT_ARRIERE][POS_INTENSITE]=vecteur[AVANT_ARRIERE][POS_INTENSITE];
+            sortie[AVANT_ARRIERE][EVALUATION]=0;
+        }
 
 
     }
 }
-
-}
-
 
