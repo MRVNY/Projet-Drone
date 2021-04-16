@@ -48,8 +48,7 @@ void *watch_dog(){
             time(&watch);
             printf("watch:%ld counter:%ld\n",watch,counter);
             if(watch-counter>3){
-                stop(deviceController);
-                end();
+                endProg();
                 break;
             }
 
@@ -59,8 +58,9 @@ void *watch_dog(){
 }
 
 void catchSig(){
-    stop(deviceController);
-    end();
+    printf("CAUGHT\n");
+    endProg();
+    return 0;
 }
 
 int main_Pilotage (int (*functionPtr)(const char*))
@@ -79,10 +79,10 @@ int main_Pilotage (int (*functionPtr)(const char*))
     
 
    // catch signaux
-
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
-        if(i != SIGINT && i != SIGTSTP) signal(i,catchSig);  
+        //if(i != SIGINT && i != SIGTSTP) signal(i,catchSig);
+        signal(i,catchSig);
     }
 
     // MPLAYER ou FFMPEG
@@ -331,14 +331,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
         printf("Début du test\n");
         (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
-    
-        //Si on arrive ici on arrête peux importe ce qu'il se passe 
-        stop(deviceController);
-        sleep(2);
-        land(deviceController); 
-        
-          
-                 
+        //sleep(1000);         
     }
     
     
@@ -350,7 +343,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
  *****************************************/
 
 // we are here because of a disconnection or user has quit IHM, so safely delete everything
-    end();
+    endProg();
 
     return EXIT_SUCCESS;
 }
@@ -367,7 +360,7 @@ void callback(int **state,int ifStop){
     if(ifStop==STOP){
         //Gerer d'autre signaux pour les autres parties ?
         printf("Stop");
-        end();
+        endProg();
         return;
     }
 
@@ -439,9 +432,12 @@ void callback(int **state,int ifStop){
 
 
 
-void end(){
+void endProg(){
     if (deviceController != NULL)
     {
+        stop(deviceController);
+        sleep(2);
+        land(deviceController);
 
         deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
         if ((error == ARCONTROLLER_OK) && (deviceState != ARCONTROLLER_DEVICE_STATE_STOPPED))
@@ -481,6 +477,7 @@ void end(){
 
     //END Watch Dog
     //pthread_join(threads, NULL);
+    exit(0);
 }
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)

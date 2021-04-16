@@ -23,8 +23,8 @@ run:
 
 compirun:
 	$(ROOT)/build.sh -p native -A $(TEST)
-	#$(ROOT)/out/arsdk-native/staging/native-wrapper.sh $(ROOT)/out/arsdk-native/staging/usr/bin/$(TEST)
-	$(ROOT)/out/arsdk-native/staging/native-darwin-wrapper.sh $(ROOT)/out/arsdk-native/staging/usr/bin/$(TEST)
+	$(ROOT)/out/arsdk-native/staging/native-wrapper.sh $(ROOT)/out/arsdk-native/staging/usr/bin/$(TEST)
+	#$(ROOT)/out/arsdk-native/staging/native-darwin-wrapper.sh $(ROOT)/out/arsdk-native/staging/usr/bin/$(TEST)
 
 doc:
 	cd src/Rapports; for i in *.tex; do pdflatex $i;done
