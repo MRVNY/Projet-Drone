@@ -31,6 +31,7 @@ eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
 eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
 //Vars globl watchdog 
+#define TIMEOUT = 1000000;
 struct timeval counter, watch;
 pid_t child = 0;
 pthread_t threads;
@@ -52,7 +53,7 @@ void *watch_dog(){
         if(counter.tv_sec!=0){
             gettimeofday(&watch, NULL);
             printf("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
-            if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>1000000){
+            if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
                 printf("WATCHDOG\n");
                 endProg();
                 break;
