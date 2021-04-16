@@ -40,11 +40,12 @@ int video_reader_process(const char* infile) {
     while ((input_file>>i)&&(input_file>>j))
     {   
         cpt++;
-        /*if(cpt==30){
+        if(cpt==10){
             //Simulation de problème de traitement
             printf("bug traitement image\n");
             sleep(2);
-        }*/
+
+        }
         tab[0][0]=i;
         tab[0][1]=j;
         usleep(41000);

@@ -215,7 +215,7 @@ void analyseInterpretation(int **cordonnees)
         tabDec[i][EVALUATION]=GOOD;
         tabDec[i][POS_INTENSITE]=0;
     }
-    
+
     callback(tabDec,ifStop);
 }
 

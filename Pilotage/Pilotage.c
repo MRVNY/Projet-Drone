@@ -11,6 +11,11 @@
 
 #include "Pilotage.h"
 
+static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary);
+
+static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary);
+
+
 /*--------------Variable globales---------------*/
 //Vars globl Parrot
 static char fifo_dir[] = FIFO_DIR_PATTERN;
@@ -74,7 +79,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
     
     
     // Watch Dog
-    pthread_create(&threads, NULL, watch_dog, NULL);
+    //pthread_create(&threads, NULL, watch_dog, NULL);
 
    // catch signaux
     int i;
@@ -82,10 +87,12 @@ int main_Pilotage (int (*functionPtr)(const char*))
         if(i != SIGTSTP) signal(i,catchSig);
     }
 
-    /*-----Test du bouchon sans drone ni simu (affichages)-------*/
-    printf("Début du test\n");
-    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
+    pthread_create(&threads, NULL, watch_dog, NULL);
 
+    /*-----Test du bouchon sans drone ni simu (affichages)-------*/
+    /*printf("Début du test\n");
+    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
+    */
     // MPLAYER ou FFMPEG
    
     printf("\nrien (0), mplayer(1) ou ffmpeg(2)?\n");
@@ -334,7 +341,8 @@ int main_Pilotage (int (*functionPtr)(const char*))
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
         takeOff(deviceController);
-        sleep(1);
+        sleep(5);
+
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
         printf("Début du test\n");
         (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
@@ -372,13 +380,13 @@ int main_Pilotage (int (*functionPtr)(const char*))
 void callback(int **state,int ifStop){
     //printf("callback\n");
     //Arrêt de la commande en cour
-    //stop(deviceController);
+    stop(deviceController);
 
     //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
     if(ifStop==STOP){
         //Gerer d'autre signaux pour les autres parties ?
         printf("Stop");
-        //endProg();
+        endProg();
         return;
     }
 
@@ -397,22 +405,22 @@ void callback(int **state,int ifStop){
                 switch (abs(state[i][POS_INTENSITE]))
                 {
                 case AXE:
-                    printf("Centré\n");
+                    //printf("Centré\n");
                     angleAmp=0;
                     speedAmp=0;
                     break;
                 case CLOSE:
-                    printf("Près\n");
+                    //printf("Près\n");
                     angleAmp=LOW_ANGLE;
                     speedAmp=LOW_SPEED;
                     break;
                 case FAR:
-                    printf("Loin\n");
+                    //printf("Loin\n");
                     angleAmp=MID_ANGLE;
                     speedAmp=MID_SPEED;
                     break;
                 case EXTREME:
-                    printf("Très Loin\n");
+                    //printf("Très Loin\n");
                     angleAmp=HIGH_ANGLE;
                     speedAmp=HIGH_SPEED;
                     break;
@@ -427,8 +435,8 @@ void callback(int **state,int ifStop){
                 switch (i)
                 {
                 case STRAFER:
-                    printf("Straffer\n");
-                    //roll(deviceController,-angleAmp);
+                    //printf("Straffer\n");
+                    roll(deviceController,-angleAmp);
                     break;
                 case AVANT_ARRIERE:
                     pitch(deviceController,angleAmp);
