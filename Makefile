@@ -6,10 +6,10 @@ TEST = Projet-Drone
 help:
 	@echo
 	@echo make connect: connecter au wifi
-	@echo make compile: compile
+	@echo make compile: compiler
 	@echo make run: lancer
-	@echo make compirun: compile et lancer
-	#@echo make proto KEY=<nom de proto>
+	@echo make compirun: compiler et lancer
+	@echo make watch: Tester proto watchdog
 	@echo
 
 connect:
@@ -29,7 +29,6 @@ compirun:
 doc:
 	cd src/Rapports; for i in *.tex; do pdflatex $i;done
 
-runproto:
-	echo $(ls Proto | grep $(KEY))
-	#$(ROOT)/build.sh -p native -A $(TEST)
-	echo $(PROTO)
+watch:
+	gcc -pthread -o ./Proto/Pilotage/Test_Watchdog/Test_Watchdog ./Proto/Pilotage/Test_Watchdog/Test_Watchdog.c
+	./Proto/Pilotage/Test_Watchdog/Test_Watchdog

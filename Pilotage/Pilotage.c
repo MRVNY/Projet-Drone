@@ -16,6 +16,7 @@
 static char fifo_dir[] = FIFO_DIR_PATTERN;
 static char fifo_name[128] = "";
 int gIHMRun = 1;
+int choice;
 char gErrorStr[ERROR_STR_LENGTH];
 FILE *videoOut = NULL;
 ARCONTROLLER_Device_t *deviceController = NULL;
@@ -25,8 +26,7 @@ eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
 eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
 //Vars globl watchdog 
-time_t counter = 0;
-time_t watch = 0;
+struct timeval counter, watch;
 pid_t child = 0;
 pthread_t threads;
 
@@ -43,15 +43,15 @@ static void signal_handler(int signal)
 
 void *watch_dog(){
     while(1){
-        if(counter!=0){
-            sleep(1);
-            time(&watch);
-            printf("watch:%ld counter:%ld\n",watch,counter);
-            if(watch-counter>3){
+        usleep(125000);
+        if(counter.tv_sec!=0){
+            gettimeofday(&watch, NULL);
+            printf("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
+            if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>1000000){
+                printf("WATCHDOG\n");
                 endProg();
                 break;
             }
-
         }
     }
     return 0;
@@ -67,7 +67,6 @@ int main_Pilotage (int (*functionPtr)(const char*))
 {
     //Local declaration
     int failed = 0;
-    int choice;
     int fps;
     int frameNb = 0;
     int isBebop2 = 1;
@@ -106,7 +105,6 @@ int main_Pilotage (int (*functionPtr)(const char*))
     } 
     if(choice==0){
         printf("rien\n");
-        #define DISPLAY_WITH_MPLAYER 0
         sleep(1);
     } 
 
@@ -153,7 +151,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
  
     if (!failed)
     {
-        if (DISPLAY_WITH_MPLAYER)
+        if (DISPLAY_WITH_MPLAYER && choice!=0)
         {
             // fork the process to launch mplayer
             if ((child = fork()) == 0)
@@ -171,7 +169,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
             }
         }
 
-        if (DISPLAY_WITH_MPLAYER)
+        if (DISPLAY_WITH_MPLAYER && choice!=0)
         {
             videoOut = fopen(fifo_name, "w");
         }
@@ -339,7 +337,19 @@ int main_Pilotage (int (*functionPtr)(const char*))
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
         printf("Début du test\n");
         (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
-        //sleep(1000);         
+        
+        //Test catchSig
+        //sleep(1000);
+
+        //Test Watchdog
+        /*
+        for(i=0;i<200;i++){
+            usleep(125000); //3/24
+            callback(NULL,1);
+        }
+        while(1){
+            //wait to be killed
+        }*/
     }
     
     
@@ -352,7 +362,6 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
 // we are here because of a disconnection or user has quit IHM, so safely delete everything
     endProg();
-
     return EXIT_SUCCESS;
 }
 
@@ -372,70 +381,71 @@ void callback(int **state,int ifStop){
         return;
     }
 
-    //Parcour des différents mouvements
-    for(int i=STRAFER; i<=ROTATION; i++) {
+    if(state){
+        //Parcour des différents mouvements
+        for(int i=STRAFER; i<=ROTATION; i++) {
 
-        //Test de l'évaluation
-        if(state[i][EVALUATION]==GOOD){
+            //Test de l'évaluation
+            if(state[i][EVALUATION]==GOOD){
 
-            int angleAmp;
-            int speedAmp;
-            int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
+                int angleAmp;
+                int speedAmp;
+                int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
 
-            //Switch sur la position
-            switch (abs(state[i][POS_INTENSITE]))
-            {
-            case AXE:
-                printf("Centré\n");
-                angleAmp=0;
-                speedAmp=0;
-                break;
-            case CLOSE:
-                printf("Près\n");
-                angleAmp=LOW_ANGLE;
-                speedAmp=LOW_SPEED;
-                break;
-            case FAR:
-                printf("Loin\n");
-                angleAmp=MID_ANGLE;
-                speedAmp=MID_SPEED;
-                break;
-            case EXTREME:
-                printf("Très Loin\n");
-                angleAmp=HIGH_ANGLE;
-                speedAmp=HIGH_SPEED;
-                break;
-            default:
-                break;
-            }
+                //Switch sur la position
+                switch (abs(state[i][POS_INTENSITE]))
+                {
+                case AXE:
+                    printf("Centré\n");
+                    angleAmp=0;
+                    speedAmp=0;
+                    break;
+                case CLOSE:
+                    printf("Près\n");
+                    angleAmp=LOW_ANGLE;
+                    speedAmp=LOW_SPEED;
+                    break;
+                case FAR:
+                    printf("Loin\n");
+                    angleAmp=MID_ANGLE;
+                    speedAmp=MID_SPEED;
+                    break;
+                case EXTREME:
+                    printf("Très Loin\n");
+                    angleAmp=HIGH_ANGLE;
+                    speedAmp=HIGH_SPEED;
+                    break;
+                default:
+                    break;
+                }
 
-            speedAmp=speedAmp*sign;
-            angleAmp=angleAmp*sign;
+                speedAmp=speedAmp*sign;
+                angleAmp=angleAmp*sign;
 
-            //Switch sur le mouvement
-            switch (i)
-            {
-            case STRAFER:
-                printf("Straffer\n");
-                //roll(deviceController,-angleAmp);
-                break;
-            case AVANT_ARRIERE:
-                pitch(deviceController,angleAmp);
-                break;
-            case MONTER_DESCENDRE:
-                gaz(deviceController,speedAmp);
-                break;
-            case ROTATION:
-                yaw(deviceController,speedAmp);
-                break;
-            default:
-                stop(deviceController);
-                break;
+                //Switch sur le mouvement
+                switch (i)
+                {
+                case STRAFER:
+                    printf("Straffer\n");
+                    //roll(deviceController,-angleAmp);
+                    break;
+                case AVANT_ARRIERE:
+                    pitch(deviceController,angleAmp);
+                    break;
+                case MONTER_DESCENDRE:
+                    gaz(deviceController,speedAmp);
+                    break;
+                case ROTATION:
+                    yaw(deviceController,speedAmp);
+                    break;
+                default:
+                    stop(deviceController);
+                    break;
+                }
             }
         }
     }
-
-    time(&counter);
+    gettimeofday(&counter, NULL);
 }
 
 
@@ -464,7 +474,7 @@ void endProg(){
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "ARCONTROLLER_Device_Delete ...");
         ARCONTROLLER_Device_Delete (&deviceController);
 
-        if (DISPLAY_WITH_MPLAYER)
+        if (DISPLAY_WITH_MPLAYER && choice!=0)
         {
             fflush (videoOut);
             fclose (videoOut);
@@ -608,7 +618,7 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
     {
         if (codec.type == ARCONTROLLER_STREAM_CODEC_TYPE_H264)
         {
-            if (DISPLAY_WITH_MPLAYER)
+            if (DISPLAY_WITH_MPLAYER && choice!=0)
             {
                 fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
@@ -620,7 +630,7 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
     }
     else
     {
-        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
+        //ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
 
     return ARCONTROLLER_OK;
@@ -633,7 +643,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     {
         if (frame != NULL)
         {
-            if (DISPLAY_WITH_MPLAYER)
+            if (DISPLAY_WITH_MPLAYER && choice!=0)
             {
                 fwrite(frame->data, frame->used, 1, videoOut);
 
@@ -647,7 +657,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     }
     else
     {
-        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
+        //ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
 
     return ARCONTROLLER_OK;

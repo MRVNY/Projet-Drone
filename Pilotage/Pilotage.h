@@ -13,6 +13,7 @@
 #define ERROR_STR_LENGTH 2048
 
 #define BEBOP_IP_ADDRESS "192.168.42.1"
+//#define BEBOP_IP_ADDRESS "10.202.0.1"
 #define BEBOP_DISCOVERY_PORT 44444
 
 #define DISPLAY_WITH_MPLAYER 1
@@ -44,7 +45,7 @@ void *watch_dog();
 
 void catchSig();
 
-void end();
+void endProg();
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
 
