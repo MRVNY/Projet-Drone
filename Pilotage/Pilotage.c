@@ -81,16 +81,19 @@ int main_Pilotage (int (*functionPtr)(const char*))
    // catch signaux
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
-        //if(i != SIGINT && i != SIGTSTP) signal(i,catchSig);
-        signal(i,catchSig);
+        if(i != SIGTSTP) signal(i,catchSig);
     }
 
     // MPLAYER ou FFMPEG
    
-    printf("\nmplayer(1) ou ffmpeg(2)?\n");
-    if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1)){
+    printf("\nrien (0), mplayer(1) ou ffmpeg(2)?\n");
+    if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
         printf("Entree non connue, mplayer par defaut\n");
         choice = 1;
+        sleep(1);
+    }
+    else if(choice==1){
+        printf("mplayer\n");
         sleep(1);
     }
     if(choice==2){
@@ -100,6 +103,11 @@ int main_Pilotage (int (*functionPtr)(const char*))
             fps = 2;
             sleep(1);
         }
+    } 
+    if(choice==0){
+        printf("rien\n");
+        #define DISPLAY_WITH_MPLAYER 0
+        sleep(1);
     } 
 
     // Watch Dog
