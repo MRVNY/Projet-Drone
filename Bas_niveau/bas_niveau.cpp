@@ -2,6 +2,7 @@
 #include <fstream>      
 #include <typeinfo>
 #include <iostream>
+#include <unistd.h>
 
 
 //Define uniquement pour le bouhon 
@@ -31,19 +32,32 @@ int video_reader_process(const char* infile) {
     {
         tab[i]=(int*)malloc(sizeof(int)*2);
     }
+
+    //Compteur pour test watchdog
+    int cpt=0;
            
     cout<<"Début boucle évènementielle\n"<<endl;
     while ((input_file>>i)&&(input_file>>j))
-    {
+    {   
+        cpt++;
+        /*if(cpt==30){
+            //Simulation de problème de traitement
+            printf("bug traitement image\n");
+            sleep(2);
+        }*/
         tab[0][0]=i;
         tab[0][1]=j;
+        usleep(41000);
         analyseInterpretation(tab);
 
     }
+
     //Indication de fin de fichier de coords
     //MAGICNUMBER pour le bouchon ...
     tab[0][0]=1000;
     tab[0][1]=0;
+    analyseInterpretation(tab);
+    
     input_file.close();
 
     return 0;

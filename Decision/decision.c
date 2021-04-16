@@ -174,7 +174,7 @@ int nombre_de_cordonnee_recu(int **vecteur){
 //Methode bouhcon donc assez brouillon, principalment pour tester les mecanisme de control du drone
 void analyseInterpretation(int **cordonnees)
 {   
-    printf("analyse\n");
+    //printf("analyse\n");
     int x =cordonnees[0][0];
     int **tabDec=(int **)malloc(sizeof(int*)*4);
 

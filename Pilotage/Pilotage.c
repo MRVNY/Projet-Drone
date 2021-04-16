@@ -71,17 +71,20 @@ int main_Pilotage (int (*functionPtr)(const char*))
     int frameNb = 0;
     int isBebop2 = 1;
 
-    /*-----Test du bouchon sans drone ni simu (affichages)-------*/
-    printf("Début du test\n");
-    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
     
     
+    // Watch Dog
+    pthread_create(&threads, NULL, watch_dog, NULL);
 
    // catch signaux
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
         if(i != SIGTSTP) signal(i,catchSig);
     }
+
+    /*-----Test du bouchon sans drone ni simu (affichages)-------*/
+    printf("Début du test\n");
+    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
 
     // MPLAYER ou FFMPEG
    
@@ -108,8 +111,6 @@ int main_Pilotage (int (*functionPtr)(const char*))
         sleep(1);
     } 
 
-    // Watch Dog
-    pthread_create(&threads, NULL, watch_dog, NULL);
 
     /* Set signal handlers */
     struct sigaction sig_action = {
@@ -146,7 +147,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
     ARSAL_Sem_Init (&(stateSem), 0, 0);
 
-    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- Bebop 2 Test TakeOff and Landing --");
+    //ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- Bebop 2 Test TakeOff and Landing --");
     
  
     if (!failed)
@@ -333,7 +334,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
         takeOff(deviceController);
-
+        sleep(1);
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
         printf("Début du test\n");
         (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
@@ -369,7 +370,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
 /*Définitions des fonctions de pilotage*/
 
 void callback(int **state,int ifStop){
-    printf("callback\n");
+    //printf("callback\n");
     //Arrêt de la commande en cour
     //stop(deviceController);
 
@@ -377,13 +378,13 @@ void callback(int **state,int ifStop){
     if(ifStop==STOP){
         //Gerer d'autre signaux pour les autres parties ?
         printf("Stop");
-        endProg();
+        //endProg();
         return;
     }
 
     if(state){
         //Parcour des différents mouvements
-        for(int i=STRAFER; i<=ROTATION; i++) {
+        for(int i=STRAFER; i<=STRAFER; i++) {
 
             //Test de l'évaluation
             if(state[i][EVALUATION]==GOOD){
