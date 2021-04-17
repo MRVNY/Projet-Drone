@@ -7,24 +7,22 @@
 // la taille de vecteur d'entrée (les hirondelle)
 #define TAILLE 4
 
+
+// à définir avec le calibrage et la capacité de la partie imagerie (pour avancer_reculer)
 #define BORNE_FAR_BACK 3 
 #define BORNE_CLOSE_BACK 1
 #define BORNE_AXE 0.5
 #define BORNE_CLOSE_FRONT 0.3
 #define BORNE_FAR_FRONT 0.1 
 #define BORNE_EXTREM_FRONT 0
-#define BORNE_EXTREM_BACK  4  // à définir avec le calibrage et la capacité de la partie imagerie 
+#define BORNE_EXTREM_BACK  4  
+
+// à définir avec le calibrage (pour ROTATION)
+#define BORNE_FAR_ROTATION 3/10 
+#define BORNE_CLOSE_ROTATION 1/10
+#define BORNE_AXE_ROTATION 0
 
 
-
-
-void current_state_y(int **cordonnee,int **tab); // renvoie la position du drone sur l'axe des y 
-void current_state_x(int **cordonnee, int **tab);  // renvoie la position du drone sur l'a
-void current_state_z(int **cordonnee, int **tab);
-void isDefine(int **cordonnee,int *hirondelle_defined, int *nb_hirondelle_valide); //  pour une hirondelle(x,y) verifie si elle est bien renseigné par la partie imagerie
-void calcule_dx_dy(int **cordonnee, float *dx, float *dy);
-int get_nb_pixel(int **cordonnee);
-void analyseInterpretation(int **cordonnees);
 int is_far_left(int a);
 int is_left(int a);
 int is_far_right(int a);
@@ -32,5 +30,22 @@ int is_right(int a);
 int is_top(int a);
 int is_mid_top(int a);
 int is_bottom(int a);
-int is_mid_bottom(int a);
-
+ int is_mid_bottom(int a);
+void current_state_y(int **cordonnee,int **tab);
+void current_state_x(int **cordonnee, int **tab);
+int get_nb_pixel(int **cordonnee);
+void current_state_z(int **cordonnee, int **tab);
+float calcul_ratio1( int a , int b , int c);
+float calcul_ratio2( int a , int b , int c);
+int is_much_turned(float ratio);
+int is_less_turned(float ratio);
+int get_direction( int a , int b );
+void direction_ratio( int **coordonnee, int *direction, float *ratio );
+void current_state_rotation(int **cordonnee,int **tab);
+void isDefine(int **cordonnee, int *hirondelle_defined, int *nb_hirondelle_valide);
+void calcule_dx_dy(int **cordonnee, float *dx, float *dy);
+int analyseInterpretation_x_y(int **cordonnees, int **vecteur);
+float calcule_dr(int **cordonnees);
+int analyseInterpretation_rotation(int **cordonnees,int **vecteur);
+int analyseInterpretation_z(int **cordonnees, int **vecteur);
+void analyseInterpretation(int **cordonnees);
