@@ -37,11 +37,8 @@ enum stateIndex{
     EVALUATION=1 
 };
 
-
 // -1 : pour gauche , en bas  ,rotation à gauche et aarière, ko 
 // 1 : pour droite , haut , rotation à droite et avancer, ok 
-
-
 
 #endif 
 
