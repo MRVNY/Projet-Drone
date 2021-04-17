@@ -37,12 +37,8 @@ enum stateIndex{
     EVALUATION=1  // pour l'évaluation de mouvemnt 
 };
 
-<<<<<<< HEAD
 // -1 : pour gauche , en bas  ,rotation à gauche et aarière, ko 
 // 1 : pour droite , haut , rotation à droite et avancer, ok 
-=======
-
->>>>>>> 17d23f5a7e7c52eaf38ea8e7f444499aa0e2009d
 
 #endif 
 

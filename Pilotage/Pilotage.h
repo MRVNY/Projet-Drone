@@ -19,10 +19,12 @@
 /*---------------------------------------*/
 
 /*---Convention sur les amplitudes de déplacement---*/
-#define LOW_ANGLE 10 //% d'Angle max (Roll et Pitch)
+#define LOW_ANGLE 10
+#define MID_ANGLE 20  //% d'Angle max (Roll et Pitch)
 #define HIGH_ANGLE 30
 
-#define HIGH_SPEED 10 //% de vitesse max (Gaz et rotation)
+#define HIGH_SPEED 10
+#define MID_SPEED 20 //% de vitesse max (Gaz et rotation)
 #define LOW_SPEED 30
 /*--------------------------------------------------*/
 
@@ -38,16 +40,19 @@
 #include <libARSAL/ARSAL.h>
 #include <libARController/ARController.h>
 #include <libARDiscovery/ARDiscovery.h>
+
 /*------------------------------------------*/
 
 /*--------------UTILITAIRES---------------------*/
 #include <stdlib.h>
-#include <curses.h>
 #include <string.h>
 #include <unistd.h>
 #include <signal.h>
 #include <errno.h>
 #include <pthread.h>
+#include <time.h>
+#include <signal.h>
+#include <math.h>
 /*------------------------------------------*/
 
 /*****************************************
@@ -98,11 +103,23 @@ void pitch(ARCONTROLLER_Device_t *deviceController,int valeur);
 void stop(ARCONTROLLER_Device_t *deviceController);
 /*--------------------------------------------------------------*/
 
+/*-----------Gestion de la liaison avec le drone---------*/
+void endProg();
+void connectDiscovery(int *failed,int isBebop2);
+void createDevice(int *failed);
+/*-------------------------------------------------------*/
+
+
 /*----------Setter des vitesses de rotation/translation max--------------*/
 void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
 
 void setMaxRotationSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
 /*-------------------------------------------------------------------------*/
+
+/*----------WATCHDOG et SIGNAUX--------------*/
+void *watch_dog();
+void catchSig();
+/*---------------------------------*/
 
 /*------------------------------------------------PARROT-----------------------------------------------*/
 
