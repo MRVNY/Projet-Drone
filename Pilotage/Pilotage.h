@@ -3,46 +3,108 @@
 
 #define TAG "Projet-Drone"
 
-#define ERROR_STR_LENGTH 2048
+/*****************************************
+ *
+ *             Constantes :
+ *
+ *****************************************/
 
+/*--------------PARROT------------------*/
+#define ERROR_STR_LENGTH 2048
 #define BEBOP_IP_ADDRESS "192.168.42.1"
 #define BEBOP_DISCOVERY_PORT 44444
-
 #define DISPLAY_WITH_MPLAYER 1
-
 #define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
 #define FIFO_NAME "arsdk_fifo"
+/*---------------------------------------*/
 
-#define LOW_ANGLE 10
+/*---Convention sur les amplitudes de déplacement---*/
+#define LOW_ANGLE 10 //% d'Angle max (Roll et Pitch)
 #define HIGH_ANGLE 30
 
-#define HIGH_SPEED 10
+#define HIGH_SPEED 10 //% de vitesse max (Gaz et rotation)
 #define LOW_SPEED 30
+/*--------------------------------------------------*/
 
+
+
+/*****************************************
+ *
+ *             Librairies :
+ *
+ *****************************************/
+
+/*--------------PARROT---------------------*/
 #include <libARSAL/ARSAL.h>
 #include <libARController/ARController.h>
 #include <libARDiscovery/ARDiscovery.h>
+/*------------------------------------------*/
 
-//Définition pour le l'appel depuis le main.cpp
+/*--------------UTILITAIRES---------------------*/
+#include <stdlib.h>
+#include <curses.h>
+#include <string.h>
+#include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+#include <pthread.h>
+/*------------------------------------------*/
+
+/*****************************************
+ *
+ *             Main et Interface C++ :
+ *
+ *****************************************/
 #if defined (__cplusplus)
 extern "C" {
 #endif
-
+//Fonction appelée depuis main.cpp
+/*
+functionPtr -> pointeur sur la fonction vidéo_reader_process en C++ de Bas_niveau
+*/
 int main_Pilotage (int (*functionPtr)(const char*));
  
 #if defined (__cplusplus)
 }
 #endif
 
-#define DROITE -1
-#define GAUCHE 1
-#define HAUT -2
-#define BAS 2
-#define AVANT -3
-#define ARRIERE 3
-#define TOURNEGAUCHE 4
-#define TOURNEDROITE -4
+/*****************************************
+ *
+ *             Methodes :
+ *
+ *****************************************/
+/*
+PARAMETRES:
 
+ARCONTROLLER_Device_t *deviceController -> interface de communication avec le drone, cet objet représente le "drone"
+et les instruction on passée a travers celui-ci.
+
+int valeur ->  Entier représentant le % de vitesse/angle max de la commande de déplacement assocsiée
+*/
+
+/*-----------------Commande déplacements ----------------------*/
+void takeOff(ARCONTROLLER_Device_t *deviceController);
+
+void land(ARCONTROLLER_Device_t *deviceController);
+
+void gaz(ARCONTROLLER_Device_t *deviceController,int valeur);
+
+void yaw(ARCONTROLLER_Device_t *deviceController,int valeur);
+
+void roll(ARCONTROLLER_Device_t *deviceController,int valeur);
+
+void pitch(ARCONTROLLER_Device_t *deviceController,int valeur);
+
+void stop(ARCONTROLLER_Device_t *deviceController);
+/*--------------------------------------------------------------*/
+
+/*----------Setter des vitesses de rotation/translation max--------------*/
+void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
+
+void setMaxRotationSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
+/*-------------------------------------------------------------------------*/
+
+/*------------------------------------------------PARROT-----------------------------------------------*/
 
 void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR error, void *customData);
 
@@ -58,22 +120,7 @@ int customPrintCallback (eARSAL_PRINT_LEVEL level, const char *tag, const char *
 
 eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE getFlyingState(ARCONTROLLER_Device_t *deviceController);
 
-void takeOff(ARCONTROLLER_Device_t *deviceController);
+/*--------------------------------------------------------------------------------------------------------*/
 
-void land(ARCONTROLLER_Device_t *deviceController);
-
-void gaz(ARCONTROLLER_Device_t *deviceController,int valeur);
-
-void yaw(ARCONTROLLER_Device_t *deviceController,int valeur);
-
-void roll(ARCONTROLLER_Device_t *deviceController,int valeur);
-
-void pitch(ARCONTROLLER_Device_t *deviceController,int valeur);
-
-void stop(ARCONTROLLER_Device_t *deviceController);
-
-void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
-
-void setMaxRotationSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
 
 #endif 
