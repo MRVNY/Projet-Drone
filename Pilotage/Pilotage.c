@@ -1,15 +1,6 @@
-#include <stdlib.h>
-#include <curses.h>
-#include <string.h>
-#include <unistd.h>
-#include <signal.h>
-#include <errno.h>
-#include <pthread.h>
-#include <time.h>
-#include <signal.h>
-#include <math.h>
-
 #include "Pilotage.h"
+#include "../commun.h"
+#include <curses.h>
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary);
 
