@@ -1,25 +1,30 @@
-#include <stdlib.h>
-#include <curses.h>
-#include <string.h>
-#include <unistd.h>
-#include <signal.h>
-#include <errno.h>
-#include <pthread.h>
-
 #include "Pilotage.h"
+#include "../commun.h"
+#include <curses.h>
 
+static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary);
+
+static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary);
+
+
+/*--------------Variable globales---------------*/
+//Vars globl Parrot
 static char fifo_dir[] = FIFO_DIR_PATTERN;
 static char fifo_name[128] = "";
-
 int gIHMRun = 1;
+int choice;
 char gErrorStr[ERROR_STR_LENGTH];
-//IHM_t *ihm = NULL;
-
 FILE *videoOut = NULL;
-int frameNb = 0;
+ARCONTROLLER_Device_t *deviceController = NULL;
 ARSAL_Sem_t stateSem;
-int isBebop2 = 1;
-int watch_dog_counter = 0;
+ARDISCOVERY_Device_t *device = NULL;
+eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
+eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
+
+//Vars globl watchdog 
+struct timeval counter, watch;
+pid_t child = 0;
+pthread_t threads;
 
 /*****************************************
  *
@@ -33,45 +38,60 @@ static void signal_handler(int signal)
 }
 
 void *watch_dog(){
-    while(watch_dog_counter>=0){
-        sleep(1);
-        printf("////////WATCH DOG %d////////\n", watch_dog_counter);
-        watch_dog_counter++;
+    while(1){
+        usleep(125000);
+        if(counter.tv_sec!=0){
+            gettimeofday(&watch, NULL);
+            printf("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
+            if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>1000000){
+                printf("WATCHDOG\n");
+                endProg();
+                break;
+            }
+        }
     }
+    return 0;
 }
 
-int main_Pilotage (int **(*functionPtr)(const char*))
+void catchSig(){
+    printf("CAUGHT\n");
+    endProg();
+    return 0;
+}
+
+int main_Pilotage (int (*functionPtr)(const char*))
 {
-
-    /*-----------Test interface C++/C/C++---------------*/
-    //Appel de la fonction vidéo_reader_process() utilisant opencv (c++) a travers le pointeur passer en paramètre//
-    printf("Début du test interface C++\n");
-    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone/Data/Videos/mire-petits-cercles-3m.mp4");
-    sleep(5);
-
-    /*-----------Gestion du drone---------------*/
-    // local declarations
+    //Local declaration
     int failed = 0;
-    int choice;
     int fps;
-    char state='t'; //état qui définit la direction a prendre
-    int angleAmp = HIGH_ANGLE; 
-    int speedAmp = HIGH_SPEED;
-    ARDISCOVERY_Device_t *device = NULL;
-    ARCONTROLLER_Device_t *deviceController = NULL;
-    eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
-    eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
-    pid_t child = 0;
-    pthread_t threads;
-    int thread_args;
-    
+    int frameNb = 0;
+    int isBebop2 = 1;
 
+    // Watch Dog
+    //pthread_create(&threads, NULL, watch_dog, NULL);
+
+   // catch signaux
+    int i;
+    for(i = 1; i <=SIGRTMIN ; i++){
+        if(i != SIGTSTP) signal(i,catchSig);
+    }
+
+    pthread_create(&threads, NULL, watch_dog, NULL);
+
+    /*-----Test du bouchon sans drone ni simu (affichages)-------*/
+    /*printf("Début du test\n");
+    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
+    */
     // MPLAYER ou FFMPEG
    
-    printf("\nmplayer(1) ou ffmpeg(2)?\n");
-    if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1)){
+    printf("\nrien (0), mplayer(1) ou ffmpeg(2)?\n");
+    if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
         printf("Entree non connue, mplayer par defaut\n");
         choice = 1;
+        sleep(1);
+    }
+    else if(choice==1){
+        printf("mplayer\n");
         sleep(1);
     }
     if(choice==2){
@@ -82,9 +102,11 @@ int main_Pilotage (int **(*functionPtr)(const char*))
             sleep(1);
         }
     } 
+    if(choice==0){
+        printf("rien\n");
+        sleep(1);
+    } 
 
-    // Watch Dog
-    pthread_create(&threads, NULL, watch_dog, NULL);
 
     /* Set signal handlers */
     struct sigaction sig_action = {
@@ -121,12 +143,12 @@ int main_Pilotage (int **(*functionPtr)(const char*))
 
     ARSAL_Sem_Init (&(stateSem), 0, 0);
 
-    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- Bebop 2 Test TakeOff and Landing --");
+    //ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- Bebop 2 Test TakeOff and Landing --");
     
  
     if (!failed)
     {
-        if (DISPLAY_WITH_MPLAYER)
+        if (DISPLAY_WITH_MPLAYER && choice!=0)
         {
             // fork the process to launch mplayer
             if ((child = fork()) == 0)
@@ -144,7 +166,7 @@ int main_Pilotage (int **(*functionPtr)(const char*))
             }
         }
 
-        if (DISPLAY_WITH_MPLAYER)
+        if (DISPLAY_WITH_MPLAYER && choice!=0)
         {
             videoOut = fopen(fifo_name, "w");
         }
@@ -155,215 +177,45 @@ int main_Pilotage (int **(*functionPtr)(const char*))
 
 /*****************************************
  *
- *             Connection au drone :
- *
- *****************************************/
-// create a discovery device
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ... ");
-        eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;
-
-        device = ARDISCOVERY_Device_New (&errorDiscovery);
-
-        if (errorDiscovery == ARDISCOVERY_OK)
-        {
-            ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - ARDISCOVERY_Device_InitWifi ...");
-            // create a Bebop drone discovery device (ARDISCOVERY_PRODUCT_ARDRONE)
-
-            if(isBebop2)
-            {
-                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
-            }
-            else
-            {
-                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_ARDRONE, "bebop", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
-            }
-
-            if (errorDiscovery != ARDISCOVERY_OK)
-            {
-                failed = 1;
-                ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
-            }
-        }
-        else
-        {
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
-            failed = 1;
-        }
-    }
-
-/*****************************************
- *
- *             Création de l'interface
- *             de controle du :
+ *    Connection et création de l'interface
+ *      de control du drone :
  *
  *****************************************/
     if (!failed)
     {
-        deviceController = ARCONTROLLER_Device_New (device, &error);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "Creation of deviceController failed.");
-            failed = 1;
-        }
-       
+        connectDiscovery(&failed,isBebop2);
     }
 
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- delete discovey device ... ");
-        ARDISCOVERY_Device_Delete (&device);
+    if (!failed){
+        createDevice(&failed);
     }
-
-    // add the state change callback to be informed when the device controller starts, stops...
-    if (!failed)
-    {
-        error = ARCONTROLLER_Device_AddStateChangedCallback (deviceController, stateChanged, deviceController);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add State callback failed.");
-            failed = 1;
-        }
-    }
-
-    // add the command received callback to be informed when a command has been received from the device
-    if (!failed)
-    {
-        error = ARCONTROLLER_Device_AddCommandReceivedCallback (deviceController, commandReceived, deviceController);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add callback failed.");
-            failed = 1;
-        }
-    }
-
-    // add the frame received callback to be informed when a streaming frame has been received from the device
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- set Video callback ... ");
-        error = ARCONTROLLER_Device_SetVideoStreamCallbacks (deviceController, decoderConfigCallback, didReceiveFrameCallback, NULL , NULL);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            failed = 1;
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error: %s", ARCONTROLLER_Error_ToString(error));
-        }
-    }
-
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Connecting ...");
-        error = ARCONTROLLER_Device_Start (deviceController);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            failed = 1;
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
-        }
-    }
-
-    if (!failed)
-    {
-        // wait state update update
-        ARSAL_Sem_Wait (&(stateSem));
-
-        deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
-
-        if ((error != ARCONTROLLER_OK) || (deviceState != ARCONTROLLER_DEVICE_STATE_RUNNING))
-        {
-            failed = 1;
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- deviceState :%d", deviceState);
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
-        }
-    }
-
-    // send the command that tells to the Bebop to begin its streaming
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- send StreamingVideoEnable ... ");
-        error = deviceController->aRDrone3->sendMediaStreamingVideoEnable (deviceController->aRDrone3, 1);
-        if (error != ARCONTROLLER_OK)
-        {
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
-            failed = 1;
-        }
-    }
-
     
-/*****************************************
- *
- *             Démarrage des instruction 
- *             de pilotage :
- *
- *****************************************/
     
-     if (!failed){
+    if (!failed){
        
         //On définit la vitesse max de rotation et  vitesse max verticale (85 °/s et 1 m/s)
         deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,1 );
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
         takeOff(deviceController);
-      
-        while(state!='e'){
-            //Arrêt de la commande en cour
-            stop(deviceController);
+        sleep(5);
 
-            //Selection de la prochaine commande selon state 
-            switch (state)
-                {
-                case 'a':
-                    pitch(deviceController,angleAmp);
-                    break;
-                case 'r':
-                    pitch(deviceController,-angleAmp);
-                    break;
-                case 'g':
-                    roll(deviceController,-angleAmp);
-                    break;
-                case 'd':
-                    roll(deviceController,angleAmp);
-                    break;
-                case 'h':
-                    gaz(deviceController,angleAmp);
-                    break;
-                case 'b':
-                    gaz(deviceController,-speedAmp);
-                case 'q':
-                    yaw(deviceController,-speedAmp);
-                    break;
-                case 's':
-                    yaw(deviceController,speedAmp);
-                    break;
-                case 'l':
-                    land(deviceController);
-                    break;
-                case 't':
-                    takeOff(deviceController);
-                        while (getFlyingState(deviceController)!=ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_HOVERING)
-                        {   
-                            //On attend tant que le drone n'est pas en vol stationaire
-                        }
-                        sleep(1);
-                    break;
-                default:
-                    stop(deviceController);
-                    break;
-                }
+        //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
+        printf("Début du test\n");
+        (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
+        
+        //Test catchSig
+        //sleep(1000);
 
-                //Recupération du flux par la partie imagerie
-                
-                //Prise de décision 
+        //Test Watchdog
+        /*
+        for(i=0;i<200;i++){
+            usleep(125000); //3/24
+            callback(NULL,1);
         }
-    
-  
-    sleep(2);
-    land(deviceController);   
-                 
+        while(1){
+            //wait to be killed
+        }*/
     }
     
     
@@ -375,9 +227,101 @@ int main_Pilotage (int **(*functionPtr)(const char*))
  *****************************************/
 
 // we are here because of a disconnection or user has quit IHM, so safely delete everything
+    endProg();
+    return EXIT_SUCCESS;
+}
+
+
+/*Définitions des fonctions de pilotage*/
+
+void callback(int **state,int ifStop){
+    //printf("callback\n");
+    //Arrêt de la commande en cour
+    stop(deviceController);
+
+    //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
+    if(ifStop==STOP){
+        //Gerer d'autre signaux pour les autres parties ?
+        printf("Stop");
+        endProg();
+        return;
+    }
+
+    if(state){
+        //Parcour des différents mouvements
+        for(int i=STRAFER; i<=STRAFER; i++) {
+
+            //Test de l'évaluation
+            if(state[i][EVALUATION]==GOOD){
+
+                int angleAmp;
+                int speedAmp;
+                int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
+
+                //Switch sur la position
+                switch (abs(state[i][POS_INTENSITE]))
+                {
+                case AXE:
+                    //printf("Centré\n");
+                    angleAmp=0;
+                    speedAmp=0;
+                    break;
+                case CLOSE:
+                    //printf("Près\n");
+                    angleAmp=LOW_ANGLE;
+                    speedAmp=LOW_SPEED;
+                    break;
+                case FAR:
+                    //printf("Loin\n");
+                    angleAmp=MID_ANGLE;
+                    speedAmp=MID_SPEED;
+                    break;
+                case EXTREME:
+                    //printf("Très Loin\n");
+                    angleAmp=HIGH_ANGLE;
+                    speedAmp=HIGH_SPEED;
+                    break;
+                default:
+                    break;
+                }
+
+                speedAmp=speedAmp*sign;
+                angleAmp=angleAmp*sign;
+
+                //Switch sur le mouvement
+                switch (i)
+                {
+                case STRAFER:
+                    //printf("Straffer\n");
+                    roll(deviceController,-angleAmp);
+                    break;
+                case AVANT_ARRIERE:
+                    pitch(deviceController,angleAmp);
+                    break;
+                case MONTER_DESCENDRE:
+                    gaz(deviceController,speedAmp);
+                    break;
+                case ROTATION:
+                    yaw(deviceController,speedAmp);
+                    break;
+                default:
+                    stop(deviceController);
+                    break;
+                }
+            }
+        }
+    }
+    gettimeofday(&counter, NULL);
+}
+
+
+
+void endProg(){
     if (deviceController != NULL)
     {
-
+        stop(deviceController);
+        sleep(2);
+        land(deviceController);
 
         deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
         if ((error == ARCONTROLLER_OK) && (deviceState != ARCONTROLLER_DEVICE_STATE_STOPPED))
@@ -396,7 +340,7 @@ int main_Pilotage (int **(*functionPtr)(const char*))
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "ARCONTROLLER_Device_Delete ...");
         ARCONTROLLER_Device_Delete (&deviceController);
 
-        if (DISPLAY_WITH_MPLAYER)
+        if (DISPLAY_WITH_MPLAYER && choice!=0)
         {
             fflush (videoOut);
             fclose (videoOut);
@@ -416,25 +360,9 @@ int main_Pilotage (int **(*functionPtr)(const char*))
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
 
     //END Watch Dog
-    printf("Before join, sleep 5\n");
-    sleep(5);
-    watch_dog_counter = -10;
-    pthread_join(threads, NULL);
-    printf("After join, sleep 5\n");
-    sleep(5);
-    printf("Final watch dog: %d\n", watch_dog_counter);
-
-    return EXIT_SUCCESS;
+    //pthread_join(threads, NULL);
+    exit(0);
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-/*Définitions des fonctions de pilotage*/
-
-
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)
 {
@@ -556,7 +484,7 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
     {
         if (codec.type == ARCONTROLLER_STREAM_CODEC_TYPE_H264)
         {
-            if (DISPLAY_WITH_MPLAYER)
+            if (DISPLAY_WITH_MPLAYER && choice!=0)
             {
                 fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
@@ -568,7 +496,7 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
     }
     else
     {
-        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
+        //ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
 
     return ARCONTROLLER_OK;
@@ -581,7 +509,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     {
         if (frame != NULL)
         {
-            if (DISPLAY_WITH_MPLAYER)
+            if (DISPLAY_WITH_MPLAYER && choice!=0)
             {
                 fwrite(frame->data, frame->used, 1, videoOut);
 
@@ -595,7 +523,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     }
     else
     {
-        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
+        //ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
 
     return ARCONTROLLER_OK;
@@ -697,4 +625,134 @@ void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur){
 
 void setMaxRotationSpeed(ARCONTROLLER_Device_t *deviceController,int valeur){
     deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, valeur); 
+}
+
+void connectDiscovery(int *failed,int isBebop2){
+
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ... ");
+        eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;
+
+        device = ARDISCOVERY_Device_New (&errorDiscovery);
+
+        if (errorDiscovery == ARDISCOVERY_OK)
+        {
+            ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - ARDISCOVERY_Device_InitWifi ...");
+            // create a Bebop drone discovery device (ARDISCOVERY_PRODUCT_ARDRONE)
+
+            if(isBebop2)
+            {
+                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
+            }
+            else
+            {
+                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_ARDRONE, "bebop", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
+            }
+
+            if (errorDiscovery != ARDISCOVERY_OK)
+            {
+                failed = 1;
+                ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
+            }
+        }
+        else
+        {
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
+            failed = 1;
+        }
+}
+
+void createDevice(int *failed){
+    if (!failed)
+    {
+        deviceController = ARCONTROLLER_Device_New (device, &error);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "Creation of deviceController failed.");
+            failed = 1;
+        }
+       
+    }
+
+    if (!failed)
+    {
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- delete discovey device ... ");
+        ARDISCOVERY_Device_Delete (&device);
+    }
+
+    // add the state change callback to be informed when the device controller starts, stops...
+    if (!failed)
+    {
+        error = ARCONTROLLER_Device_AddStateChangedCallback (deviceController, stateChanged, deviceController);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add State callback failed.");
+            failed = 1;
+        }
+    }
+
+    // add the command received callback to be informed when a command has been received from the device
+    if (!failed)
+    {
+        error = ARCONTROLLER_Device_AddCommandReceivedCallback (deviceController, commandReceived, deviceController);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add callback failed.");
+            failed = 1;
+        }
+    }
+
+    // add the frame received callback to be informed when a streaming frame has been received from the device
+    if (!failed)
+    {
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- set Video callback ... ");
+        error = ARCONTROLLER_Device_SetVideoStreamCallbacks (deviceController, decoderConfigCallback, didReceiveFrameCallback, NULL , NULL);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            failed = 1;
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error: %s", ARCONTROLLER_Error_ToString(error));
+        }
+    }
+
+    if (!failed)
+    {
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Connecting ...");
+        error = ARCONTROLLER_Device_Start (deviceController);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            failed = 1;
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
+        }
+    }
+
+    if (!failed)
+    {
+        // wait state update update
+        ARSAL_Sem_Wait (&(stateSem));
+
+        deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
+
+        if ((error != ARCONTROLLER_OK) || (deviceState != ARCONTROLLER_DEVICE_STATE_RUNNING))
+        {
+            failed = 1;
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- deviceState :%d", deviceState);
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
+        }
+    }
+
+    // send the command that tells to the Bebop to begin its streaming
+    if (!failed)
+    {
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- send StreamingVideoEnable ... ");
+        error = deviceController->aRDrone3->sendMediaStreamingVideoEnable (deviceController->aRDrone3, 1);
+        if (error != ARCONTROLLER_OK)
+        {
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
+            failed = 1;
+        }
+    }
 }
