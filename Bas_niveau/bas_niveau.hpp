@@ -7,7 +7,7 @@
 #include <vector>
 
 extern "C" {
-#include "../Decision/decision.h"
+
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/avutil.h>
@@ -24,19 +24,25 @@ extern "C" {
 
 using namespace cv;
 #define VOISINAGE 3
-#define EUCLID 3
+#define EUCLID 1
+#define DISTANCE_MAX_ENTRE_PIXELS 50
 
 
 struct SPoint
 {
-   int x, y,somme;
+   int x, y,somme,score;
 };
 
 
 int intervalle (int x1,int y1,int x2,int y2);
-
+int orientation(SPoint p, SPoint q, SPoint r);
 void voisinage(int voisin,int i, int j,int* S0,int* S1,int* S2,int* S3,cv::Mat image);
-
+bool doIntersect(SPoint p1, SPoint q1, SPoint p2, SPoint q2);
+bool not_similar(SPoint p1, SPoint p2);
+bool not_collinear(SPoint p1, SPoint p2, SPoint p3);
+int is_quadrilateral(SPoint p1, SPoint p2, SPoint p3, SPoint p4);
+bool is_triangle(SPoint p1, SPoint q1, SPoint p2);
+void erreur(int*** resultat);
 int video_reader_process(const char* infile);
 
 void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_ctx, AVFrame* av_frame, AVFrame* decrame);
