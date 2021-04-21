@@ -190,10 +190,10 @@ int video_reader_process(const char* infile) {
     AVFormatContext* inctx = nullptr;
     
     ret = avformat_open_input(&inctx, infile, nullptr, nullptr);
-  /*  if (ret < 0) {
+    if (ret < 0) {
         std::cerr << "fail to avforamt_open_input(\"" << infile << "\"): ret=" << ret;
         return 1;
-    }*/
+    }
 
     ret = avformat_find_stream_info(inctx, nullptr);
     if (ret < 0) {
