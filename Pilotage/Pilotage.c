@@ -22,10 +22,18 @@ eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
 eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
 //Vars globl watchdog 
-#define TIMEOUT = 1000000;
+#define TIMEOUT 1000000
 struct timeval counter, watch;
 pid_t child = 0;
 pthread_t threads;
+
+//Tableau 2D contenant les valeurs d'amplitudes de mouvements pour chaque déplacements 
+int tabPrc[4][4]={
+    {0, LOW_ROLL_ANGLE, MID_ROLL_ANGLE, HIGH_ROLL_ANGLE},
+    {0, LOW_PITCH_ANGLE, MID_PITCH_ANGLE, HIGH_PITCH_ANGLE},
+    {0, LOW_GAZ_SPEED, MID_GAZ_SPEED, HIGH_GAZ_SPEED},
+    {0, LOW_ROT_SPEED, MID_ROT_SPEED, HIGH_ROT_SPEED}
+};
 
 /*****************************************
  *
@@ -376,80 +384,77 @@ void callback(int **state,int ifStop){
 
     //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
     if(ifStop==STOP){
-        //Gerer d'autre signaux pour les autres parties ?
         printf("Stop");
         endProg();
         return;
     }
 
+    //Tableau de la composition des mouvements
+    int composition[4]={0,0,0,0};
+
     if(state){
         //Parcour des différents mouvements
-        for(int i=STRAFER; i<=STRAFER; i++) {
+        for(int i=STRAFER; i<=ROTATION; i++) {
 
             //Test de l'évaluation
             if(state[i][EVALUATION]==GOOD){
 
-                int angleAmp;
-                int speedAmp;
+                //Signe des déplacement (cf. common.h)
                 int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
 
-                //Switch sur la position
-                switch (abs(state[i][POS_INTENSITE]))
-                {
-                case AXE:
-                    //printf("Centré\n");
-                    angleAmp=0;
-                    speedAmp=0;
-                    break;
-                case CLOSE:
-                    //printf("Près\n");
-                    angleAmp=LOW_ANGLE;
-                    speedAmp=LOW_SPEED;
-                    break;
-                case FAR:
-                    //printf("Loin\n");
-                    angleAmp=MID_ANGLE;
-                    speedAmp=MID_SPEED;
-                    break;
-                case EXTREME:
-                    //printf("Très Loin\n");
-                    angleAmp=HIGH_ANGLE;
-                    speedAmp=HIGH_SPEED;
-                    break;
-                default:
-                    break;
-                }
-
-                speedAmp=speedAmp*sign;
-                angleAmp=angleAmp*sign;
-
-                //Switch sur le mouvement
+                //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
                 switch (i)
                 {
                 case STRAFER:
-                    //printf("Straffer\n");
-                    roll(deviceController,-angleAmp);
+                    composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
                     break;
                 case AVANT_ARRIERE:
-                    pitch(deviceController,angleAmp);
+                    composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
                     break;
                 case MONTER_DESCENDRE:
-                    gaz(deviceController,speedAmp);
+                    composition[MONTER_DESCENDRE]=sign*choixPourcentage(state[i][POS_INTENSITE],MONTER_DESCENDRE);
                     break;
                 case ROTATION:
-                    yaw(deviceController,speedAmp);
+                    composition[ROTATION]=sign*choixPourcentage(state[i][POS_INTENSITE],ROTATION);
                     break;
                 default:
-                    stop(deviceController);
                     break;
                 }
             }
         }
     }
+
+    //On compose les mouvement que l'on envoie au drone
+    roll(deviceController,composition[STRAFER]);
+    pitch(deviceController,composition[AVANT_ARRIERE]);
+    gaz(deviceController,composition[MONTER_DESCENDRE]);
+    yaw(deviceController,composition[ROTATION]);
+
+
     gettimeofday(&counter, NULL);
 }
 
-
+//Retourne la valeur de pourcentage d'angle/vitt selon le type de mouvement (cf Pilotage.h)
+int choixPourcentage(int pos_intensite, int type){
+    switch (abs(pos_intensite))
+                {
+                case AXE:
+                    return tabPrc[type][AXE];
+                    break;
+                case CLOSE:
+                    return tabPrc[type][CLOSE];
+                    break;
+                case FAR:
+                    return tabPrc[type][FAR];
+                    break;
+                case EXTREME:
+                    return tabPrc[type][EXTREME];
+                    break;
+                default:
+                    return 0;
+                    break;
+                }
+}
 
 void endProg(){
     if (deviceController != NULL)

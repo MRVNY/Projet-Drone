@@ -20,13 +20,22 @@
 /*---------------------------------------*/
 
 /*---Convention sur les amplitudes de déplacement---*/
-#define LOW_ANGLE 10
-#define MID_ANGLE 20  //% d'Angle max (Roll et Pitch)
-#define HIGH_ANGLE 30
+#define LOW_PITCH_ANGLE 10
+#define MID_PITCH_ANGLE 20  
+#define HIGH_PITCH_ANGLE 30
+                            //% d'Angle max (Roll et Pitch)
+#define LOW_ROLL_ANGLE 10
+#define MID_ROLL_ANGLE 20  
+#define HIGH_ROLL_ANGLE 30
 
-#define HIGH_SPEED 10
-#define MID_SPEED 20 //% de vitesse max (Gaz et rotation)
-#define LOW_SPEED 30
+#define HIGH_GAZ_SPEED 10
+#define MID_GAZ_SPEED 20 
+#define LOW_GAZ_SPEED 30
+                            //% de vitesse max (Gaz et rotation)
+#define HIGH_ROT_SPEED 10
+#define MID_ROT_SPEED 20 
+#define LOW_ROT_SPEED 30
+
 /*--------------------------------------------------*/
 
 
@@ -113,6 +122,8 @@ void endProg();
 void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
 
 void setMaxRotationSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
+
+int choixPourcentage(int pos_intensite, int type);
 /*-------------------------------------------------------------------------*/
 
 /*----------WATCHDOG et SIGNAUX--------------*/
