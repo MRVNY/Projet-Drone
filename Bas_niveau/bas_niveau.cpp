@@ -1,11 +1,11 @@
 #include "bas_niveau.hpp"
 #include <typeinfo>
 #include <iostream>
-#include <chrono>
-#include <thread>
+#include <chrono> 
+#include <thread> 
 
 int intervalle (int x1,int y1,int x2,int y2,int distance){
-    //Fonction qui retourne true si les deux coordonnées sont eloignées : pas la meme hirondelle
+    /*Fonction qui retourne true si les deux coordonnées sont éloignées d'une distance passée en parametre */
     
     double distance_euclidienne=sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
     return  (distance_euclidienne > distance); //si ils sont loin
@@ -13,11 +13,11 @@ int intervalle (int x1,int y1,int x2,int y2,int distance){
 }
 
 int orientation(SPoint p, SPoint q, SPoint r)
-/*Fonction qui determine l'orientation des points : colineaires, au sens des aiguilles d'une horloge, en contre sens */
+/*Fonction qui determine l'orientation des points : colineaires, au sens des aiguilles d'une horloge, ou sens contraire */
 {
     int val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
 
-    if (val >= -5 and val<=5) // a 5 pixels pres
+    if (val >= -MARGE_PIXEL_COLLINEAIRE and val<=MARGE_PIXEL_COLLINEAIRE) // a 5 pixels pres
         return 0;
     return (val > 0) ? 1 : 2;
 }
@@ -37,16 +37,13 @@ bool doIntersect(SPoint p1, SPoint q1, SPoint p2, SPoint q2)
     return false;
 }
 
-// check if points overlap(similar)
-bool not_similar(SPoint p1, SPoint p2)
+bool not_similar(SPoint p1, SPoint p2){
 /*Fonction qui verifie si les points ne sont pas les memes*/
-{
-
    
-    if (intervalle(p1.x,p1.y,p2.x,p2.y,EUCLID)==1)
+    if (intervalle(p1.x,p1.y,p2.x,p2.y,DISTANCE_MIN_ENTRE_PIXELS)==1)// si les points assez proches (de DISTANCE_MIN_ENTRE_PIXELS pres) alors ils son
         return true;
 
-    return false;//si deux points sont les memes, alors on retourne false car un quadrilateral n'est pas possible dans ce cas
+    return false; //si deux points sont les memes, alors on retourne false car un quadrilateral n'est pas possible dans ce cas
 }
 
 
@@ -60,11 +57,11 @@ bool not_collinear(SPoint p1, SPoint p2, SPoint p3)
     // it is collinear, we are returning false
     // because quadrilateral is not possible in this case
     //<=5 and (y3 - y2) * (x2 - x1) - (y2 - y1) * (x3 - x2)>=-5
-  //if ((y3 - y2) * (x2 - x1) - (y2 - y1) * (x3 - x2) ==0) /*si les points sont collineaires alors on retourne false car un quadrilateral n'est pas possible dans ce cas*/
+  //if ((y3 - y2) * (x2 - x1) - (y2 - y1) * (x3 - x2) ==0) 
        // return false;*/
     
-    if (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2)<=5 and (y3 - y2) * (x2 - x1) - (y2 - y1) * (x3 - x2)>=-5)
-        return false;
+    if (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2) <= MARGE_PIXEL_COLLINEAIRE and (y3 - y2) * (x2 - x1) - (y2 - y1) * (x3 - x2) >=- MARGE_PIXEL_COLLINEAIRE)
+        return false; /*si les points sont collineaires alors on retourne false car un quadrilateral n'est pas possible dans ce cas*/
 
     return true;
 }
@@ -80,6 +77,7 @@ int is_quadrilateral(SPoint p1, SPoint p2, SPoint p3, SPoint p4){
     
       // si des points similaires existent
     if (same == false){
+        
         return 0;
         
     }
@@ -123,7 +121,7 @@ bool is_triangle(SPoint p1, SPoint q1, SPoint p2){
 
 
 void voisinage(int voisin,int i, int j,int* S0,int* S1,int* S2,int* S3,cv::Mat image){
-
+    //Permet de calculer la somme des pixels voisin au pixel de la positions i,j 
     int x,y;
     (*S0)=0;
     (*S1)=0;
@@ -157,6 +155,7 @@ void voisinage(int voisin,int i, int j,int* S0,int* S1,int* S2,int* S3,cv::Mat i
 }
 
 void erreur(int*** resultat){
+    //Mets la position de tout les points resultants a la valeurs -1 pour indiquer la non-detection des points
     for( int i=0;i<4;i++){
         for(int j=0;j<2;j++){
              (*resultat)[i][j]=-1;
@@ -189,10 +188,10 @@ int video_reader_process(const char* infile) {
     AVFormatContext* inctx = nullptr;
     
     ret = avformat_open_input(&inctx, infile, nullptr, nullptr);
-    if (ret < 0) {
-        std::cerr << "fail to avforamt_open_input(\"" << infile << "\"): ret=" << ret;
-        return 1;
-    }
+        if (ret < 0) {
+            std::cerr << "fail to avforamt_open_input(\"" << infile << "\"): ret=" << ret;
+            return 1;
+        }
 
     ret = avformat_find_stream_info(inctx, nullptr);
     if (ret < 0) {
@@ -216,8 +215,7 @@ int video_reader_process(const char* infile) {
         std::cerr << "fail to avcodec_open2: ret=" << ret;
         return 1;
     }
-
-
+    
     std::cout
         << "infile: " << infile << "\n"
         << "format: " << inctx->iformat->name << "\n"
@@ -298,12 +296,13 @@ int video_reader_process(const char* infile) {
              
         
         }
-        
+        printf("Frame numero %d\n",nb_frames);
             ++nb_frames;
             next_packet:
             av_packet_unref(&pkt);
       
     } while (!end_of_stream || got_pic);
+    
     
     video_reader_close(swsctx, inctx, frame, decframe);
     return 0;
@@ -351,9 +350,10 @@ void image_processing(cv::Mat image,int*** resultat){
                            
                         voisinage(VOISINAGE,x,y,&S0,&S1,&S2,&S3,image);
                         somme=255*(VOISINAGE*VOISINAGE*2)+S0-S1-S2+S3;
+                        somme2=255*(VOISINAGE*VOISINAGE*2)-S0+S1+S2-S3;
                            
                            
-                           if(somme <= res[0].somme && intervalle(x,y,res[1].x,res[1].y,EUCLID) && intervalle(x,y,res[0].x,res[0].y,EUCLID) ) {
+                           if(somme <= res[0].somme && intervalle(x,y,res[1].x,res[1].y,DISTANCE_MIN_ENTRE_PIXELS) && intervalle(x,y,res[0].x,res[0].y,DISTANCE_MIN_ENTRE_PIXELS) ) {
                                
                                res[2].somme=res[1].somme;
                                res[2].x=res[1].x;
@@ -367,7 +367,7 @@ void image_processing(cv::Mat image,int*** resultat){
                                res[0].x=x;
                                res[0].y=y;
                            }
-                            if(somme <= res[1].somme && somme > res[0].somme && intervalle(x,y,res[0].x,res[0].y,EUCLID) && intervalle(x,y,res[1].x,res[1].y,EUCLID) ){
+                            if(somme <= res[1].somme && somme > res[0].somme && intervalle(x,y,res[0].x,res[0].y,DISTANCE_MIN_ENTRE_PIXELS) && intervalle(x,y,res[1].x,res[1].y,DISTANCE_MIN_ENTRE_PIXELS) ){
                                 
                                res[2].somme=res[1].somme;
                                res[2].x=res[1].x;
@@ -378,27 +378,13 @@ void image_processing(cv::Mat image,int*** resultat){
                                res[1].y=y;
                            }
                            
-                            if(somme <= res[2].somme && somme > res[1].somme && somme > res[0].somme && intervalle(x,y,res[0].x,res[0].y,EUCLID) && intervalle(x,y,res[1].x,res[1].y,EUCLID) ){
+                            if(somme <= res[2].somme && somme > res[1].somme && somme > res[0].somme && intervalle(x,y,res[0].x,res[0].y,DISTANCE_MIN_ENTRE_PIXELS) && intervalle(x,y,res[1].x,res[1].y,DISTANCE_MIN_ENTRE_PIXELS) ){
                                res[2].somme=somme;
                                res[2].x=x;
                                res[2].y=y;
                            }
-                           
-                       
-                       }
-                   }
-                   
-
-                   for( int x=VOISINAGE ; x<image.rows-VOISINAGE ; x++ ){
-                       for( int y=VOISINAGE ; y<image.cols-VOISINAGE ; y++ ){
-                           
-                         
-                           
-                           voisinage(VOISINAGE,x,y,&S0,&S1,&S2,&S3,image);
-                           somme=255*(VOISINAGE*VOISINAGE*2)-S0+S1+S2-S3;
-
-                           
-                           if(somme <= res[3].somme && intervalle(x,y,res[4].x,res[4].y,EUCLID) && intervalle(x,y,res[3].x,res[3].y,EUCLID) ) {
+                                 
+                            if(somme2 <= res[3].somme && intervalle(x,y,res[4].x,res[4].y,DISTANCE_MIN_ENTRE_PIXELS) && intervalle(x,y,res[3].x,res[3].y,DISTANCE_MIN_ENTRE_PIXELS) ) {
                               
                                res[5].somme=res[4].somme;
                                res[5].x=res[4].x;
@@ -408,29 +394,26 @@ void image_processing(cv::Mat image,int*** resultat){
                                res[4].x=res[3].x;
                                res[4].y=res[3].y;
 
-                               res[3].somme=somme;
+                               res[3].somme=somme2;
                                res[3].x=x;
                                res[3].y=y;
                                
                            }
-                            if(somme <= res[4].somme && somme > res[3].somme && intervalle(x,y,res[3].x,res[3].y,EUCLID) && intervalle(x,y,res[4].x,res[4].y,EUCLID)   ){
+                            if(somme2 <= res[4].somme && somme2 > res[3].somme && intervalle(x,y,res[3].x,res[3].y,DISTANCE_MIN_ENTRE_PIXELS) && intervalle(x,y,res[4].x,res[4].y,DISTANCE_MIN_ENTRE_PIXELS)   ){
                                 
                                res[5].somme=res[4].somme;
                                res[5].x=res[4].x;
                                res[5].y=res[4].y;
 
-                               res[4].somme=somme;
+                               res[4].somme=somme2;
                                res[4].x=x;
                                res[4].y=y;
                                
                            }
                            
-                            if(somme <= res[5].somme && somme > res[4].somme && somme > res[3].somme && intervalle(x,y,res[4].x,res[4].y,EUCLID) && intervalle(x,y,res[3].x,res[3].y,EUCLID) ){
+                            if(somme2 <= res[5].somme && somme2 > res[4].somme && somme2 > res[3].somme && intervalle(x,y,res[4].x,res[4].y,DISTANCE_MIN_ENTRE_PIXELS) && intervalle(x,y,res[3].x,res[3].y,DISTANCE_MIN_ENTRE_PIXELS) ){
                             
-
-
-                            
-                               res[5].somme=somme;
+                               res[5].somme=somme2;
                                res[5].x=x;
                                res[5].y=y;
                                
@@ -439,7 +422,6 @@ void image_processing(cv::Mat image,int*** resultat){
                        
                        }
                    }
-                   
 
     for( int i=0;i<6;i++){
         for(int j=0;j<6;j++){
@@ -456,13 +438,72 @@ void image_processing(cv::Mat image,int*** resultat){
             total_points--;
         }
     }
-    struct SPoint res1[4];
+
     if(total_points < 3)
         erreur(resultat);
     else {
-        if(total_points>=4){
       
-            if (is_quadrilateral(res[0],res[1],res[3],res[4])==1){
+        if(total_points==4){
+            struct SPoint quad[4];
+            int pos = 0;
+            for(int i=0;i<6;i++){
+                if ( res[i].x != -1){
+                    quad[pos]=res[i];
+                    pos++;
+                }
+            }
+            if (is_quadrilateral(quad[0],quad[1],quad[2],quad[3])==1){
+                
+                line(image,Point(quad[0].y,quad[0].x),Point(quad[1].y,quad[1].x),(255,0,0),5);
+
+                line(image,Point(quad[1].y,quad[1].x),Point(quad[3].y,quad[3].x),(255,0,0),5);
+
+                line(image,Point(quad[3].y,quad[3].x),Point(quad[2].y,quad[2].x),(255,0,0),5);
+
+                line(image,Point(quad[2].y,quad[2].x),Point(quad[0].y,quad[0].x),(255,0,0),5);
+            }
+        }
+        if(total_points==5){
+            struct SPoint quad[5];
+            int pos = 0;
+            int point_enleve = -1; // trouver le point manquant pour enlever un autre point 
+              for(int i=0;i<6;i++){
+                if ( res[i].x != -1){
+                  quad[pos]=res[i];
+                  pos++;
+                }
+                else{point_enleve = i;}
+            }
+            if(point_enleve == 3 or point_enleve == 4){
+              quad[2]=quad[4];
+              res[2].x=-1;
+              res[2].y=-1;
+            }
+            if(point_enleve < 3 ){
+                res[5].x=-1;
+                res[5].y=-1;
+            }
+            
+            if (is_quadrilateral(quad[0],quad[1],quad[2],quad[3])==1){
+                
+                line(image,Point(quad[0].y,quad[0].x),Point(quad[1].y,quad[1].x),(255,0,0),5);
+
+                line(image,Point(quad[1].y,quad[1].x),Point(quad[3].y,quad[3].x),(255,0,0),5);
+
+                line(image,Point(quad[3].y,quad[3].x),Point(quad[2].y,quad[2].x),(255,0,0),5);
+
+                line(image,Point(quad[2].y,quad[2].x),Point(quad[0].y,quad[0].x),(255,0,0),5);
+            }
+         
+        }
+             
+        
+        if(total_points==6){
+            res[2].x=-1;
+            res[2].y=-1;
+            res[5].x=-1;
+            res[5].y=-1;
+            if (is_quadrilateral(res[0],res[1],res[3],res[4])==1){// on elimine les derniers de chaque somme
                 
                 line(image,Point(res[0].y,res[0].x),Point(res[1].y,res[1].x),(255,0,0),5);
 
@@ -473,7 +514,7 @@ void image_processing(cv::Mat image,int*** resultat){
                 line(image,Point(res[3].y,res[3].x),Point(res[0].y,res[0].x),(255,0,0),5);
             }
         }
-    
+    }
 
         
         (*resultat)[0][0]=res[0].x;
@@ -487,53 +528,51 @@ void image_processing(cv::Mat image,int*** resultat){
 
         (*resultat)[3][0]=res[3].x;
         (*resultat)[3][1]=res[3].y;
-    }
 
-         cv::Mat3b grayBGR;
-                               
-                cv::cvtColor(image, grayBGR, COLOR_GRAY2BGR);
+        cv::Mat3b grayBGR;
+                            
+            cv::cvtColor(image, grayBGR, COLOR_GRAY2BGR);
 
-                for(int i=0;i<6;i++){
-                    std::cout << res[i].somme << " \nRESS" << std::endl;
-                    std::cout << res[i].x << " X " << std::endl;
-                    std::cout << res[i].y << " Y\n" << std::endl;
-                    if(i==0){
-                        //printf("VOISINAGE : %d\n",VOISINAGE);
-                        ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(255, 144, 30),-1, LINE_AA);} //dodger blue
-                        
-                    if(i==1){
-                                                                         
-                      ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(255, 144, 30),-1, LINE_AA);} //dodger blue
-                  if(i==2){
-                                         
-                      ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(0,0,255),-1, LINE_AA);} //crimson
-                   if(i==3){
-                                         
-                      ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(34,139,34),-1, LINE_AA);} //forest green
-                  
-
-                   if(i==4){
-                                         
-                      ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(34,139,34),-1, LINE_AA);} //forest green
-
-                   if(i==5){
-                                         
-                      ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(0,165,255),-1, LINE_AA); //orange
-                     
-                          } //violet
-                                              
-                }
-
-               
-                cv::imwrite("image.jpg", image);
-                cv::imwrite("imagebgr.jpg", grayBGR);
+            for(int i=0;i<6;i++){
+                std::cout << res[i].somme << " \nRESS" << std::endl;
+                std::cout << res[i].x << " X " << std::endl;
+                std::cout << res[i].y << " Y\n" << std::endl;
+                if(i==0){
+                    //printf("VOISINAGE : %d\n",VOISINAGE);
+                    ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(255, 144, 30),-1, LINE_AA);} //dodger blue
+                    
+                if(i==1){
+                                                                        
+                    ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(255, 144, 30),-1, LINE_AA);} //dodger blue
+                if(i==2){
+                                        
+                    ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(0,0,255),-1, LINE_AA);} //crimson
+                if(i==3){
+                                        
+                    ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(34,139,34),-1, LINE_AA);} //forest green
                 
-                cv::imshow("defilement",grayBGR);
-                cv::waitKey(1);
-                std::this_thread::sleep_for(std::chrono::milliseconds(100) );
-               
+
+                if(i==4){
+                                        
+                    ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(34,139,34),-1, LINE_AA);} //forest green
+
+                if(i==5){
+                                        
+                    ellipse(grayBGR, Point(res[i].y,res[i].x),Size(2, 2), 0, 0,360, Scalar(0,165,255),-1, LINE_AA); //orange
+                    
+                        } //violet
+                                            
+            }
+
+            
+            cv::imwrite("image.jpg", image);
+            cv::imwrite("imagebgr.jpg", grayBGR);
+            cv::imshow("defilement",grayBGR);
+            cv::waitKey(1);
+            //std::this_thread::sleep_for(std::chrono::milliseconds(100) );
             
         
-    }
     
+}
+
 
