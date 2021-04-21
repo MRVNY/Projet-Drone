@@ -35,10 +35,13 @@
 #define HIGH_ROT_SPEED 10
 #define MID_ROT_SPEED 20 
 #define LOW_ROT_SPEED 30
-
 /*--------------------------------------------------*/
 
-
+/*--------------WATCHDOG & MYPRINT------------------------------*/
+#define IFPRINT 1 //activation/deactivation des printfs
+#define TIMEOUT 1000000
+#define CYCLE 125000
+/*-------------------------------------------------------------*/
 
 /*****************************************
  *
