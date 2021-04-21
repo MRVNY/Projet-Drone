@@ -80,7 +80,6 @@ int is_quadrilateral(SPoint p1, SPoint p2, SPoint p3, SPoint p4){
     
       // si des points similaires existent
     if (same == false){
-        printf("SAAAAAAMMEEE\n");
         return 0;
         
     }
@@ -95,7 +94,7 @@ int is_quadrilateral(SPoint p1, SPoint p2, SPoint p3, SPoint p4){
     
       //si des points sont collineaires
     if (coll == false){
-         printf("COOOLINEAAAIIIRE\n");
+         
          return 0;
         
     }
@@ -464,7 +463,7 @@ void image_processing(cv::Mat image,int*** resultat){
         if(total_points>=4){
       
             if (is_quadrilateral(res[0],res[1],res[3],res[4])==1){
-                printf("OUI QUAIDRIALTEKRGN *******\n");
+                
                 line(image,Point(res[0].y,res[0].x),Point(res[1].y,res[1].x),(255,0,0),5);
 
                 line(image,Point(res[1].y,res[1].x),Point(res[4].y,res[4].x),(255,0,0),5);
@@ -528,7 +527,7 @@ void image_processing(cv::Mat image,int*** resultat){
                
                 cv::imwrite("image.jpg", image);
                 cv::imwrite("imagebgr.jpg", grayBGR);
-                printf("lalallalalalal\n");
+                
                 cv::imshow("defilement",grayBGR);
                 cv::waitKey(1);
                 std::this_thread::sleep_for(std::chrono::milliseconds(100) );
