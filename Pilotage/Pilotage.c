@@ -40,10 +40,12 @@ int tabPrc[4][4]={
  *
  *****************************************/
 
+// Afficher les infos supplementaires, activer avec IFPRINT
 void myPrint(char *toPrint){
     if(IFPRINT) printf("%s",toPrint);
 }
 
+// Vérifier 
 void *watch_dog(){
     while(1){
         usleep(CYCLE);

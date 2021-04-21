@@ -53,7 +53,6 @@
 #include <libARSAL/ARSAL.h>
 #include <libARController/ARController.h>
 #include <libARDiscovery/ARDiscovery.h>
-
 /*------------------------------------------*/
 
 /*--------------UTILITAIRES---------------------*/
@@ -120,7 +119,6 @@ void stop(ARCONTROLLER_Device_t *deviceController);
 void endProg();
 /*-------------------------------------------------------*/
 
-
 /*----------Setter des vitesses de rotation/translation max--------------*/
 void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
 
@@ -130,6 +128,7 @@ int choixPourcentage(int pos_intensite, int type);
 /*-------------------------------------------------------------------------*/
 
 /*----------WATCHDOG et SIGNAUX--------------*/
+void myPrint(char *toPrint);
 void *watch_dog();
 void catchSig();
 /*---------------------------------*/
