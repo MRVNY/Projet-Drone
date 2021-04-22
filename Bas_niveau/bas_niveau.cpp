@@ -3,6 +3,7 @@
 #include <typeinfo>
 #include <iostream>
 #include <unistd.h>
+#include <string.h>
 
 
 //Define uniquement pour le bouhon 
@@ -13,7 +14,35 @@ using std::endl; using std::string;
 using std::ifstream;
 
 /*-----------------Métohde bouchon----------------*/
+
 int video_reader_process(const char* infile) {
+
+    string filename(infile);
+
+    VideoCapture capture(infile,CAP_FFMPEG);
+
+    capture.set(CAP_PROP_FOURCC, VideoWriter::fourcc('H','2','6','4'));
+    capture.set(CAP_PROP_FRAME_WIDTH, 1280);
+    capture.set(CAP_PROP_FRAME_HEIGHT, 720);
+    
+    if (!capture.isOpened()) {
+        printf("NOT OPENED\n");
+    }
+        
+    cv::Mat frame;
+    
+    while(1) {
+        if (!capture.read(frame)) {
+            //Error
+        }
+        cv::imshow("BAS NIVEAU", frame);
+    
+        cv::waitKey(30);
+    } 
+
+}
+
+int video_reader_process_2(const char* infile) {
 
     string filename(infile);
 

@@ -51,7 +51,7 @@ void *watch_dog(){
         usleep(CYCLE);
         if(counter.tv_sec!=0){
             gettimeofday(&watch, NULL);
-            myPrint("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
+            //myPrint("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
             if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
                 myPrint("WATCHDOG\n");
                 endProg();
@@ -91,7 +91,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
     */
 
     // MPLAYER ou FFMPEG
-    printf("\nrien (0), mplayer(1) ou ffmpeg(2)?\n");
+    printf("\nbas_niveau (0), mplayer(1) ou ffmpeg(2)?\n");
     if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
         printf("Entree non connue, mplayer par defaut\n");
         choice = 1;
@@ -110,7 +110,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
         }
     } 
     if(choice==0){
-        myPrint("rien\n");
+        myPrint("bas_niveau\n");
         sleep(1);
     } 
 
@@ -130,11 +130,10 @@ int main_Pilotage (int (*functionPtr)(const char*))
     ARSAL_Sem_Init (&(stateSem), 0, 0);
 
     //ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- Bebop 2 Test TakeOff and Landing --");
-    
  
     if (!failed)
     {
-        if (DISPLAY_WITH_MPLAYER && choice!=0)
+        if (DISPLAY_WITH_MPLAYER)
         {
             // fork the process to launch mplayer
             if ((child = fork()) == 0)
@@ -143,21 +142,21 @@ int main_Pilotage (int (*functionPtr)(const char*))
                     char str[5];
                     sprintf(str,"%d",fps);
                     execlp("ffmpeg", "ffmpeg", "-f", "h264", "-i", fifo_name, "-vf", "scale=-1:720", "-r",str, "outputs/%04d.jpeg", NULL);
+                    //execlp("ffmpeg", "ffmpeg", "-f", "h264", "-i", fifo_name,"-vcodec","copy","-vf", "scale=-1:720", "-acodec","none", "/tmp/test.mp4", NULL);
                 }
-                else{
+                if(choice==1){
                     execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", fifo_name, "-benchmark", "-really-quiet", NULL);
                     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
                 }
-                return -1;
+                //return -1;
+                (*functionPtr)(fifo_name);
             }
         }
-
-        if (DISPLAY_WITH_MPLAYER && choice!=0)
+        if (DISPLAY_WITH_MPLAYER)
         {
             videoOut = fopen(fifo_name, "w");
         }
     }
-
 
     
 
@@ -200,7 +199,6 @@ int main_Pilotage (int (*functionPtr)(const char*))
             failed = 1;
         }
     }
-
 /*****************************************
  *
  *             Création de l'interface
@@ -320,10 +318,11 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
         myPrint("Début du test\n");
-        (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
+        //(*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
+        //(*functionPtr)(fifo_name);
         
         //Test catchSig
-        //sleep(1000);
+        sleep(1000);
 
         //Test Watchdog
         /*
@@ -455,7 +454,7 @@ void endProg(){
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "ARCONTROLLER_Device_Delete ...");
         ARCONTROLLER_Device_Delete (&deviceController);
 
-        if (DISPLAY_WITH_MPLAYER && choice!=0)
+        if (DISPLAY_WITH_MPLAYER)
         {
             fflush (videoOut);
             fclose (videoOut);
@@ -527,7 +526,7 @@ static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController
         // get the Name
         HASH_FIND_STR (dictElement->arguments, ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORNAME, arg);
         if (arg != NULL) {
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "arg sensorName is NULL");
+            //ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "arg sensorName is NULL");
             continue;
         }
 
@@ -536,7 +535,7 @@ static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController
         // get the state
         HASH_FIND_STR (dictElement->arguments, ARCONTROLLER_DICTIONARY_KEY_COMMON_COMMONSTATE_SENSORSSTATESLISTCHANGED_SENSORSTATE, arg);
         if (arg == NULL) {
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "arg sensorState is NULL");
+            //ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "arg sensorState is NULL");
             continue;
         }
 
@@ -599,7 +598,7 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
     {
         if (codec.type == ARCONTROLLER_STREAM_CODEC_TYPE_H264)
         {
-            if (DISPLAY_WITH_MPLAYER && choice!=0)
+            if (DISPLAY_WITH_MPLAYER)
             {
                 fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
@@ -624,7 +623,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     {
         if (frame != NULL)
         {
-            if (DISPLAY_WITH_MPLAYER && choice!=0)
+            if (DISPLAY_WITH_MPLAYER)
             {
                 fwrite(frame->data, frame->used, 1, videoOut);
 
