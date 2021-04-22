@@ -35,10 +35,13 @@
 #define HIGH_ROT_SPEED 10
 #define MID_ROT_SPEED 20 
 #define LOW_ROT_SPEED 30
-
 /*--------------------------------------------------*/
 
-
+/*--------------WATCHDOG & MYPRINT------------------------------*/
+#define IFPRINT 1 //activation/deactivation des printfs
+#define TIMEOUT 1000000
+#define CYCLE 125000
+/*-------------------------------------------------------------*/
 
 /*****************************************
  *
@@ -50,7 +53,6 @@
 #include <libARSAL/ARSAL.h>
 #include <libARController/ARController.h>
 #include <libARDiscovery/ARDiscovery.h>
-
 /*------------------------------------------*/
 
 /*--------------UTILITAIRES---------------------*/
@@ -117,7 +119,6 @@ void stop(ARCONTROLLER_Device_t *deviceController);
 void endProg();
 /*-------------------------------------------------------*/
 
-
 /*----------Setter des vitesses de rotation/translation max--------------*/
 void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
 
@@ -127,6 +128,7 @@ int choixPourcentage(int pos_intensite, int type);
 /*-------------------------------------------------------------------------*/
 
 /*----------WATCHDOG et SIGNAUX--------------*/
+void myPrint(char *toPrint);
 void *watch_dog();
 void catchSig();
 /*---------------------------------*/

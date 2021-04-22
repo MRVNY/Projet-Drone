@@ -23,7 +23,6 @@ eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
 eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
 //Vars globl watchdog 
-#define TIMEOUT 1000000
 struct timeval counter, watch;
 pid_t child = 0;
 pthread_t threads;
@@ -42,19 +41,20 @@ int tabPrc[4][4]={
  *
  *****************************************/
 
-static void signal_handler(int signal)
-{
-    gIHMRun = 0;
+// Afficher les infos supplementaires, activer avec IFPRINT
+void myPrint(char *toPrint){
+    if(IFPRINT) printf("%s",toPrint);
 }
 
+// Vérifier 
 void *watch_dog(){
     while(1){
-        usleep(125000);
+        usleep(CYCLE);
         if(counter.tv_sec!=0){
             gettimeofday(&watch, NULL);
-            printf("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
+            myPrint("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
             if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
-                printf("WATCHDOG\n");
+                myPrint("WATCHDOG\n");
                 endProg();
                 break;
             }
@@ -64,7 +64,7 @@ void *watch_dog(){
 }
 
 void catchSig(){
-    printf("CAUGHT\n");
+    myPrint("CAUGHT\n");
     endProg();
     return 0;
 }
@@ -77,25 +77,21 @@ int main_Pilotage (int (*functionPtr)(const char*))
     int frameNb = 0;
     int isBebop2 = 1;
 
-    
-    
-    // Watch Dog
-    //pthread_create(&threads, NULL, watch_dog, NULL);
-
    // catch signaux
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
         if(i != SIGTSTP) signal(i,catchSig);
     }
 
+    // Watch Dog
     pthread_create(&threads, NULL, watch_dog, NULL);
 
     /*-----Test du bouchon sans drone ni simu (affichages)-------*/
-    /*printf("Début du test\n");
+    /*myPrint("Début du test\n");
     (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
     */
+
     // MPLAYER ou FFMPEG
-   
     printf("\nrien (0), mplayer(1) ou ffmpeg(2)?\n");
     if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
         printf("Entree non connue, mplayer par defaut\n");
@@ -115,30 +111,9 @@ int main_Pilotage (int (*functionPtr)(const char*))
         }
     } 
     if(choice==0){
-        printf("rien\n");
+        myPrint("rien\n");
         sleep(1);
     } 
-
-
-    /* Set signal handlers */
-    struct sigaction sig_action = {
-        .sa_handler = signal_handler,
-    };
-
-    int ret = sigaction(SIGINT, &sig_action, NULL);
-    if (ret < 0)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Unable to set SIGINT handler : %d(%s)",
-                    errno, strerror(errno));
-        return 1;
-    }
-    ret = sigaction(SIGPIPE, &sig_action, NULL);
-    if (ret < 0)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Unable to set SIGPIPE handler : %d(%s)",
-                    errno, strerror(errno));
-        return 1;
-    }
 
     if (mkdtemp(fifo_dir) == NULL)
     {
@@ -357,7 +332,12 @@ int main_Pilotage (int (*functionPtr)(const char*))
         printf("Fin du test \n");     
         sleep(10);
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
+<<<<<<< HEAD
               
+=======
+        myPrint("Début du test\n");
+        (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
+>>>>>>> 9fec0b12d9685c7998ee2dce6babc2d31d2df772
         
         //Test catchSig
         sleep(1000);
@@ -365,7 +345,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
         //Test Watchdog
         /*
         for(i=0;i<200;i++){
-            usleep(125000); //3/24
+            usleep(CYCLE); //3/24
             callback(NULL,1);
         }
         while(1){
@@ -390,13 +370,13 @@ int main_Pilotage (int (*functionPtr)(const char*))
 /*Définitions des fonctions de pilotage*/
 
 void callback(int **state,int ifStop){
-    //printf("callback\n");
+    //myPrint("callback\n");
     //Arrêt de la commande en cour
     stop(deviceController);
 
     //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
     if(ifStop==STOP){
-        printf("Stop");
+        myPrint("Stop");
         endProg();
         return;
     }
