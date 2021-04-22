@@ -8,9 +8,9 @@ LOCAL_EXPORT_LDLIBS := -lncurses
 include $(BUILD_PREBUILT)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE := ffmpeg
-LOCAL_EXPORT_C_INCLUDES := $(shell pkg-config --cflags libavcodec libavformat libswscale libavutil)
-LOCAL_EXPORT_LDLIBS := $(shell pkg-config --libs libavcodec libavformat libswscale libavutil)
+LOCAL_MODULE := ffmpegs
+LOCAL_EXPORT_C_INCLUDES := $(shell pkg-config --cflags libavcodec libavformat libswscale libavutil libavfilter)
+LOCAL_EXPORT_LDLIBS := $(shell pkg-config --libs libavcodec libavformat libswscale libavutil libavfilter)
 include $(BUILD_PREBUILT)
 
 include $(CLEAR_VARS) 
@@ -39,14 +39,16 @@ LOCAL_LIBRARIES := \
 	libARStream \
 	libARStream2 \
 	ncurses\
-	ffmpeg\
+	ffmpegs\
 	opencv2
 
 LOCAL_SRC_FILES := \
 	$(call all-cpp-files-under,./Pilotage)\
 	$(call all-c-files-under,./Pilotage)\
 	$(call all-cpp-files-under,./Bas_niveau)\
-	$(call all-c-files-under,./Decision)
+	$(call all-c-files-under,./Decision)\
+	$(call all-c-files-under,./DecodeManager)\
+
 
 	
 include $(BUILD_EXECUTABLE)

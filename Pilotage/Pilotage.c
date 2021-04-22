@@ -1,5 +1,6 @@
 #include "Pilotage.h"
 #include "../commun.h"
+#include "../DecodeManager/DecoderManager.h"
 #include <curses.h>
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary);
@@ -335,20 +336,31 @@ int main_Pilotage (int (*functionPtr)(const char*))
  *****************************************/
     
     if (!failed){
-       
+
+        
+
         //On définit la vitesse max de rotation et  vitesse max verticale (85 °/s et 1 m/s)
         deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,1 );
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
         takeOff(deviceController);
+
+        /*ARCONTROLLER_Frame_t *frame;
+        while(didReceiveFrameCallback (frame, NULL)==ARCONTROLLER_OK) printf("Frame recvd\n");
+        printf("ENDoframes\n");*/
+
+        //printf("%d",frame);
         sleep(5);
 
+        printf("Début du teste\n");
+        //(*functionPtr)(fifo_name); 
+        printf("Fin du test \n");     
+        sleep(10);
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
-        printf("Début du test\n");
-        (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
+              
         
         //Test catchSig
-        //sleep(1000);
+        sleep(1000);
 
         //Test Watchdog
         /*
@@ -619,7 +631,8 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
 
 
 eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, void *customData)
-{
+{   printf("Je l'ai décodée\n");
+
     if (videoOut != NULL)
     {
         if (codec.type == ARCONTROLLER_STREAM_CODEC_TYPE_H264)
@@ -628,7 +641,6 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
             {
                 fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
-
                 fflush (videoOut);
             }
         }
@@ -636,7 +648,7 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
     }
     else
     {
-        //ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
+        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
 
     return ARCONTROLLER_OK;
@@ -652,7 +664,10 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
             if (DISPLAY_WITH_MPLAYER && choice!=0)
             {
                 fwrite(frame->data, frame->used, 1, videoOut);
-
+                printf("J'ai une image\n");
+                ARCODECS_Manager_FFMPEGDecoder_t *ffmpegDecoder = ARCODECS_Manager_NewFFMPEGDecoder(NULL);
+                ARCODECS_Manager_Frame_t *outputFrame;
+                ARCODECS_Manager_FFMPEGDecode (ffmpegDecoder, frame , sizeof(frame),outputFrame);
                 fflush (videoOut);
             }
         }
@@ -663,7 +678,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     }
     else
     {
-        //ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
+        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
 
     return ARCONTROLLER_OK;

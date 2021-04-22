@@ -12,7 +12,80 @@ using std::cout; using std::cerr;
 using std::endl; using std::string;
 using std::ifstream;
 
+
 /*-----------------Métohde bouchon----------------*/
+AVCodec         *pCodec = NULL;
+AVCodecContext  *pCodecCtx = NULL;
+SwsContext      *img_convert_ctx = NULL;
+AVFrame         *pFrame = NULL;
+AVFrame         *pFrameRGB = NULL;
+
+
+/*-----------------Métohde bouchon----------------*/
+static AVFormatContext *fmt_ctx;
+static AVCodecContext *dec_ctx;
+AVFilterContext *buffersink_ctx;
+AVFilterContext *buffersrc_ctx;
+AVFilterGraph *filter_graph;
+static int video_stream_index = -1;
+static int64_t last_pts = AV_NOPTS_VALUE;
+
+int open_input_file(const char *filename)
+{      
+
+    std::cout<<"opend_input:"<<"\n";
+    int ret;
+    AVCodec *dec;
+    if ((ret = avformat_open_input(&fmt_ctx, filename, NULL, NULL)) < 0) {
+        av_log(NULL, AV_LOG_ERROR, "Cannot open input file\n");
+        return ret;
+    }
+    std::cout<<"ici\n";
+    if ((ret = avformat_find_stream_info(fmt_ctx, NULL)) < 0) {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find stream information\n");
+        return ret;
+    }
+    /* select the video stream */
+    ret = av_find_best_stream(fmt_ctx, AVMEDIA_TYPE_VIDEO, -1, -1, &dec, 0);
+    if (ret < 0) {
+        av_log(NULL, AV_LOG_ERROR, "Cannot find a video stream in the input file\n");
+        return ret;
+    }
+    video_stream_index = ret;
+    dec_ctx = fmt_ctx->streams[video_stream_index]->codec;
+    av_opt_set_int(dec_ctx, "refcounted_frames", 1, 0);
+    /* init the video decoder */
+    if ((ret = avcodec_open2(dec_ctx, dec, NULL)) < 0) {
+        av_log(NULL, AV_LOG_ERROR, "Cannot open video decoder\n");
+        return ret;
+    }
+    return 0;
+}
+
+int video_reader_process_v2(const char* infile){
+
+    std::cout<<"ici"<<"\n";
+    cv::VideoCapture capture(infile,CAP_ANY);
+    std::cout<<"la"<<"\n";
+
+    if (!capture.isOpened()) {
+            std::cout<<"Open PB"<<"\n";
+
+    }
+    
+    cv::namedWindow("Stream", CV_MINOR_VERSION);
+    
+    cv::Mat frame;
+    
+    while(1) {
+        if (!capture.read(frame)) {
+            std::cout<<"Read PB"<<"\n";
+        }
+        cv::imshow("Stream", frame);
+    
+        cv::waitKey(30);
+    } 
+}
 int video_reader_process(const char* infile) {
 
     string filename(infile);

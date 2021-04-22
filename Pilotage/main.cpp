@@ -6,7 +6,7 @@ extern "C" {
 int main()
 {   
     int (*functionPtr)(const char*);
-    functionPtr=&video_reader_process;
+    functionPtr=&open_input_file;
     main_Pilotage(functionPtr);
     return 0;
 }
