@@ -322,6 +322,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
         //(*functionPtr)(fifo_name);
         
         //Test catchSig
+        yaw(deviceController,50);
         sleep(1000);
 
         //Test Watchdog
