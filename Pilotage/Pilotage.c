@@ -79,11 +79,11 @@ int main_Pilotage (int (*functionPtr)(const char*))
    // catch signaux
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
-        if(i != SIGTSTP) signal(i,catchSig);
+        //if(i != SIGTSTP) signal(i,catchSig);
     }
 
     // Watch Dog
-    pthread_create(&threads, NULL, watch_dog, NULL);
+    //pthread_create(&threads, NULL, watch_dog, NULL);
 
     /*-----Test du bouchon sans drone ni simu (affichages)-------*/
     /*myPrint("Début du test\n");
@@ -135,8 +135,9 @@ int main_Pilotage (int (*functionPtr)(const char*))
     {
         if (DISPLAY_WITH_MPLAYER)
         {
+            if(choice==0) pthread_create(&threads, NULL, functionPtr, fifo_name);
             // fork the process to launch mplayer
-            if ((child = fork()) == 0)
+            else if (choice!=0 && (child = fork()) == 0)
             {
                 if(choice==2){
                     char str[5];
@@ -148,8 +149,8 @@ int main_Pilotage (int (*functionPtr)(const char*))
                     execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", fifo_name, "-benchmark", "-really-quiet", NULL);
                     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
                 }
-                //return -1;
-                (*functionPtr)(fifo_name);
+                return -1;
+                //(*functionPtr)(fifo_name);
             }
         }
         if (DISPLAY_WITH_MPLAYER)
@@ -275,13 +276,11 @@ discoverDevice(&failed,isBebop2);
         sleep(5);
 
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
-        myPrint("Début du test\n");
-        //(*functionPtr)(fifo_name); 
-        myPrint("Fin du test");     
+        //(*functionPtr)(fifo_name);
         sleep(5); 
         
         //Test catchSig
-        //sleep(1000);
+        sleep(1000);
 
         //Test Watchdog
         /*
@@ -311,6 +310,16 @@ discoverDevice(&failed,isBebop2);
 /*Définitions des fonctions de pilotage*/
 
 void callback(int **state,int ifStop){
+    printf("HERE\n");
+    if(deviceController != NULL){
+    printf("HERE1\n");
+    int i,j;
+    for(i=0;i<4;i++){
+        for(j=0;j<2;j++){
+            printf("%d ",state[i][j]);
+        }
+        printf("\n");
+    }
     //myPrint("callback\n");
     //Arrêt de la commande en cour
     stop(deviceController);
@@ -375,7 +384,7 @@ void callback(int **state,int ifStop){
     yaw(deviceController,composition[ROTATION]);
     */
 
-    gettimeofday(&counter, NULL);
+    gettimeofday(&counter, NULL);}
 }
 
 //Retourne la valeur de pourcentage d'angle/vitt selon le type de mouvement (cf Pilotage.h)

@@ -147,7 +147,7 @@ void erreur(int*** resultat){
     }
 }
 
-int video_reader_process2(const char* infile) {
+int video_reader_process(const char* infile) {
     int ** resultat= (int**) malloc( 4 * sizeof (int*) );
 
     if(resultat == NULL){
@@ -192,7 +192,7 @@ int video_reader_process2(const char* infile) {
     }
 } 
 
-int video_reader_process(const char* infile) {
+int video_reader_process2(const char* infile) {
 
     // Fonction qui nous permet de tester la detection  des hirondelles sur des videos de test.
     int ** resultat= (int**) malloc( 4 * sizeof (int*) );

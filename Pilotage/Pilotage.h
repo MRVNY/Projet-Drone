@@ -12,7 +12,8 @@
 
 /*--------------PARROT------------------*/
 #define ERROR_STR_LENGTH 2048
-#define BEBOP_IP_ADDRESS "192.168.42.1"
+//#define BEBOP_IP_ADDRESS "192.168.42.1"
+#define BEBOP_IP_ADDRESS "10.202.0.1"
 #define BEBOP_DISCOVERY_PORT 44444
 #define DISPLAY_WITH_MPLAYER 1
 #define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
@@ -128,6 +129,7 @@ int choixPourcentage(int pos_intensite, int type);
 /*-------------------------------------------------------------------------*/
 
 /*----------WATCHDOG et SIGNAUX--------------*/
+#define IFPRINT 1
 #define TIMEOUT 1000000
 #define CYCLE 125000
 void *watch_dog();

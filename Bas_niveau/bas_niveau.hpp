@@ -13,7 +13,7 @@ extern "C" {
 #include <libavutil/avutil.h>
 #include <libavutil/pixdesc.h>
 #include <libavutil/imgutils.h>
-
+#include "../Decision/decision.h"
 #include <libswscale/swscale.h>
 }
 
@@ -23,7 +23,6 @@ extern "C" {
 #include <opencv4/opencv2/opencv.hpp>
 
 #include <cmath>
-#include "../Decision/decision.h"
 
 using namespace cv;
 #define VOISINAGE 3 /* Voisinage utilisé pour un pixel donnée : Si VOISINAGE=A , le voisinage utilisé est AxA */

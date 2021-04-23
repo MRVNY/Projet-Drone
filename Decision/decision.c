@@ -544,14 +544,14 @@ void analyseInterpretation(int **cordonnees){
 
 
     if(nb_hirondelle_valide ==0){
-        printf("on est dans le cas 0");
+        printf("on est dans le cas 0\n");
 
 
 
     }
     else{
         if(nb_hirondelle_valide ==1){ // deja on sais avec que ca qu'on est à l'extrémité 
-            printf("on est dans le cas 1");
+            printf("on est dans le cas 1\n");
         }
         else{
             if(analyseInterpretation_x_y(cordonnees,vecteur)){ // si on est dans l'AXE sur les axes x et y on peut faire la rotation
@@ -566,7 +566,13 @@ void analyseInterpretation(int **cordonnees){
     sortie[MONTER_DESCENDRE][POS_INTENSITE]=0;
     sortie[MONTER_DESCENDRE][EVALUATION]=0;
 
-
+        int i,j;
+    for(i=0;i<4;i++){
+        for(j=0;j<2;j++){
+            printf("%d ",sortie[i][j]);
+        }
+        printf("\n");
+    }
     //pilotage(vecteur);
     callback(sortie,1); // pour l'instant c'est 0 
 
