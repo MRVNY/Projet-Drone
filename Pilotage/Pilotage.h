@@ -128,8 +128,11 @@ int choixPourcentage(int pos_intensite, int type);
 /*-------------------------------------------------------------------------*/
 
 /*----------WATCHDOG et SIGNAUX--------------*/
+#define TIMEOUT 1000000
+#define CYCLE 125000
 void *watch_dog();
 void catchSig();
+void myPrint(char *toPrint);
 /*---------------------------------*/
 
 /*------------------------------------------------PARROT-----------------------------------------------*/

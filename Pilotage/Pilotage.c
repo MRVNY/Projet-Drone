@@ -22,7 +22,6 @@ eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
 eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
 //Vars globales watchdog 
-#define TIMEOUT 1000000
 struct timeval counter, watch;
 pid_t child = 0;
 pthread_t threads;
@@ -41,19 +40,20 @@ int tabPrc[4][4]={
  *
  *****************************************/
 
-static void signal_handler(int signal)
-{
-    gIHMRun = 0;
+// Afficher les infos supplementaires, activer avec IFPRINT
+void myPrint(char *toPrint){
+    if(IFPRINT) printf("%s",toPrint);
 }
 
+// Vérifier 
 void *watch_dog(){
     while(1){
-        usleep(125000);
+        usleep(CYCLE);
         if(counter.tv_sec!=0){
             gettimeofday(&watch, NULL);
-            printf("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
+            //myPrint("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
             if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
-                printf("WATCHDOG\n");
+                myPrint("WATCHDOG\n");
                 endProg();
                 break;
             }
@@ -122,26 +122,6 @@ int main_Pilotage (int (*functionPtr)(const char*))
  *      Initialisation du drone (PARROT) :
  *
  *****************************************/ 
-
-    /* Set signal handlers */
-    struct sigaction sig_action = {
-        .sa_handler = signal_handler,
-    };
-
-    int ret = sigaction(SIGINT, &sig_action, NULL);
-    if (ret < 0)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Unable to set SIGINT handler : %d(%s)",
-                    errno, strerror(errno));
-        return 1;
-    }
-    ret = sigaction(SIGPIPE, &sig_action, NULL);
-    if (ret < 0)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_ERROR, "ERROR", "Unable to set SIGPIPE handler : %d(%s)",
-                    errno, strerror(errno));
-        return 1;
-    }
 
     if (mkdtemp(fifo_dir) == NULL)
     {
@@ -373,7 +353,8 @@ void callback(int **state,int ifStop){
                     if (state[i][POS_INTENSITE]==AXE)
                     {   
                         stop(deviceController);
-                        land(deviceController); //MODIF STRAFF
+                        land(deviceController);
+                        endProg(); //MODIF STRAFF
                         return;
                     }
                     composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
