@@ -40,6 +40,9 @@ enum stateIndex{
 // -1 : pour gauche , en bas  ,rotation à gauche et aarière, ko 
 // 1 : pour droite , haut , rotation à droite et avancer, ok 
 
+/*-----------Methode commune------------*/
+void callback(int **state,int ifStop);
+
 #endif 
 
 
