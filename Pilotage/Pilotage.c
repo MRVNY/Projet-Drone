@@ -45,15 +45,14 @@ void myPrint(char *toPrint){
     if(IFPRINT) printf("%s",toPrint);
 }
 
-// Vérifier 
 void *watch_dog(){
     while(1){
-        usleep(CYCLE);
-        if(counter.tv_sec!=0){
-            gettimeofday(&watch, NULL);
-            //myPrint("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
+        usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
+        if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
+            gettimeofday(&watch, NULL); //Recuperer le temps reel
+            //printf("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
             if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
-                myPrint("WATCHDOG\n");
+                myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
                 endProg();
                 break;
             }
@@ -62,8 +61,9 @@ void *watch_dog(){
     return 0;
 }
 
+// Attraper tous les signaux sauf control-Z
 void catchSig(){
-    printf("CAUGHT\n");
+    myPrint("CAUGHT\n");
     endProg();
     return 0;
 }
@@ -275,9 +275,9 @@ discoverDevice(&failed,isBebop2);
         sleep(5);
 
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
-        printf("Début du test\n");
+        myPrint("Début du test\n");
         //(*functionPtr)(fifo_name); 
-        printf("Fin du test");     
+        myPrint("Fin du test");     
         sleep(5); 
         
         //Test catchSig
@@ -311,13 +311,13 @@ discoverDevice(&failed,isBebop2);
 /*Définitions des fonctions de pilotage*/
 
 void callback(int **state,int ifStop){
-    //printf("callback\n");
+    //myPrint("callback\n");
     //Arrêt de la commande en cour
     stop(deviceController);
 
     //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
     if(ifStop==STOP){
-        printf("Stop");
+        myPrint("Stop");
         //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
         //endProg();
         return;
