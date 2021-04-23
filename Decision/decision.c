@@ -14,10 +14,12 @@ int nb_hirondelle_valide = 0;  // le nombre des hirondelle définies
 
 
 int is_far_left(int a){
+    // la fonction qui renvoie si le drone est trop à gauche et false sinon 
     return(a<(TAILLE_Y/8)*2);
 }
 
 int is_left(int a){
+    // la fonction qui renvoie 1 si le drone est à gauche  
     return(a<(TAILLE_Y/8)*3);
 }
 
