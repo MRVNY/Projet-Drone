@@ -8,7 +8,7 @@ static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController
 
 
 /*--------------Variable globales---------------*/
-//Vars globl Parrot
+//Vars globales Parrot
 static char fifo_dir[] = FIFO_DIR_PATTERN;
 static char fifo_name[128] = "";
 int gIHMRun = 1;
@@ -21,7 +21,7 @@ ARDISCOVERY_Device_t *device = NULL;
 eARCONTROLLER_ERROR error = ARCONTROLLER_OK;
 eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
-//Vars globl watchdog 
+//Vars globales watchdog 
 #define TIMEOUT 1000000
 struct timeval counter, watch;
 pid_t child = 0;
@@ -345,7 +345,9 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
         printf("Début du test\n");
-        (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
+        (*functionPtr)(fifo_name); 
+        printf("Fin du test");     
+        sleep(5); 
         
         //Test catchSig
         //sleep(1000);
@@ -385,17 +387,18 @@ void callback(int **state,int ifStop){
     //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
     if(ifStop==STOP){
         printf("Stop");
-        endProg();
+        //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
+        //endProg();
         return;
     }
 
     //Tableau de la composition des mouvements
-    int composition[4]={0,0,0,0};
+    int composition[4]={0,0,0,0};    
 
     if(state){
         //Parcour des différents mouvements
-        for(int i=STRAFER; i<=ROTATION; i++) {
-
+        for(int i=STRAFER; i<=STRAFER; i++) { //MODIF STRAFF
+            
             //Test de l'évaluation
             if(state[i][EVALUATION]==GOOD){
 
@@ -406,6 +409,13 @@ void callback(int **state,int ifStop){
                 switch (i)
                 {
                 case STRAFER:
+                    //Modification pour ne prendre en compte que le STRAFF 
+                    if (state[i][POS_INTENSITE]==AXE)
+                    {   
+                        stop(deviceController);
+                        land(deviceController); //MODIF STRAFF
+                        return;
+                    }
                     composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
                     break;
                 case AVANT_ARRIERE:
@@ -426,10 +436,12 @@ void callback(int **state,int ifStop){
 
     //On compose les mouvement que l'on envoie au drone
     roll(deviceController,composition[STRAFER]);
+
+    /*-------TEST AXE X (uniquement straffer)---------
     pitch(deviceController,composition[AVANT_ARRIERE]);
     gaz(deviceController,composition[MONTER_DESCENDRE]);
     yaw(deviceController,composition[ROTATION]);
-
+    */
 
     gettimeofday(&counter, NULL);
 }

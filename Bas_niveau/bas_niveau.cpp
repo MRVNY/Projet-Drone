@@ -186,12 +186,21 @@ int video_reader_process(const char* infile) {
     av_register_all();
     
     AVFormatContext* inctx = nullptr;
-    
+    std::cout<<"hello"<<"\n";
     ret = avformat_open_input(&inctx, infile, nullptr, nullptr);
+<<<<<<< HEAD
+    std::cout<<"ici"<<"\n";
+
+    if (ret < 0) {
+        std::cerr << "fail to avforamt_open_input(\"" << infile << "\"): ret=" << ret;
+        return 1;
+    }
+=======
         if (ret < 0) {
             std::cerr << "fail to avforamt_open_input(\"" << infile << "\"): ret=" << ret;
             return 1;
         }
+>>>>>>> 01022eb6a8da8b15b59b9ff3075c6da2d10b190b
 
     ret = avformat_find_stream_info(inctx, nullptr);
     if (ret < 0) {
