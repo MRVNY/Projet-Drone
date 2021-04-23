@@ -2,11 +2,11 @@
 #include<stdlib.h> 
 #include "decision.h"
 #include <math.h>
-#include "../commun.h" 
-// #include "../Pilotage/Pilotage.h"
+#include "../commun.h"
+#include "../Pilotage/Pilotage.h"
 
 // les variables globales
-int sortie[4][3]; // le tableau de la sortie 
+int sortie[4][2]; // le tableau de la sortie 
 float dx_precedent = 0, dy_precedent = 0, dz_precedent = 0, dr_precedent = 0; // la distance entre le centre de la mire et celui de l'image 
 int hirondelle_defined[4]; // un tableau de bool sur la disponiblité ou pas des horondelles
 int nb_hirondelle_valide = 0;  // le nombre des hirondelle définies 
@@ -327,6 +327,8 @@ void isDefine(int **cordonnee, int *hirondelle_defined, int *nb_hirondelle_valid
             *nb_hirondelle_valide+=1;
         }
     }
+    if(nb_hirondelle_valide==0)
+        exit(1);
     //printf("nombre des points definit %d \n",*nb_hirondelle_valide);
     // for(int k=0; k<TAILLE;k++){
     //     printf("%d ",hirondelle_defined[k]);
@@ -411,7 +413,6 @@ int analyseInterpretation_x_y(int **cordonnees, int **vecteur){
         }
     }
     else{
-        printf("c'est un nouveau etat \n");
         sortie[STRAFER][POS_INTENSITE]=vecteur[STRAFER][POS_INTENSITE];
         sortie[STRAFER][EVALUATION]=0; 
 
@@ -505,21 +506,36 @@ void analyseInterpretation(int **cordonnees){
     */
 
     // les variables: 
-    
-    // ___________________________la création de la matrice de sortie____________________________________________________
-    int **vecteur=(int **)malloc(sizeof(int)*TAILLE_SORTIE); // la sortie de la partie decision 
-    if(vecteur){
-        for(int k=0; k<TAILLE_SORTIE;k++){ 
-            vecteur[k] = (int*)malloc(sizeof(int)*INFO_SORTIE); // 3 est le nombre d'information que contient chque ligne dans la matrice de sortie 
-            if(!vecteur[k]){
-                perror("Erreur lors de l'allocation  mémoire \n");
-            }
-        }   
-    }
-    else{
-        perror("Erreur lors de l'allocation  mémoire \n");
-    }
 
+    // creation d'un fichier de résultat 
+    //FILE* fichier = fopen("tets.txt", "a");
+    
+   // on écrit les cordonnées données par la partie imagerie 
+    // for(int i=0; i<4; i++){
+    //     for (int k=0; k<2;k++){
+    //         fprintf(fichier,"[%d] ",cordonnees[i][k]);
+    //     }
+    //     fprintf(fichier,"\n");
+    // }
+    // fprintf(fichier,"\n");
+    // ___________________________la création de la matrice de sortie____________________________________________________
+    int **vecteur=(int **)malloc(sizeof(int*)*TAILLE_SORTIE); // la sortie de la partie decision 
+    if(!vecteur){
+        fprintf(stderr,"Erreur lors de l'allocation  mémoire \n");
+    }
+    
+    for(int k=0; k<TAILLE_SORTIE;k++){ 
+        vecteur[k] = (int*)malloc(sizeof(int)*INFO_SORTIE); // 3 est le nombre d'information que contient chque ligne dans la matrice de sortie 
+        if(!vecteur[k]){
+            fprintf(stderr,"Erreur lors de l'allocation  mémoire \n");
+        }
+    }
+            
+    for(int i=0; i<TAILLE_SORTIE; i++){
+        for (int k=0; k<INFO_SORTIE;k++){
+            vecteur[i][k]=0;
+        }
+    }
     // ___________________________________________________________________________________________________________________
     // la traitement sur les coordonnées recues 
     isDefine(cordonnees, hirondelle_defined, &nb_hirondelle_valide);
@@ -537,16 +553,48 @@ void analyseInterpretation(int **cordonnees){
         }
         else{
             if(analyseInterpretation_x_y(cordonnees,vecteur)){ // si on est dans l'AXE sur les axes x et y on peut faire la rotation
-                if(analyseInterpretation_rotation(cordonnees,vecteur)){
-                    int res_z = analyseInterpretation_z(cordonnees,vecteur);  // estimation de la position sur z
-                }
+                // if(analyseInterpretation_rotation(cordonnees,vecteur)){
+                //     int res_z = analyseInterpretation_z(cordonnees,vecteur);  // estimation de la position sur z
+                // }
                    
             }
         }
-           
     }
-    // pilotage(vecteur);
-    
-}
 
+    sortie[MONTER_DESCENDRE][POS_INTENSITE]=0;
+    sortie[MONTER_DESCENDRE][EVALUATION]=0;
+
+
+    //pilotage(vecteur);
+    callback(sortie,1); // pour l'instant c'est 0 
+
+    // fprintf(fichier,"le résulat d'analyse \n"); //: [[5,100],[5,250],[150,100],[150,250]]\n");
+    // printf("le résulat d'analyse \n\n"); 
+    // for(int i=0; i<TAILLE_SORTIE; i++){
+    //     fprintf(fichier,"sortie[%d]\n",i);
+    //     printf("sortie[%d]\n",i);
+    //     for (int k=0; k<INFO_SORTIE;k++){
+    //         fprintf(fichier,"%d ___",sortie[i][k]);
+    //         printf("%d ___",sortie[i][k]);
+    //     }
+    //     fprintf(fichier,"\n");
+    //     printf("\n");
+    // }
+
+
+    // fprintf(fichier,"*******************  ICI VECTEUR ******************************\n");
+    // for(int i=0; i<TAILLE_SORTIE; i++){
+    //     fprintf(fichier,"vecteur[%d]\n",i);
+    //     for(int k=0; k<INFO_SORTIE;k++){
+    //         fprintf(fichier,"%d _",vecteur[i][k]);
+    //     }
+    //     fprintf(fichier,"\n");
+    // }
+    for(int i=0; i<TAILLE_SORTIE; i++){
+        free(vecteur[i]);
+    }
+    free(vecteur);
+
+
+}
 

@@ -1,9 +1,18 @@
 // La taille de l'image 
 #define TAILLE_X 1080
 #define TAILLE_Y 1920
+
+// sur la caméra du pc 
+// #define TAILLE_X 240
+// #define TAILLE_Y 320
+
 // les centre de l'image 
 #define CENTREIMAGEX 539.5
 #define CENTREIMAGEY 959.5
+
+// #define CENTREIMAGEX 120
+// #define CENTREIMAGEY 160
+
 // la taille de vecteur d'entrée (les hirondelle)
 #define TAILLE 4
 
