@@ -345,7 +345,9 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
         printf("Début du test\n");
-        (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");        sleep(5);
+        (*functionPtr)(fifo_name); 
+        printf("Fin du test");     
+        sleep(5); 
         
         //Test catchSig
         //sleep(1000);
