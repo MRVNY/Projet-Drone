@@ -313,7 +313,7 @@ int video_reader_process(const char* infile) {
         cv::Mat image(dst_height, dst_width, CV_8UC1, framebuf.data(), frame->linesize[0]);
 
             image_processing(image,&resultat);
-
+            analyseInterpretation(resultat);
         //    int* straffer= analyseInterpretation(resultat);
         //    affichage_haut_niveau_straffer(image,straffer);
         //     cv::imshow("BAS NIVEAU", image);
