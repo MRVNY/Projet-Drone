@@ -192,14 +192,6 @@ int video_reader_process2(const char* infile) {
     }
 } 
 
-<<<<<<< HEAD
-    int ret;
-    
-    av_register_all();
-    
-    AVFormatContext* inctx = nullptr;
-    std::cout<<"hello"<<"\n";
-=======
 int video_reader_process(const char* infile) {
 
     // Fonction qui nous permet de tester la detection  des hirondelles sur des videos de test.
@@ -220,7 +212,6 @@ int video_reader_process(const char* infile) {
     av_register_all();
     AVFormatContext* inctx = nullptr;
     
->>>>>>> ff2539bafdff6bf7fdc35c0a5e8e22c8308ee61a
     ret = avformat_open_input(&inctx, infile, nullptr, nullptr);
         if (ret < 0) {
             std::cerr << "fail to avforamt_open_input(\"" << infile << "\"): ret=" << ret;
