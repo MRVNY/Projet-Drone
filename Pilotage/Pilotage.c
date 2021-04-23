@@ -76,28 +76,25 @@ int main_Pilotage (int (*functionPtr)(const char*))
     int frameNb = 0;
     int isBebop2 = 1;
 
-/*****************************************
- *
- *         Signaux et watchdog :
- *
- *****************************************/ 
+   // catch signaux
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
         if(i != SIGTSTP) signal(i,catchSig);
     }
 
+    // Watch Dog
     pthread_create(&threads, NULL, watch_dog, NULL);
 
+    /*-----Test du bouchon sans drone ni simu (affichages)-------*/
+    /*myPrint("Début du test\n");
+    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
+    */
 
-/*****************************************
- *
- *         Choix du traitement d'image :
- *
- *****************************************/   
-    printf("\nrien (0), mplayer(1) ou ffmpeg(2)?\n");
+    // MPLAYER ou FFMPEG
+    printf("\nVideoCapture (0), mplayer(1) ou ffmpeg(2)?\n");
     if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
-        printf("Entree non connue, mplayer par defaut\n");
-        choice = 1;
+        printf("Entree non connue, VideoCapture par defaut\n");
+        choice = 0;
         sleep(1);
     }
     else if(choice==1){
@@ -113,15 +110,9 @@ int main_Pilotage (int (*functionPtr)(const char*))
         }
     } 
     if(choice==0){
-        printf("rien\n");
+        myPrint("VideoCapture\n");
         sleep(1);
     } 
-
-/*****************************************
- *
- *      Initialisation du drone (PARROT) :
- *
- *****************************************/ 
 
     if (mkdtemp(fifo_dir) == NULL)
     {
@@ -139,11 +130,10 @@ int main_Pilotage (int (*functionPtr)(const char*))
     ARSAL_Sem_Init (&(stateSem), 0, 0);
 
     //ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- Bebop 2 Test TakeOff and Landing --");
-    
  
     if (!failed)
     {
-        if (DISPLAY_WITH_MPLAYER && choice!=0)
+        if (DISPLAY_WITH_MPLAYER)
         {
             // fork the process to launch mplayer
             if ((child = fork()) == 0)
@@ -152,16 +142,17 @@ int main_Pilotage (int (*functionPtr)(const char*))
                     char str[5];
                     sprintf(str,"%d",fps);
                     execlp("ffmpeg", "ffmpeg", "-f", "h264", "-i", fifo_name, "-vf", "scale=-1:720", "-r",str, "outputs/%04d.jpeg", NULL);
+                    //execlp("ffmpeg", "ffmpeg", "-f", "h264", "-i", fifo_name,"-vcodec","copy","-vf", "scale=-1:720", "-acodec","none", "/tmp/test.mp4", NULL);
                 }
-                else{
+                if(choice==1){
                     execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", fifo_name, "-benchmark", "-really-quiet", NULL);
                     ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
                 }
-                return -1;
+                //return -1;
+                (*functionPtr)(fifo_name);
             }
         }
-
-        if (DISPLAY_WITH_MPLAYER && choice!=0)
+        if (DISPLAY_WITH_MPLAYER)
         {
             videoOut = fopen(fifo_name, "w");
         }
@@ -469,7 +460,7 @@ void endProg(){
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "ARCONTROLLER_Device_Delete ...");
         ARCONTROLLER_Device_Delete (&deviceController);
 
-        if (DISPLAY_WITH_MPLAYER && choice!=0)
+        if (DISPLAY_WITH_MPLAYER)
         {
             fflush (videoOut);
             fclose (videoOut);
@@ -613,7 +604,7 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
     {
         if (codec.type == ARCONTROLLER_STREAM_CODEC_TYPE_H264)
         {
-            if (DISPLAY_WITH_MPLAYER && choice!=0)
+            if (DISPLAY_WITH_MPLAYER)
             {
                 fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
@@ -638,7 +629,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     {
         if (frame != NULL)
         {
-            if (DISPLAY_WITH_MPLAYER && choice!=0)
+            if (DISPLAY_WITH_MPLAYER)
             {
                 fwrite(frame->data, frame->used, 1, videoOut);
 
