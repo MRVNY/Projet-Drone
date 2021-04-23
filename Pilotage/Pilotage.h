@@ -115,6 +115,7 @@ void stop(ARCONTROLLER_Device_t *deviceController);
 
 /*-----------Gestion de la liaison avec le drone---------*/
 void endProg();
+void discoverDevice(int *failed,int isBebop2);
 /*-------------------------------------------------------*/
 
 

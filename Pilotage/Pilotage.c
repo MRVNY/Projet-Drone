@@ -76,12 +76,11 @@ int main_Pilotage (int (*functionPtr)(const char*))
     int frameNb = 0;
     int isBebop2 = 1;
 
-    
-    
-    // Watch Dog
-    //pthread_create(&threads, NULL, watch_dog, NULL);
-
-   // catch signaux
+/*****************************************
+ *
+ *         Signaux et watchdog :
+ *
+ *****************************************/ 
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
         if(i != SIGTSTP) signal(i,catchSig);
@@ -89,12 +88,12 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
     pthread_create(&threads, NULL, watch_dog, NULL);
 
-    /*-----Test du bouchon sans drone ni simu (affichages)-------*/
-    /*printf("Début du test\n");
-    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
-    */
-    // MPLAYER ou FFMPEG
-   
+
+/*****************************************
+ *
+ *         Choix du traitement d'image :
+ *
+ *****************************************/   
     printf("\nrien (0), mplayer(1) ou ffmpeg(2)?\n");
     if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
         printf("Entree non connue, mplayer par defaut\n");
@@ -118,6 +117,11 @@ int main_Pilotage (int (*functionPtr)(const char*))
         sleep(1);
     } 
 
+/*****************************************
+ *
+ *      Initialisation du drone (PARROT) :
+ *
+ *****************************************/ 
 
     /* Set signal handlers */
     struct sigaction sig_action = {
@@ -184,54 +188,10 @@ int main_Pilotage (int (*functionPtr)(const char*))
     }
 
 
-    
-
-/*****************************************
- *
- *             Connection au drone :
- *
- *****************************************/
 // create a discovery device
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ... ");
-        eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;
+discoverDevice(&failed,isBebop2);
 
-        device = ARDISCOVERY_Device_New (&errorDiscovery);
-
-        if (errorDiscovery == ARDISCOVERY_OK)
-        {
-            ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - ARDISCOVERY_Device_InitWifi ...");
-            // create a Bebop drone discovery device (ARDISCOVERY_PRODUCT_ARDRONE)
-
-            if(isBebop2)
-            {
-                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
-            }
-            else
-            {
-                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_ARDRONE, "bebop", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
-            }
-
-            if (errorDiscovery != ARDISCOVERY_OK)
-            {
-                failed = 1;
-                ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
-            }
-        }
-        else
-        {
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
-            failed = 1;
-        }
-    }
-
-/*****************************************
- *
- *             Création de l'interface
- *             de controle du :
- *
- *****************************************/
+//Interface de control
     if (!failed)
     {
         deviceController = ARCONTROLLER_Device_New (device, &error);
@@ -345,7 +305,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
 
         //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
         printf("Début du test\n");
-        (*functionPtr)(fifo_name); 
+        //(*functionPtr)(fifo_name); 
         printf("Fin du test");     
         sleep(5); 
         
@@ -438,7 +398,7 @@ void callback(int **state,int ifStop){
     roll(deviceController,composition[STRAFER]);
 
     /*-------TEST AXE X (uniquement straffer)---------
-    pitch(deviceController,composition[AVANT_ARRIERE]);
+    pitch(deviceController,composition[AVANT_ARRIERE]); //MODIF STRAFF
     gaz(deviceController,composition[MONTER_DESCENDRE]);
     yaw(deviceController,composition[ROTATION]);
     */
@@ -466,6 +426,42 @@ int choixPourcentage(int pos_intensite, int type){
                     return 0;
                     break;
                 }
+}
+
+void discoverDevice(int *failed,int isBebop2){
+    if (!*failed)
+    {
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ... ");
+        eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;
+
+        device = ARDISCOVERY_Device_New (&errorDiscovery);
+
+        if (errorDiscovery == ARDISCOVERY_OK)
+        {
+            ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - ARDISCOVERY_Device_InitWifi ...");
+            // create a Bebop drone discovery device (ARDISCOVERY_PRODUCT_ARDRONE)
+
+            if(isBebop2)
+            {
+                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
+            }
+            else
+            {
+                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_ARDRONE, "bebop", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
+            }
+
+            if (errorDiscovery != ARDISCOVERY_OK)
+            {
+                failed = 1;
+                ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
+            }
+        }
+        else
+        {
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
+            failed = 1;
+        }
+    }
 }
 
 void endProg(){
