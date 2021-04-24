@@ -28,7 +28,7 @@
 #define LOW_ROLL_ANGLE 10
 #define MID_ROLL_ANGLE 20  
 #define HIGH_ROLL_ANGLE 30
-
+                            //GAZ= MONTER/DESCENDRE , ROLL=GAUCHE/DROITE , PITCH=AVANT/ARRIERE , ROT=ROTATION
 #define HIGH_GAZ_SPEED 10
 #define MID_GAZ_SPEED 20 
 #define LOW_GAZ_SPEED 30
@@ -36,8 +36,13 @@
 #define HIGH_ROT_SPEED 10
 #define MID_ROT_SPEED 20 
 #define LOW_ROT_SPEED 30
-
 /*--------------------------------------------------*/
+
+/*---Watchdog et signaux---*/
+#define IFPRINT 1
+#define TIMEOUT 1000000
+#define CYCLE 125000
+/*-------------------------*/
 
 
 
@@ -89,6 +94,8 @@ int main_Pilotage (int (*functionPtr)(const char*));
  *             Methodes :
  *
  *****************************************/
+
+/*-----------------Commande déplacements ----------------------*/
 /*
 PARAMETRES:
 
@@ -98,7 +105,6 @@ et les instruction on passée a travers celui-ci.
 int valeur ->  Entier représentant le % de vitesse/angle max de la commande de déplacement assocsiée
 */
 
-/*-----------------Commande déplacements ----------------------*/
 void takeOff(ARCONTROLLER_Device_t *deviceController);
 
 void land(ARCONTROLLER_Device_t *deviceController);
@@ -115,27 +121,26 @@ void stop(ARCONTROLLER_Device_t *deviceController);
 /*--------------------------------------------------------------*/
 
 /*-----------Gestion de la liaison avec le drone---------*/
-void endProg();
-void discoverDevice(int *failed,int isBebop2);
+void endProg(); // Suite d'instructions (arrêt, atterrissage, déconection ...) terminant le programme
+void discoverDevice(int *failed,int isBebop2); //Connection au dronen (Parrot)
+void controlDevice(int *failed); //Création de l'interface de control du drone (Parrot)
 /*-------------------------------------------------------*/
 
 
-/*----------Setter des vitesses de rotation/translation max--------------*/
+/*----------Setter des vitesses de rotation/translation--------------*/
 void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
-
 void setMaxRotationSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
 
-int choixPourcentage(int pos_intensite, int type);
+int choixPourcentage(int pos_intensite, int type); //Définit selon le type de déplacement l'intensité a assoscié
+/* PARAMETRES:  int pos_intensité -> distance a la mire (cf commun.h)
+                int type -> type de déplacement (cf commun.h)
 /*-------------------------------------------------------------------------*/
 
 /*----------WATCHDOG et SIGNAUX--------------*/
-#define IFPRINT 1
-#define TIMEOUT 1000000
-#define CYCLE 125000
 void *watch_dog();
 void catchSig();
 void myPrint(char *toPrint);
-/*---------------------------------*/
+/*-------------------------------------------*/
 
 /*------------------------------------------------PARROT-----------------------------------------------*/
 

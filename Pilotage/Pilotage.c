@@ -33,6 +33,8 @@ int tabPrc[4][4]={
     {0, LOW_GAZ_SPEED, MID_GAZ_SPEED, HIGH_GAZ_SPEED},
     {0, LOW_ROT_SPEED, MID_ROT_SPEED, HIGH_ROT_SPEED}
 };
+/*-------------------------------------------------*/
+
 
 /*****************************************
  *
@@ -85,11 +87,6 @@ int main_Pilotage (int (*functionPtr)(const char*))
     // Watch Dog
     //pthread_create(&threads, NULL, watch_dog, NULL);
 
-    /*-----Test du bouchon sans drone ni simu (affichages)-------*/
-    /*myPrint("Début du test\n");
-    (*functionPtr)("/home/johan/Parrot/packages/Samples/Unix/Projet-Drone-b/Data/Coords/coord1.txt");
-    */
-
     // MPLAYER ou FFMPEG
     printf("\nVideoCapture (0), mplayer(1) ou ffmpeg(2)?\n");
     if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
@@ -136,6 +133,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
         if (DISPLAY_WITH_MPLAYER)
         {
             if(choice==0) pthread_create(&threads, NULL, functionPtr, fifo_name);
+
             // fork the process to launch mplayer
             else if (choice!=0 && (child = fork()) == 0)
             {
@@ -160,103 +158,16 @@ int main_Pilotage (int (*functionPtr)(const char*))
     }
 
 
-// create a discovery device
+/*****************************************
+ *
+ *       Connection au drone et création
+ *          de l'interface de control
+ *
+ *****************************************/
+
 discoverDevice(&failed,isBebop2);
 
-//Interface de control
-    if (!failed)
-    {
-        deviceController = ARCONTROLLER_Device_New (device, &error);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "Creation of deviceController failed.");
-            failed = 1;
-        }
-       
-    }
-
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- delete discovey device ... ");
-        ARDISCOVERY_Device_Delete (&device);
-    }
-
-    // add the state change callback to be informed when the device controller starts, stops...
-    if (!failed)
-    {
-        error = ARCONTROLLER_Device_AddStateChangedCallback (deviceController, stateChanged, deviceController);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add State callback failed.");
-            failed = 1;
-        }
-    }
-
-    // add the command received callback to be informed when a command has been received from the device
-    if (!failed)
-    {
-        error = ARCONTROLLER_Device_AddCommandReceivedCallback (deviceController, commandReceived, deviceController);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add callback failed.");
-            failed = 1;
-        }
-    }
-
-    // add the frame received callback to be informed when a streaming frame has been received from the device
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- set Video callback ... ");
-        error = ARCONTROLLER_Device_SetVideoStreamCallbacks (deviceController, decoderConfigCallback, didReceiveFrameCallback, NULL , NULL);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            failed = 1;
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error: %s", ARCONTROLLER_Error_ToString(error));
-        }
-    }
-
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Connecting ...");
-        error = ARCONTROLLER_Device_Start (deviceController);
-
-        if (error != ARCONTROLLER_OK)
-        {
-            failed = 1;
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
-        }
-    }
-
-    if (!failed)
-    {
-        // wait state update update
-        ARSAL_Sem_Wait (&(stateSem));
-
-        deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
-
-        if ((error != ARCONTROLLER_OK) || (deviceState != ARCONTROLLER_DEVICE_STATE_RUNNING))
-        {
-            failed = 1;
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- deviceState :%d", deviceState);
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
-        }
-    }
-
-    // send the command that tells to the Bebop to begin its streaming
-    if (!failed)
-    {
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- send StreamingVideoEnable ... ");
-        error = deviceController->aRDrone3->sendMediaStreamingVideoEnable (deviceController->aRDrone3, 1);
-        if (error != ARCONTROLLER_OK)
-        {
-            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
-            failed = 1;
-        }
-    }
+controlDevice(&failed);
 
     
 /*****************************************
@@ -274,10 +185,6 @@ discoverDevice(&failed,isBebop2);
         
         takeOff(deviceController);
         sleep(5);
-
-        //Appel de la partie imagerie avec la référence au flux vidéo (ici bouchon: tableau de coordonées)
-        //(*functionPtr)(fifo_name);
-        sleep(5); 
         
         //Test catchSig
         sleep(1000);
@@ -309,82 +216,89 @@ discoverDevice(&failed,isBebop2);
 
 /*Définitions des fonctions de pilotage*/
 
-void callback(int **state,int ifStop){
-    printf("HERE\n");
-    if(deviceController != NULL){
-    printf("HERE1\n");
-    int i,j;
-    for(i=0;i<4;i++){
-        for(j=0;j<2;j++){
-            printf("%d ",state[i][j]);
-        }
-        printf("\n");
-    }
-    //myPrint("callback\n");
-    //Arrêt de la commande en cour
-    stop(deviceController);
+//compteur pour ignorer un certain nombre de frames
+int cpt =0;
+void callbackPilote(int **state,int ifStop){
+    if(cpt>100){
 
-    //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
-    if(ifStop==STOP){
-        myPrint("Stop");
-        //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
-        //endProg();
-        return;
-    }
+        if(deviceController != NULL){
+            //Affichage de la matrice dedécision
+            printf("SATE:\n");
+            int i,j;
+            for(i=0;i<4;i++){
+                for(j=0;j<2;j++){
+                    printf("%d_",state[i][j]);
+                }
+                printf("\n");
+            }
 
-    //Tableau de la composition des mouvements
-    int composition[4]={0,0,0,0};    
+            //Arrêt de la commande en cour
+            stop(deviceController);
 
-    if(state){
-        //Parcour des différents mouvements
-        for(int i=STRAFER; i<=STRAFER; i++) { //MODIF STRAFF
-            
-            //Test de l'évaluation
-            if(state[i][EVALUATION]==GOOD){
+            //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
+            if(ifStop==STOP){
+                myPrint("Stop");
+                //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
+                //endProg();
+                return;
+            }
 
-                //Signe des déplacement (cf. common.h)
-                int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
+            //Tableau de la composition des mouvements
+            int composition[4]={0,0,0,0};    
 
-                //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
-                switch (i)
-                {
-                case STRAFER:
-                    //Modification pour ne prendre en compte que le STRAFF 
-                    if (state[i][POS_INTENSITE]==AXE)
-                    {   
-                        stop(deviceController);
-                        land(deviceController);
-                        endProg(); //MODIF STRAFF
-                        return;
+            if(state){
+                //Parcour des différents mouvements
+                for(int i=STRAFER; i<=STRAFER; i++) { //MODIF STRAFF
+                    
+                    //Test de l'évaluation
+                    if(state[i][EVALUATION]==0){
+
+                        //Signe des déplacement (cf. common.h)
+                        int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
+
+                        //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
+                        switch (i)
+                        {
+                        case STRAFER:
+                            //Modification pour ne prendre en compte que le STRAFF 
+                            if (state[i][POS_INTENSITE]==AXE)
+                            {   
+                                stop(deviceController);
+                                land(deviceController);
+                                endProg(); //MODIF STRAFF
+                                return;
+                            }
+                            composition[STRAFER]=choixPourcentage(state[i][POS_INTENSITE],STRAFER);
+                            break;
+                        case AVANT_ARRIERE:
+                            composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
+                            break;
+                        case MONTER_DESCENDRE:
+                            composition[MONTER_DESCENDRE]=sign*choixPourcentage(state[i][POS_INTENSITE],MONTER_DESCENDRE);
+                            break;
+                        case ROTATION:
+                            composition[ROTATION]=sign*choixPourcentage(state[i][POS_INTENSITE],ROTATION);
+                            break;
+                        default:
+                            break;
+                        }
                     }
-                    composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
-                    break;
-                case AVANT_ARRIERE:
-                    composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
-                    break;
-                case MONTER_DESCENDRE:
-                    composition[MONTER_DESCENDRE]=sign*choixPourcentage(state[i][POS_INTENSITE],MONTER_DESCENDRE);
-                    break;
-                case ROTATION:
-                    composition[ROTATION]=sign*choixPourcentage(state[i][POS_INTENSITE],ROTATION);
-                    break;
-                default:
-                    break;
                 }
             }
+
+            //On compose les mouvement que l'on envoie au drone
+            roll(deviceController,composition[STRAFER]);
+
+            /*-------TEST AXE X (uniquement straffer)---------
+            pitch(deviceController,composition[AVANT_ARRIERE]); //MODIF STRAFF
+            gaz(deviceController,composition[MONTER_DESCENDRE]);
+            yaw(deviceController,composition[ROTATION]);
+            */
+
+            gettimeofday(&counter, NULL);
         }
     }
-
-    //On compose les mouvement que l'on envoie au drone
-    roll(deviceController,composition[STRAFER]);
-
-    /*-------TEST AXE X (uniquement straffer)---------
-    pitch(deviceController,composition[AVANT_ARRIERE]); //MODIF STRAFF
-    gaz(deviceController,composition[MONTER_DESCENDRE]);
-    yaw(deviceController,composition[ROTATION]);
-    */
-
-    gettimeofday(&counter, NULL);}
+    cpt++;
 }
 
 //Retourne la valeur de pourcentage d'angle/vitt selon le type de mouvement (cf Pilotage.h)
@@ -407,6 +321,102 @@ int choixPourcentage(int pos_intensite, int type){
                     return 0;
                     break;
                 }
+}
+
+void controlDevice(int *failed){
+    if (!*failed)
+    {
+        deviceController = ARCONTROLLER_Device_New (device, &error);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "Creation of deviceController failed.");
+            failed = 1;
+        }
+       
+    }
+
+    if (!*failed)
+    {
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- delete discovey device ... ");
+        ARDISCOVERY_Device_Delete (&device);
+    }
+
+    // add the state change callback to be informed when the device controller starts, stops...
+    if (!*failed)
+    {
+        error = ARCONTROLLER_Device_AddStateChangedCallback (deviceController, stateChanged, deviceController);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add State callback failed.");
+            failed = 1;
+        }
+    }
+
+    // add the command received callback to be informed when a command has been received from the device
+    if (!*failed)
+    {
+        error = ARCONTROLLER_Device_AddCommandReceivedCallback (deviceController, commandReceived, deviceController);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            ARSAL_PRINT (ARSAL_PRINT_ERROR, TAG, "add callback failed.");
+            failed = 1;
+        }
+    }
+
+    // add the frame received callback to be informed when a streaming frame has been received from the device
+    if (!*failed)
+    {
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- set Video callback ... ");
+        error = ARCONTROLLER_Device_SetVideoStreamCallbacks (deviceController, decoderConfigCallback, didReceiveFrameCallback, NULL , NULL);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            failed = 1;
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error: %s", ARCONTROLLER_Error_ToString(error));
+        }
+    }
+
+    if (!*failed)
+    {
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Connecting ...");
+        error = ARCONTROLLER_Device_Start (deviceController);
+
+        if (error != ARCONTROLLER_OK)
+        {
+            failed = 1;
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
+        }
+    }
+
+    if (!*failed)
+    {
+        // wait state update update
+        ARSAL_Sem_Wait (&(stateSem));
+
+        deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
+
+        if ((error != ARCONTROLLER_OK) || (deviceState != ARCONTROLLER_DEVICE_STATE_RUNNING))
+        {
+            failed = 1;
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- deviceState :%d", deviceState);
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
+        }
+    }
+
+    // send the command that tells to the Bebop to begin its streaming
+    if (!*failed)
+    {
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- send StreamingVideoEnable ... ");
+        error = deviceController->aRDrone3->sendMediaStreamingVideoEnable (deviceController->aRDrone3, 1);
+        if (error != ARCONTROLLER_OK)
+        {
+            ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "- error :%s", ARCONTROLLER_Error_ToString(error));
+            failed = 1;
+        }
+    }
 }
 
 void discoverDevice(int *failed,int isBebop2){

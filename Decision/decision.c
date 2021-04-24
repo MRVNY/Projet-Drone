@@ -6,7 +6,7 @@
 #include "../Pilotage/Pilotage.h"
 
 // les variables globales
-int sortie[4][2]; // le tableau de la sortie 
+int **sortie; // le tableau de la sortie 
 float dx_precedent = 0, dy_precedent = 0, dz_precedent = 0, dr_precedent = 0; // la distance entre le centre de la mire et celui de l'image 
 int hirondelle_defined[4]; // un tableau de bool sur la disponiblité ou pas des horondelles
 int nb_hirondelle_valide = 0;  // le nombre des hirondelle définies 
@@ -501,7 +501,14 @@ int analyseInterpretation_z(int **cordonnees, int **vecteur){
 }
 
 void analyseInterpretation(int **cordonnees){
-    /*
+
+    //Malloc de la sortie
+    sortie=(int **)malloc(sizeof(int*)*4);
+
+    for (int i = 0; i < 4; i++)
+    {
+        sortie[i]=(int*)malloc(sizeof(int)*2);
+    }    /*
         Cette fonction renvoie la commande à transmettre selon l'état du drone 
         vecteur : le résultat de la partie 
         cordonnees: les cordonnées des hirondelles 
@@ -566,15 +573,8 @@ void analyseInterpretation(int **cordonnees){
     sortie[MONTER_DESCENDRE][POS_INTENSITE]=0;
     sortie[MONTER_DESCENDRE][EVALUATION]=0;
 
-        int i,j;
-    for(i=0;i<4;i++){
-        for(j=0;j<2;j++){
-            printf("%d ",sortie[i][j]);
-        }
-        printf("\n");
-    }
     //pilotage(vecteur);
-    callback(sortie,1); // pour l'instant c'est 0 
+    callbackPilote(sortie,1); // pour l'instant c'est 0 
 
     // fprintf(fichier,"le résulat d'analyse \n"); //: [[5,100],[5,250],[150,100],[150,250]]\n");
     // printf("le résulat d'analyse \n\n"); 
