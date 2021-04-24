@@ -81,7 +81,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
    // catch signaux
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
-        //if(i != SIGTSTP) signal(i,catchSig);
+        if(i != SIGTSTP) signal(i,catchSig);
     }
 
     // Watch Dog
@@ -185,6 +185,7 @@ controlDevice(&failed);
         
         takeOff(deviceController);
         sleep(5);
+        //roll(deviceController,20);
         
         //Test catchSig
         sleep(1000);
@@ -223,13 +224,10 @@ void callbackPilote(int **state,int ifStop){
 
         if(deviceController != NULL){
             //Affichage de la matrice dedécision
-            printf("SATE:\n");
+            printf("STATE:\n");
             int i,j;
             for(i=0;i<4;i++){
-                for(j=0;j<2;j++){
-                    printf("%d_",state[i][j]);
-                }
-                printf("\n");
+                printf("[%d , %d]\n",state[i][0],state[i][1]);
             }
 
             //Arrêt de la commande en cour
