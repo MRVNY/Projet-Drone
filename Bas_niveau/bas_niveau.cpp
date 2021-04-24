@@ -40,14 +40,14 @@ bool doIntersect(SPoint p1, SPoint q1, SPoint p2, SPoint q2)
 bool not_similar(SPoint p1, SPoint p2){
 /*Fonction qui verifie si les points ne sont pas les memes*/
    
-    if (intervalle(p1.x,p1.y,p2.x,p2.y,DISTANCE_MIN_ENTRE_PIXELS)==1)// si les points assez proches (de DISTANCE_MIN_ENTRE_PIXELS pres) alors ils son
+    if (intervalle(p1.x,p1.y,p2.x,p2.y,DISTANCE_MIN_ENTRE_PIXELS)==1)// si les points assez loin (de DISTANCE_MIN_ENTRE_PIXELS pres) alors ils sont
         return true;
 
     return false; //si deux points sont les memes, alors on retourne false car un quadrilateral n'est pas possible dans ce cas
 }
 
 bool not_collinear(SPoint p1, SPoint p2, SPoint p3)
-/*verifie si les points sont collineaires*/
+/*verifie si les points ne sont pas collineaires*/
 {
     int x1 = p1.x, y1 = p1.y;
     int x2 = p2.x, y2 = p2.y;
@@ -163,7 +163,7 @@ int video_reader_process(const char* infile) {
         }   
     }
 
-    String filename(infile);
+    String filename(infile); // necessaire?
 
     VideoCapture capture(infile,CAP_FFMPEG);
 
@@ -369,13 +369,14 @@ void image_processing(cv::Mat image,int*** resultat){
         res[i].score=0; 
 
     }
+    // initialisation
     for (int i=0;i<4;i++){
          (*resultat)[i][0]=-1;
          (*resultat)[i][1]=-1;
     }
       
    //PARCOURS DES PIXELS ET DETETION DES 6 POINTS AYANT LA SOMME MINIMUM
-                   for( int x=VOISINAGE ; x<image.rows-VOISINAGE ; x++ ){
+                   for( int x=VOISINAGE ; x<image.rows-VOISINAGE  ; x++ ){ //image.rows-VOISINAGE et image.cols-VOISINAGE pour eviter les bordures
                        for( int y=VOISINAGE ; y<image.cols-VOISINAGE ; y++ ){
                            
                         voisinage(VOISINAGE,x,y,&S0,&S1,&S2,&S3,image);
@@ -625,7 +626,7 @@ void image_processing(cv::Mat image,int*** resultat){
         (*resultat)[3][1]=tmp2;
     }
                
-        
+    // affichage en couleurs pour tester nos resultats   
         cv::Mat3b grayBGR;
                             
             cv::cvtColor(image, grayBGR, COLOR_GRAY2BGR);
