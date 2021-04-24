@@ -173,7 +173,8 @@
 //      * Faire de nouvelle mesure dans le centre jean talbot avec la        //
 //        la nouvelle mire(1,2,3 et 4m) pour changer les variations des      //
 //        distances et voisinage et aussi, obtenir les valeurs des sommes    //
-//        pour tester le ratio.                                              // 
+//        pour tester le ratio.                                              //
+//      * Rajouter la contrainte du quadrilateral convexe/concave            // 
 ///////////////////////////////////////////////////////////////////////////////
 
 #ifndef bas_niveau_hpp
