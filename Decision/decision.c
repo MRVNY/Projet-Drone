@@ -516,17 +516,18 @@ void analyseInterpretation(int **cordonnees){
 
     // les variables: 
 
-    // creation d'un fichier de résultat 
-    //FILE* fichier = fopen("tets.txt", "a");
+   // creation d'un fichier de résultat 
+    FILE* fichier = fopen("coordonnee_recu.txt", "a");
     
    // on écrit les cordonnées données par la partie imagerie 
-    // for(int i=0; i<4; i++){
-    //     for (int k=0; k<2;k++){
-    //         fprintf(fichier,"[%d] ",cordonnees[i][k]);
-    //     }
-    //     fprintf(fichier,"\n");
-    // }
-    // fprintf(fichier,"\n");
+    for(int i=0; i<4; i++){
+        for (int k=0; k<2;k++){
+            fprintf(fichier,"[%d] ",cordonnees[i][k]);
+        }
+        fprintf(fichier,"\n");
+    }
+    fprintf(fichier,"\n");
+
     // ___________________________la création de la matrice de sortie____________________________________________________
     int **vecteur=(int **)malloc(sizeof(int*)*TAILLE_SORTIE); // la sortie de la partie decision 
     if(!vecteur){
@@ -572,27 +573,27 @@ void analyseInterpretation(int **cordonnees){
 
     sortie[MONTER_DESCENDRE][POS_INTENSITE]=0;
     sortie[MONTER_DESCENDRE][EVALUATION]=0;
-    //sortie[AVANT_ARRIERE][POS_INTENSITE]=0;
-    //sortie[AVANT_ARRIERE][EVALUATION]=0;
-    //sortie[ROTATION][POS_INTENSITE]=0;
-    //sortie[ROTATION][EVALUATION]=0;
+    sortie[AVANT_ARRIERE][POS_INTENSITE]=0;
+    sortie[AVANT_ARRIERE][EVALUATION]=0;
+    sortie[ROTATION][POS_INTENSITE]=0;
+    sortie[ROTATION][EVALUATION]=0;
 
     //pilotage(vecteur);
+  //  
+
+    fprintf(fichier,"le résulat d'analyse \n"); //: [[5,100],[5,250],[150,100],[150,250]]\n");
+    //printf("le résulat d'analyse \n\n"); 
+    for(int i=0; i<TAILLE_SORTIE; i++){
+        fprintf(fichier,"sortie[%d]\n",i);
+        //printf("sortie[%d]\n",i);
+        for (int k=0; k<INFO_SORTIE;k++){
+            fprintf(fichier,"%d ___",sortie[i][k]);
+            //printf("%d ___",sortie[i][k]);
+        }
+        fprintf(fichier,"\n");
+       // printf("\n");
+    }
     callbackPilote(sortie,1); // pour l'instant c'est 0 
-
-    // fprintf(fichier,"le résulat d'analyse \n"); //: [[5,100],[5,250],[150,100],[150,250]]\n");
-    // printf("le résulat d'analyse \n\n"); 
-    // for(int i=0; i<TAILLE_SORTIE; i++){
-    //     fprintf(fichier,"sortie[%d]\n",i);
-    //     printf("sortie[%d]\n",i);
-    //     for (int k=0; k<INFO_SORTIE;k++){
-    //         fprintf(fichier,"%d ___",sortie[i][k]);
-    //         printf("%d ___",sortie[i][k]);
-    //     }
-    //     fprintf(fichier,"\n");
-    //     printf("\n");
-    // }
-
 
     // fprintf(fichier,"*******************  ICI VECTEUR ******************************\n");
     // for(int i=0; i<TAILLE_SORTIE; i++){
