@@ -6,6 +6,17 @@
 #define TAILLE_SORTIE 4  // la taille de la matrice de sortie que renvoie la partie decision (le nombre de ligne)
 #define INFO_SORTIE 2 // le nombre de colonnes de la matrice de sortie 
 
+// la sortie 
+typedef struct{
+    int matrice[TAILLE_SORTIE][INFO_SORTIE];
+}Sestimation; 
+
+// la taille du tableau tab_Sestimatin
+#define TAILLE_SEQ 2
+
+// le tableau des structures 
+Sestimation tab_Sestimatin[TAILLE_SEQ];
+
 // La convention sur les états 
 #define STOP 0  
 #define NEGATIF -1  // pour gauche , en bas  , rotation à gauche  et  arrière
