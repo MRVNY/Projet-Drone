@@ -3,7 +3,8 @@
 #include <iostream>
 #include <chrono> 
 #include <thread> 
-#include <string.h> 
+#include <string.h>
+#include <ctime>
    
 int intervalle (int x1,int y1,int x2,int y2,int distance){
     /*Fonction qui retourne true si les deux coordonnées sont éloignées d'une distance passée en parametre */
@@ -176,17 +177,30 @@ int video_reader_process(const char* infile) {
     }
 
     cv::Mat frame;
-
+    int cpt=0;
     while(1) {
+
+        
 
         if (!capture.read(frame)) {
             exit(1);
         }
+
         cv::Mat greyMat;
         cv::cvtColor(frame, greyMat, COLOR_BGR2GRAY);
-        
-        image_processing(greyMat,&resultat);
+
+        //Calcul temp d'de process d'image
+        clock_t begin_process = clock();
+        if(cpt%2==0){
+            image_processing(greyMat,&resultat);
+        }
+        clock_t end_process = clock();
+        double time_spent_proc = (double)(end_process - begin_process) / CLOCKS_PER_SEC;
+
+        printf("Imageprocessing time:%f\n",time_spent_proc);
+        cpt++;
         analyseInterpretation(resultat);
+        
         //cv::imshow("BAS NIVEAU", frame);
         //cv::waitKey(30);
     }

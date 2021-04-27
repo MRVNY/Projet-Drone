@@ -52,7 +52,7 @@ enum stateIndex{
 // 1 : pour droite , haut , rotation à droite et avancer, ok 
 
 /*-----------Methode commune------------*/
-void callbackPilote(int **state,int ifStop);
+void callbackPilote(int index,int ifStop);
 
 #endif 
 

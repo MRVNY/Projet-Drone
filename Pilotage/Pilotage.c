@@ -219,16 +219,27 @@ controlDevice(&failed);
 
 //compteur pour ignorer un certain nombre de frames
 int cpt =0;
-void callbackPilote(int **state,int ifStop){
-    if(cpt>100){
+void callbackPilote(int index,int ifStop){
+    
+    int NullError=0;
+    int (*state)[4] = tab_Sestimatin[index].matrice;
+    if (state==NULL)
+    {
+        NullError=1;
+        myPrint("Erreur matrice nulle\n");
+    }
+    
+    if(cpt>200){
 
-        if(deviceController != NULL){
+        if(deviceController != NULL && !NullError){
             //Affichage de la matrice dedécision
+            
             printf("STATE:\n");
             int i,j;
             for(i=0;i<4;i++){
                 printf("[%d , %d]\n",state[i][0],state[i][1]);
             }
+            
 
             //Arrêt de la commande en cour
             stop(deviceController);
@@ -249,11 +260,12 @@ void callbackPilote(int **state,int ifStop){
                 for(int i=STRAFER; i<=STRAFER; i++) { //MODIF STRAFF
                     
                     //Test de l'évaluation
-                    if(state[i][EVALUATION]==0){
-
+                    if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
+                    //if(1){
                         //Signe des déplacement (cf. common.h)
                         int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
-
+                        sign=sign*-1;
+                        printf("%dSIgn:%d\n",state[i][EVALUATION],sign);
                         //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
                         switch (i)
                         {
@@ -266,7 +278,9 @@ void callbackPilote(int **state,int ifStop){
                                 endProg(); //MODIF STRAFF
                                 return;
                             }
-                            composition[STRAFER]=choixPourcentage(state[i][POS_INTENSITE],STRAFER);
+                            if(state[i][EVALUATION]==GOOD){
+                                composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
+                            }
                             break;
                         case AVANT_ARRIERE:
                             composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
@@ -292,7 +306,6 @@ void callbackPilote(int **state,int ifStop){
             gaz(deviceController,composition[MONTER_DESCENDRE]);
             yaw(deviceController,composition[ROTATION]);
             */
-
             gettimeofday(&counter, NULL);
         }
     }
