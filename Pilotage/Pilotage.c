@@ -34,6 +34,7 @@ int tabPrc[4][4]={
     {0, LOW_ROT_SPEED, MID_ROT_SPEED, HIGH_ROT_SPEED}
 };
 /*-------------------------------------------------*/
+int StateZero=0;
 
 
 /*****************************************
@@ -55,7 +56,12 @@ void *watch_dog(){
             //printf("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
             if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
                 myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
-                endProg();
+                //MODIF
+                if(deviceController!=NULL){
+                    stop(deviceController);
+                }
+                //MODIF
+                //endProg();
                 break;
             }
         }
@@ -78,6 +84,9 @@ int main_Pilotage (int (*functionPtr)(const char*))
     int frameNb = 0;
     int isBebop2 = 1;
 
+    //Initialisation de enProg
+    endProgState=0;
+    start=0;
    // catch signaux
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
@@ -85,7 +94,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
     }
 
     // Watch Dog
-    //pthread_create(&threads, NULL, watch_dog, NULL);
+    pthread_create(&threads, NULL, watch_dog, NULL);
 
     // MPLAYER ou FFMPEG
     printf("\nVideoCapture (0), mplayer(1) ou ffmpeg(2)?\n");
@@ -184,6 +193,8 @@ controlDevice(&failed);
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
         takeOff(deviceController);
+        start=1;
+
         sleep(5);
         //roll(deviceController,20);
         
@@ -228,8 +239,7 @@ void callbackPilote(int index,int ifStop){
         NullError=1;
         myPrint("Erreur matrice nulle\n");
     }
-    
-    if(cpt>200){
+    if(1){
 
         if(deviceController != NULL && !NullError){
             //Affichage de la matrice dedécision
@@ -240,7 +250,6 @@ void callbackPilote(int index,int ifStop){
                 printf("[%d , %d]\n",state[i][0],state[i][1]);
             }
             
-
             //Arrêt de la commande en cour
             stop(deviceController);
 
@@ -265,7 +274,6 @@ void callbackPilote(int index,int ifStop){
                         //Signe des déplacement (cf. common.h)
                         int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
                         sign=sign*-1;
-                        printf("%dSIgn:%d\n",state[i][EVALUATION],sign);
                         //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
                         switch (i)
                         {
@@ -273,12 +281,23 @@ void callbackPilote(int index,int ifStop){
                             //Modification pour ne prendre en compte que le STRAFF 
                             if (state[i][POS_INTENSITE]==AXE)
                             {   
-                                stop(deviceController);
-                                land(deviceController);
-                                endProg(); //MODIF STRAFF
-                                return;
+                                StateZero++;
+                                if (StateZero>10)
+                                {
+                                    stop(deviceController);
+                                    land(deviceController);
+                                    //endProgState=1;
+                                    //sleep(2);
+                                    myPrint("Fin\n");
+
+                                    //pthread_cancel(threads);
+                                    //endProg(); //MODIF STRAFF
+                                    break;
+                                }
+                             
                             }
                             if(state[i][EVALUATION]==GOOD){
+                                StateZero=0;
                                 composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
                             }
                             break;
@@ -467,6 +486,19 @@ void discoverDevice(int *failed,int isBebop2){
 }
 
 void endProg(){
+    /*------LOGS-------*/
+    FILE *fp1 = fopen("Logs.csv", "w");// création du
+    fprintf(fp1, "%s%s%s%s%s","Bas_nivea",",","Pilotage_decision",",","FrameCapture");
+    fprintf(fp1,"\n");
+
+    for (int i = 0; i<NB_VALS_LOGS;i++){
+        if(tab_Logs.bas_niveau[i]!=0&&tab_Logs.pilotage_decsion[i]!=0&&tab_Logs.capture[i]!=0){
+            fprintf(fp1, "%f%s%f%s%f",tab_Logs.bas_niveau[i],",",tab_Logs.pilotage_decsion[i],",",tab_Logs.capture[i]);
+            fprintf(fp1,"\n");
+        }
+    }
+    fclose(fp1);
+    /*-----------------*/
     if (deviceController != NULL)
     {
         stop(deviceController);

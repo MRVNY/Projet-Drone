@@ -637,7 +637,7 @@ void analyseInterpretation(int **cordonnees)
     // les variables:
 
     // creation d'un fichier de résultat
-    FILE* fichier = fopen("test_decision.txt", "a");
+    FILE* fichier = fopen("test_decision.txt", "w");
 
     //on écrit les cordonnées données par la partie imagerie
     fprintf(fichier," les coordonnées reçues \n");

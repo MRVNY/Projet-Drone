@@ -191,6 +191,7 @@ extern "C" {
 #include <libavutil/pixdesc.h>
 #include <libavutil/imgutils.h>
 #include "../Decision/decision.h"
+#include "../commun.h"
 #include <libswscale/swscale.h>
 }
 

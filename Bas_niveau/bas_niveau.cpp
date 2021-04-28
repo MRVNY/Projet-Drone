@@ -149,6 +149,7 @@ void erreur(int*** resultat){
 }
 
 int video_reader_process(const char* infile) {
+    
     int ** resultat= (int**) malloc( 4 * sizeof (int*) );
 
     if(resultat == NULL){
@@ -177,33 +178,60 @@ int video_reader_process(const char* infile) {
     }
 
     cv::Mat frame;
-    int cpt=0;
-    while(1) {
+    int frameIndex=0;
+    int i=0;
+    while(!endProgState) {
 
+        if(start){
+            clock_t begin_capture = clock();
+
+            if (!capture.read(frame)) {
+                exit(1);
+            }
+            clock_t end_capture = clock();
+
+            cv::Mat greyMat;
+            cv::cvtColor(frame, greyMat, COLOR_BGR2GRAY);
+
+            if(frameIndex%2==0){
+                
+                //Calcul temp de process d'image
+                clock_t begin_process = clock();
+
+                image_processing(greyMat,&resultat);
+
+                clock_t end_process = clock();
+
+                //Calcul temps analyse
+                clock_t begin_analyse = clock();
+
+                analyseInterpretation(resultat);
+
+                clock_t end_analyse = clock();
+
+                /*-------ECRITURE LOGS---------*/
+                double time_spent_proc = (double)(end_process - begin_process) / CLOCKS_PER_SEC;
+                double time_spent_anal = (double)(end_analyse - begin_analyse) / CLOCKS_PER_SEC;
+                double time_spent_capture = (double)(end_capture - begin_capture) / CLOCKS_PER_SEC;
+
+                if(i<NB_VALS_LOGS)
+                {
+                    tab_Logs.bas_niveau[i]=time_spent_proc;
+                    tab_Logs.pilotage_decsion[i]=time_spent_anal;
+                    tab_Logs.capture[i]=time_spent_capture;
+                    i++;
+                }
+                /*-----------------------------*/
         
+            }
 
-        if (!capture.read(frame)) {
-            exit(1);
+            frameIndex++;
+
+            //cv::imshow("BAS NIVEAU", frame);
+            //cv::waitKey(30);
         }
-
-        cv::Mat greyMat;
-        cv::cvtColor(frame, greyMat, COLOR_BGR2GRAY);
-
-        //Calcul temp d'de process d'image
-        clock_t begin_process = clock();
-        if(cpt%2==0){
-            image_processing(greyMat,&resultat);
-        }
-        clock_t end_process = clock();
-        double time_spent_proc = (double)(end_process - begin_process) / CLOCKS_PER_SEC;
-
-        printf("Imageprocessing time:%f\n",time_spent_proc);
-        cpt++;
-        analyseInterpretation(resultat);
-        
-        //cv::imshow("BAS NIVEAU", frame);
-        //cv::waitKey(30);
     }
+    printf("Fin video_reader_process\n");
 } 
 
 int video_reader_process2(const char* infile) {
@@ -677,8 +705,8 @@ void image_processing(cv::Mat image,int*** resultat){
                
             //cv::imwrite("image.jpg", image);
             //cv::imwrite("imagebgr.jpg", grayBGR);
-             cv::imshow("BAS NIVEAU", grayBGR);
-             cv::waitKey(1); 
+             //cv::imshow("BAS NIVEAU", grayBGR);
+             //cv::waitKey(1); 
             //std::this_thread::sleep_for(std::chrono::milliseconds(500) );
               
 }

@@ -1,4 +1,4 @@
-#ROOT = /home/johan/Parrot
+ROOT = /home/johan/Parrot
 #ROOT = /Users/Marvin/PARROT/PARROT-SDK
 ROOT = ../..
 TEST = Projet-Drone
@@ -9,7 +9,7 @@ help:
 	@echo make compile: compile
 	@echo make run: lancer
 	@echo make compirun: compile et lancer
-	#@echo make proto KEY=<nom de proto>
+	@echo make proto KEY=Projet-Drone
 	@echo
 
 connect:
