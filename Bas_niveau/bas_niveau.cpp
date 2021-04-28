@@ -705,8 +705,8 @@ void image_processing(cv::Mat image,int*** resultat){
                
             //cv::imwrite("image.jpg", image);
             //cv::imwrite("imagebgr.jpg", grayBGR);
-             //cv::imshow("BAS NIVEAU", grayBGR);
-             //cv::waitKey(1); 
+            //cv::imshow("BAS NIVEAU", grayBGR);
+            //cv::waitKey(1); 
             //std::this_thread::sleep_for(std::chrono::milliseconds(500) );
               
 }

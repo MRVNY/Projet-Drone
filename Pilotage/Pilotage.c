@@ -272,7 +272,7 @@ void callbackPilote(int index,int ifStop){
                     if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
                     //if(1){
                         //Signe des déplacement (cf. common.h)
-                        int sign=state[i][EVALUATION]/abs(state[i][EVALUATION]);
+                        int sign=state[i][POS_INTENSITE]/abs(state[i][POS_INTENSITE]);
                         sign=sign*-1;
                         //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
                         switch (i)
@@ -296,7 +296,8 @@ void callbackPilote(int index,int ifStop){
                                 }
                              
                             }
-                            if(state[i][EVALUATION]==GOOD){
+                          
+                            else if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
                                 StateZero=0;
                                 composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
                             }
