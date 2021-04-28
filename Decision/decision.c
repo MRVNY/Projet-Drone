@@ -501,6 +501,7 @@ int analyseInterpretation_x_y(int **cordonnees)
 
     // pour chaque axe ; regarder si on est dans la meme etat DONC on doit EVALUER le déplacement sinon on renvoit le nouvel ETAT
     calcule_dx_dy(cordonnees, &dx, &dy); // on calcule les nouvelle distances
+    
     if (dx_precedent == 0 && dy_precedent == 0)
     { // initialiser dx_precedent et dy_precedent avec les premieres valeurs dx et dy dans la nouvelle etat
         dx_precedent = dx;
@@ -515,7 +516,7 @@ int analyseInterpretation_x_y(int **cordonnees)
         else
         {
             if (dy > dy_precedent)
-            {
+            {   
                 tab_Sestimatin[index_courant].matrice[STRAFER][EVALUATION] = BAD;
             }
             else
@@ -636,16 +637,17 @@ void analyseInterpretation(int **cordonnees)
     // les variables:
 
     // creation d'un fichier de résultat
-    //FILE* fichier = fopen("coordonnee_recu.txt", "a");
+    FILE* fichier = fopen("test_decision.txt", "a");
 
     //on écrit les cordonnées données par la partie imagerie
-    // for(int i=0; i<4; i++){
-    //     for (int k=0; k<2;k++){
-    //         fprintf(fichier,"[%d] ",cordonnees[i][k]);
-    //     }
-    //     fprintf(fichier,"\n");
-    // }
-    // fprintf(fichier,"\n");
+    fprintf(fichier," les coordonnées reçues \n");
+    for(int i=0; i<4; i++){
+        for (int k=0; k<2;k++){
+            fprintf(fichier,"[%d] ",cordonnees[i][k]);
+        }
+        fprintf(fichier,"\n");
+    }
+    fprintf(fichier,"\n");
 
     // ___________________________________________________________________________________________________________________
     // la traitement sur les coordonnées recues
@@ -686,18 +688,14 @@ void analyseInterpretation(int **cordonnees)
     tab_Sestimatin[index_courant].matrice[ROTATION][POS_INTENSITE] = 0;
     tab_Sestimatin[index_courant].matrice[ROTATION][EVALUATION] = 0;
 
-    // fprintf(fichier,"le résulat d'analyse \n"); //: [[5,100],[5,250],[150,100],[150,250]]\n");
-    // //printf("le résulat d'analyse \n\n");
-    // for(int i=0; i<TAILLE_SORTIE; i++){
-    //     fprintf(fichier,"sortie[%d]\n",i);
-    //     //printf("sortie[%d]\n",i);
-    //     for (int k=0; k<INFO_SORTIE;k++){
-    //         fprintf(fichier,"%d ___",sortie[i][k]);
-    //         //printf("%d ___",sortie[i][k]);
-    //     }
-    //     fprintf(fichier,"\n");
-    //    // printf("\n");
-    // }
+    fprintf(fichier,"le résulat d'analyse \n"); 
+    for(int i=0; i<TAILLE_SORTIE; i++){
+        fprintf(fichier,"sortie[%d]\n",i);
+        for (int k=0; k<INFO_SORTIE;k++){
+            fprintf(fichier,"%d ___",tab_Sestimatin[index_courant].matrice[i][k]);
+        }
+        fprintf(fichier,"\n");
+    }
 
     callbackPilote(index_courant,1); // pour l'instant c'est 0
 
@@ -725,14 +723,4 @@ void analyseInterpretation(int **cordonnees)
             index_historique = 0;
         }
     }
-
-    // fprintf(fichier,"*******************  ICI VECTEUR ******************************\n");
-    // for(int i=0; i<TAILLE_SORTIE; i++){
-    //     fprintf(fichier,"vecteur[%d]\n",i);
-    //     for(int k=0; k<INFO_SORTIE;k++){
-    //         fprintf(fichier,"%d _",vecteur[i][k]);
-    //     }
-    //     fprintf(fichier,"\n");
-    // }
 }
-
