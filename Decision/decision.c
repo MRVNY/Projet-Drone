@@ -643,11 +643,11 @@ void analyseInterpretation(int **cordonnees)
     fprintf(fichier," les coordonnées reçues \n");
     for(int i=0; i<4; i++){
         for (int k=0; k<2;k++){
-            printf("[%d]",cordonnees[i][k]);
+            //printf("[%d]",cordonnees[i][k]);
             fprintf(fichier,"[%d] ",cordonnees[i][k]);
         }
         fprintf(fichier,"\n");
-        printf("\n");
+        //printf("\n");
     }
     fprintf(fichier,"\n");
 
