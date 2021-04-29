@@ -50,6 +50,7 @@ void myPrint(char *toPrint){
 }
 
 void *watch_dog(){
+    
     while(1){
         usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
         if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
@@ -234,13 +235,13 @@ controlDevice(&failed);
         {
             takeOff(deviceController);
         }
+        //watch_dog();
         start=1;
 
-        //sleep(5);
+        sleep(1000);
         //roll(deviceController,20);
         
         //Test catchSig
-        //sleep(1000);
 
         //Test Watchdog
         /*
@@ -252,7 +253,6 @@ controlDevice(&failed);
             //wait to be killed
         }*/
 
-        pthread_join(threads, NULL);
     }
     
     
@@ -264,7 +264,7 @@ controlDevice(&failed);
  *****************************************/
 
 // we are here because of a disconnection or user has quit IHM, so safely delete everything
-    endProg();
+    //endProg();
     return EXIT_SUCCESS;
 }
 
@@ -334,7 +334,7 @@ void callbackPilote(int index,int ifStop){
                                     myPrint("Fin\n");
 
                                     //pthread_cancel(threads);
-                                    //endProg(); //MODIF STRAFF
+                                    endProg(); //MODIF STRAFF
                                     break;
                                 }
                              
