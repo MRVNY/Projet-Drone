@@ -202,7 +202,7 @@ controlDevice(&failed);
         //roll(deviceController,20);
         
         //Test catchSig
-        sleep(1000);
+        //sleep(1000);
 
         //Test Watchdog
         /*
@@ -213,6 +213,8 @@ controlDevice(&failed);
         while(1){
             //wait to be killed
         }*/
+
+        pthread_join(threads, NULL);
     }
     
     
