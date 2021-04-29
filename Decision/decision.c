@@ -11,6 +11,9 @@ int hirondelle_defined[4];                                                    //
 int nb_hirondelle_valide = 0;                                                 // le nombre des hirondelle définies
 int index_courant = 0;                                                        // l'indice de la case du tableau à lire
 int index_historique = 0;                                                     // l'indice de la case du tableau qui contient l'historique
+int compteur_indefined = 10; // a fixer avec les résultat de l'algo de bas niveau
+
+
 
 int is_far_left(int a)
 {
@@ -637,21 +640,22 @@ void analyseInterpretation(int **cordonnees)
     // les variables:
 
     // creation d'un fichier de résultat
-    FILE* fichier = fopen("test_decision.txt", "a");
+    //FILE* fichier = fopen("test_decision.txt", "a");
 
     //on écrit les cordonnées données par la partie imagerie
-    fprintf(fichier," les coordonnées reçues \n");
-    for(int i=0; i<4; i++){
-        for (int k=0; k<2;k++){
-            //printf("[%d]",cordonnees[i][k]);
-            fprintf(fichier,"[%d] ",cordonnees[i][k]);
-            printf("[%d] ",cordonnees[i][k]);
-        }
-        fprintf(fichier,"\n");
-        printf("\n");
-        //printf("\n");
-    }
-    fprintf(fichier,"\n");
+    // fprintf(fichier," les coordonnées reçues \n");
+    // for(int i=0; i<4; i++){
+    //     for (int k=0; k<2;k++){
+    //         //printf("[%d]",cordonnees[i][k]);
+    //         fprintf(fichier,"[%d] ",cordonnees[i][k]);
+    //         printf("[%d] ",cordonnees[i][k]);
+    //     }
+    //     fprintf(fichier,"\n");
+    //     printf("\n");
+    //     //printf("\n");
+    // }
+    // fprintf(fichier,"\n");
+
 
     // ___________________________________________________________________________________________________________________
     // la traitement sur les coordonnées recues
@@ -665,8 +669,45 @@ void analyseInterpretation(int **cordonnees)
 
     isDefine(cordonnees, hirondelle_defined, &nb_hirondelle_valide);
 
-    if (nb_hirondelle_valide == 0)
-    {
+    if (nb_hirondelle_valide == 0){
+        compteur_indefined--; 
+        if(compteur_indefined == 0){
+            compteur_indefined= 10; 
+            index_courant = 0;
+            index_historique = 0;
+            dx_precedent = 0;
+            dy_precedent = 0; 
+            dz_precedent = 0;
+            dr_precedent = 0;
+            // mettre l'historique à 0 
+            for(int k=0; k<TAILLE_SEQ; k++){
+                for (int i = 0; i < TAILLE_SORTIE; i++){
+                    for (int j = 0; j < INFO_SORTIE; j++){
+                        tab_Sestimatin[k].matrice[i][j] = 0;
+                    }
+                }
+            }
+            
+
+            callbackPilote(index_courant,STOP); // on s'arrête un instant 
+           //fprintf(fichier," on est perdu \n");
+
+            
+        }
+        else{
+            callbackPilote(index_historique,1);
+            // fprintf(fichier,"le résulat d'analyse \n"); 
+            // for(int i=0; i<TAILLE_SORTIE; i++){
+            //     fprintf(fichier,"sortie[%d]\n",i);
+            //     for (int k=0; k<INFO_SORTIE;k++){
+            //         fprintf(fichier,"%d ___",tab_Sestimatin[index_historique].matrice[i][k]);
+            //     }
+            //     fprintf(fichier,"\n");
+
+            // }
+        }
+
+
     }
     else
     {
@@ -683,48 +724,46 @@ void analyseInterpretation(int **cordonnees)
                 // }
             }
         }
-    }
+        tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE]=0;
+        tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][EVALUATION]=0;
+        tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE] = 0;
+        tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][EVALUATION] = 0;
+        tab_Sestimatin[index_courant].matrice[ROTATION][POS_INTENSITE] = 0;
+        tab_Sestimatin[index_courant].matrice[ROTATION][EVALUATION] = 0;
 
-    tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE]=0;
-    tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][EVALUATION]=0;
-    tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE] = 0;
-    tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][EVALUATION] = 0;
-    tab_Sestimatin[index_courant].matrice[ROTATION][POS_INTENSITE] = 0;
-    tab_Sestimatin[index_courant].matrice[ROTATION][EVALUATION] = 0;
+        callbackPilote(index_courant,1); // pour l'instant c'est 0
+        // fprintf(fichier,"le résulat d'analyse \n"); 
+        // for(int i=0; i<TAILLE_SORTIE; i++){
+        //     fprintf(fichier,"sortie[%d]\n",i);
+        //     for (int k=0; k<INFO_SORTIE;k++){
+        //         fprintf(fichier,"%d ___",tab_Sestimatin[index_courant].matrice[i][k]);
+        //     }
+        //     fprintf(fichier,"\n");
 
-    fprintf(fichier,"le résulat d'analyse \n"); 
-    for(int i=0; i<TAILLE_SORTIE; i++){
-        fprintf(fichier,"sortie[%d]\n",i);
-        for (int k=0; k<INFO_SORTIE;k++){
-            fprintf(fichier,"%d ___",tab_Sestimatin[index_courant].matrice[i][k]);
-        }
-        fprintf(fichier,"\n");
-    }
-
-    callbackPilote(index_courant,1); // pour l'instant c'est 0
-
-
-    if (index_courant == 0 && index_historique == 0)
-    {
-        index_courant++;
-    }
-    else
-    {
-        if (index_courant < TAILLE_SEQ)
-        {
+        // }
+        
+        if (index_courant == 0 && index_historique == 0){
             index_courant++;
         }
-        else
-        {
-            index_courant = 0;
-        }
-        if (index_historique < TAILLE_SEQ)
-        {
-            index_historique++;
-        }
-        else
-        {
-            index_historique = 0;
+        else{
+            if (index_courant < TAILLE_SEQ)
+            {
+                index_courant++;
+            }
+            else
+            {
+                index_courant = 0;
+            }
+            if (index_historique < TAILLE_SEQ)
+            {
+                index_historique++;
+            }
+            else
+            {
+                index_historique = 0;
+            }
         }
     }
+
+
 }
