@@ -25,7 +25,7 @@ typedef struct{
 #define TAILLE_SEQ 2
 
 
-//variable globales communes
+/*-------VARIABLES GLOBALES COMMUNES--------*/
 #ifndef  EXTERN
 #define  EXTERN  extern
 #endif
@@ -35,7 +35,13 @@ EXTERN Sestimation tab_Sestimatin[TAILLE_SEQ];
 EXTERN Logs tab_Logs;  
 // Indicateur de fin de programe             
 EXTERN int endProgState;
+// Démarage du traitement vidéo
 EXTERN int start;
+// Affichage vision drone
+EXTERN int display;
+// Deplacement drone (effectue ou non les commandes)
+EXTERN int fly;
+/*-------------------------------------------*/
 
 // La convention sur les états 
 #define STOP 0  
