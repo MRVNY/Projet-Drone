@@ -1,3 +1,5 @@
+#define EXTERN
+
 extern "C" {
 #include "Pilotage.h"
 }
