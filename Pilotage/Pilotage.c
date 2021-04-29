@@ -25,6 +25,7 @@ eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 struct timeval counter, watch;
 pid_t child = 0;
 pthread_t threads;
+char toPrint[50];
 
 //Tableau 2D contenant les valeurs d'amplitudes de mouvements pour chaque déplacements 
 int tabPrc[4][4]={
@@ -53,7 +54,8 @@ void *watch_dog(){
         usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
         if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
             gettimeofday(&watch, NULL); //Recuperer le temps reel
-            //printf("watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec); 
+            sprintf(toPrint,"watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec);
+            myPrint(toPrint);
             if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
                 myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
                 //MODIF
@@ -70,8 +72,9 @@ void *watch_dog(){
 }
 
 // Attraper tous les signaux sauf control-Z
-void catchSig(){
-    myPrint("CAUGHT\n");
+void catchSig(int sig){
+    sprintf(toPrint,"CAUGHT %d\n",sig);
+    myPrint(toPrint);
     endProg();
     return 0;
 }
@@ -237,7 +240,7 @@ controlDevice(&failed);
         //roll(deviceController,20);
         
         //Test catchSig
-        sleep(1000);
+        //sleep(1000);
 
         //Test Watchdog
         /*
@@ -248,6 +251,8 @@ controlDevice(&failed);
         while(1){
             //wait to be killed
         }*/
+
+        pthread_join(threads, NULL);
     }
     
     
