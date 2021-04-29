@@ -49,6 +49,22 @@ void myPrint(char *toPrint){
     if(IFPRINT) printf("%s",toPrint);
 }
 
+void watchdog(){
+    while(1){
+        usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
+        if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
+            gettimeofday(&watch, NULL); //Recuperer le temps reel
+            if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
+                myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
+                sprintf(toPrint,"watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec);
+                myPrint(toPrint);
+                endProg();
+                break;
+            }
+        }
+    }
+}
+
 // Attraper tous les signaux sauf control-Z
 void catchSig(int sig){
     sprintf(toPrint,"CAUGHT %d\n",sig);
@@ -211,20 +227,7 @@ controlDevice(&failed);
         }
         start=1;
 
-        //Watchdog
-        while(1){
-            usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
-            if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
-                gettimeofday(&watch, NULL); //Recuperer le temps reel
-                if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
-                    myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
-                    sprintf(toPrint,"watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec);
-                    myPrint(toPrint);
-                    endProg();
-                    break;
-                }
-            }
-        }
+        watchdog();
     }
     
     

@@ -137,9 +137,9 @@ int choixPourcentage(int pos_intensite, int type); //Définit selon le type de d
 /*-------------------------------------------------------------------------*/
 
 /*----------WATCHDOG et SIGNAUX--------------*/
-void *watch_dog();
-void catchSig();
-void myPrint(char *toPrint);
+void watch_dog(); // Lancer watchdog chaque CYCLE et verifier si le decalage entre le counter et le temps reel est < TIMEOUT, sinon arreter le programme
+void catchSig(); // Attraper tous les signaux sauf control-Z
+void myPrint(char *toPrint); // Afficher les infos supplementaires (pour debug)
 /*-------------------------------------------*/
 
 /*------------------------------------------------PARROT-----------------------------------------------*/
