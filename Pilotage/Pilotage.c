@@ -25,7 +25,7 @@ eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 struct timeval counter, watch;
 pid_t child = 0;
 pthread_t threads;
-char toPrint[50];
+char toPrint[100];
 
 //Tableau 2D contenant les valeurs d'amplitudes de mouvements pour chaque déplacements 
 int tabPrc[4][4]={
