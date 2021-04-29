@@ -180,7 +180,7 @@ int video_reader_process(const char* infile) {
     cv::Mat frame;
     int frameIndex=0;
     int i=0;
-    while(!endProgState) {
+    while(!endProgState){
 
         if(start){
             clock_t begin_capture = clock();
@@ -705,8 +705,10 @@ void image_processing(cv::Mat image,int*** resultat){
                
             //cv::imwrite("image.jpg", image);
             //cv::imwrite("imagebgr.jpg", grayBGR);
-            //cv::imshow("BAS NIVEAU", grayBGR);
-            //cv::waitKey(1); 
+            if(display){
+                cv::imshow("BAS NIVEAU", grayBGR);
+                cv::waitKey(1); 
+            }
             //std::this_thread::sleep_for(std::chrono::milliseconds(500) );
               
 }

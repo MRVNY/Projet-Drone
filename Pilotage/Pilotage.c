@@ -96,7 +96,41 @@ int main_Pilotage (int (*functionPtr)(const char*))
     // Watch Dog
     pthread_create(&threads, NULL, watch_dog, NULL);
 
-    // MPLAYER ou FFMPEG
+    /*---------Choix paramètre programme------------*/
+    printf("\n Fly: oui(1), non(0)\n");
+    if(scanf("%d",&choice)==0 || (choice!=1 && choice!=0)){
+        printf("Entree non connue, no Fly par defaut\n");
+        choice = 0;
+        sleep(1);
+    }
+    if (choice==1)
+    {   
+        printf("Vol: oui");
+        fly=1;
+    }
+    else if(choice==0)
+    {
+        printf("Vol: non");
+        fly=0;
+    }
+
+    printf("\n Affichage caméra: oui(1), non(0)\n");
+    if(scanf("%d",&choice)==0 || (choice!=1 && choice!=0)){
+        printf("Entree non connue,  pas d'affichage par defaut\n");
+        choice = 0;
+        sleep(1);
+    }
+    if (choice==1)
+    {   
+        printf("Affichage caméra: oui\n\n");
+        display=1;
+    }
+    else if(choice==0)
+    {
+        printf("Affichage caméra: non\n\n");
+        display=0;
+    }
+    
     printf("\nVideoCapture (0), mplayer(1) ou ffmpeg(2)?\n");
     if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
         printf("Entree non connue, VideoCapture par defaut\n");
@@ -119,6 +153,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
         myPrint("VideoCapture\n");
         sleep(1);
     } 
+    /*------------------------------------------------------*/
 
     if (mkdtemp(fifo_dir) == NULL)
     {
@@ -192,10 +227,13 @@ controlDevice(&failed);
         deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,1 );
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
-        takeOff(deviceController);
+        if(fly)
+        {
+            takeOff(deviceController);
+        }
         start=1;
 
-        sleep(5);
+        //sleep(5);
         //roll(deviceController,20);
         
         //Test catchSig
