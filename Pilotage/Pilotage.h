@@ -40,8 +40,8 @@
 
 /*---Watchdog et signaux---*/
 #define IFPRINT 1
-#define TIMEOUT 46000
-#define CYCLE 125000
+#define TIMEOUT 250000
+#define CYCLE 83000
 /*-------------------------*/
 
 
