@@ -49,28 +49,6 @@ void myPrint(char *toPrint){
     if(IFPRINT) printf("%s",toPrint);
 }
 
-/*void *watch_dog(){
-    while(1){
-        usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
-        if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
-            gettimeofday(&watch, NULL); //Recuperer le temps reel
-            sprintf(toPrint,"watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec);
-            myPrint(toPrint);
-            if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
-                myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
-                //MODIF
-                if(deviceController!=NULL){
-                    stop(deviceController);
-                }
-                //MODIF
-                //endProg();
-                break;
-            }
-        }
-    }
-    return 0;
-}*/
-
 // Attraper tous les signaux sauf control-Z
 void catchSig(int sig){
     sprintf(toPrint,"CAUGHT %d\n",sig);
@@ -95,9 +73,6 @@ int main_Pilotage (int (*functionPtr)(const char*))
     for(i = 1; i <=SIGRTMIN ; i++){
         if(i != SIGTSTP) signal(i,catchSig);
     }
-
-    // Watch Dog
-    //pthread_create(&threads, NULL, watch_dog, NULL);
 
     /*---------Choix paramètre programme------------*/
     printf("\n Fly: oui(1), non(0)\n");
@@ -241,33 +216,15 @@ controlDevice(&failed);
             usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
             if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
                 gettimeofday(&watch, NULL); //Recuperer le temps reel
-                sprintf(toPrint,"watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec);
-                myPrint(toPrint);
                 if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
                     myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
+                    sprintf(toPrint,"watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec);
+                    myPrint(toPrint);
                     endProg();
                     break;
                 }
             }
         }
-
-        //sleep(5);
-        //roll(deviceController,20);
-        
-        //Test catchSig
-        sleep(1000);
-
-        //Test Watchdog
-        /*
-        for(i=0;i<200;i++){
-            usleep(125000); //3/24
-            callback(NULL,1);
-        }
-        while(1){
-            //wait to be killed
-        }*/
-
-        //pthread_join(threads, NULL);
     }
     
     
@@ -279,7 +236,6 @@ controlDevice(&failed);
  *****************************************/
 
 // we are here because of a disconnection or user has quit IHM, so safely delete everything
-    //endProg();
     return EXIT_SUCCESS;
 }
 
@@ -302,10 +258,10 @@ void callbackPilote(int index,int ifStop){
         if(deviceController != NULL && !NullError){
             //Affichage de la matrice dedécision
             
-            //printf("STATE:\n");
+            printf("STATE:\n");
             int i,j;
             for(i=0;i<4;i++){
-                //printf("[%d , %d]\n",state[i][0],state[i][1]);
+                printf("[%d , %d]\n",state[i][0],state[i][1]);
             }
             
             //Arrêt de la commande en cour
