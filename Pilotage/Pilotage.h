@@ -26,8 +26,8 @@
 #define HIGH_PITCH_ANGLE 30
                             //% d'Angle max (Roll et Pitch)
 #define LOW_ROLL_ANGLE 3
-#define MID_ROLL_ANGLE 10 
-#define HIGH_ROLL_ANGLE 15
+#define MID_ROLL_ANGLE 7 
+#define HIGH_ROLL_ANGLE 10
                             //GAZ= MONTER/DESCENDRE , ROLL=GAUCHE/DROITE , PITCH=AVANT/ARRIERE , ROT=ROTATION
 #define HIGH_GAZ_SPEED 10
 #define MID_GAZ_SPEED 20 
@@ -40,7 +40,7 @@
 
 /*---Watchdog et signaux---*/
 #define IFPRINT 1
-#define TIMEOUT 500000
+#define TIMEOUT 45000
 #define CYCLE 83000
 /*-------------------------*/
 
@@ -119,6 +119,10 @@ void pitch(ARCONTROLLER_Device_t *deviceController,int valeur);
 
 void stop(ARCONTROLLER_Device_t *deviceController);
 /*--------------------------------------------------------------*/
+
+/*---------------------UI------------------*/
+void choiceParams(int *fps); //Selection des paramètre du programme (alumage des moteur/affichage caméra)
+/*-----------------------------------------*/
 
 /*-----------Gestion de la liaison avec le drone---------*/
 void endProg(); // Suite d'instructions (arrêt, atterrissage, déconection ...) terminant le programme

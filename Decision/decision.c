@@ -645,8 +645,10 @@ void analyseInterpretation(int **cordonnees)
         for (int k=0; k<2;k++){
             //printf("[%d]",cordonnees[i][k]);
             fprintf(fichier,"[%d] ",cordonnees[i][k]);
+            printf("[%d] ",cordonnees[i][k]);
         }
         fprintf(fichier,"\n");
+        printf("\n");
         //printf("\n");
     }
     fprintf(fichier,"\n");

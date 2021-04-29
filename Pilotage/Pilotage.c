@@ -25,7 +25,7 @@ eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 struct timeval counter, watch;
 pid_t child = 0;
 pthread_t threads;
-char toPrint[50];
+char toPrint[100];
 
 //Tableau 2D contenant les valeurs d'amplitudes de mouvements pour chaque déplacements 
 int tabPrc[4][4]={
@@ -49,8 +49,7 @@ void myPrint(char *toPrint){
     if(IFPRINT) printf("%s",toPrint);
 }
 
-void *watch_dog(){
-    
+/*void *watch_dog(){
     while(1){
         usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
         if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
@@ -70,7 +69,7 @@ void *watch_dog(){
         }
     }
     return 0;
-}
+}*/
 
 // Attraper tous les signaux sauf control-Z
 void catchSig(int sig){
@@ -98,65 +97,10 @@ int main_Pilotage (int (*functionPtr)(const char*))
     }
 
     // Watch Dog
-    pthread_create(&threads, NULL, watch_dog, NULL);
+    //pthread_create(&threads, NULL, watch_dog, NULL);
 
     /*---------Choix paramètre programme------------*/
-    printf("\n Fly: oui(1), non(0)\n");
-    if(scanf("%d",&choice)==0 || (choice!=1 && choice!=0)){
-        printf("Entree non connue, no Fly par defaut\n");
-        choice = 0;
-        sleep(1);
-    }
-    if (choice==1)
-    {   
-        printf("Vol: oui");
-        fly=1;
-    }
-    else if(choice==0)
-    {
-        printf("Vol: non");
-        fly=0;
-    }
-
-    printf("\n Affichage caméra: oui(1), non(0)\n");
-    if(scanf("%d",&choice)==0 || (choice!=1 && choice!=0)){
-        printf("Entree non connue,  pas d'affichage par defaut\n");
-        choice = 0;
-        sleep(1);
-    }
-    if (choice==1)
-    {   
-        printf("Affichage caméra: oui\n\n");
-        display=1;
-    }
-    else if(choice==0)
-    {
-        printf("Affichage caméra: non\n\n");
-        display=0;
-    }
-    
-    printf("\nVideoCapture (0), mplayer(1) ou ffmpeg(2)?\n");
-    if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
-        printf("Entree non connue, VideoCapture par defaut\n");
-        choice = 0;
-        sleep(1);
-    }
-    else if(choice==1){
-        printf("mplayer\n");
-        sleep(1);
-    }
-    if(choice==2){
-        printf("FPS(1-24)?\n");
-        if(scanf("%d",&fps)==0 || fps>24 || fps<1){
-            printf("Entree non connue, 2 fps par defaut\n");
-            fps = 2;
-            sleep(1);
-        }
-    } 
-    if(choice==0){
-        myPrint("VideoCapture\n");
-        sleep(1);
-    } 
+    choiceParams(&fps);
     /*------------------------------------------------------*/
 
     if (mkdtemp(fifo_dir) == NULL)
@@ -235,13 +179,29 @@ controlDevice(&failed);
         {
             takeOff(deviceController);
         }
-        //watch_dog();
         start=1;
 
-        sleep(1000);
+        //Watchdog
+        while(1){
+            usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
+            if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
+                gettimeofday(&watch, NULL); //Recuperer le temps reel
+                //sprintf(toPrint,"watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec);
+                myPrint(toPrint);
+                if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
+                    myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
+                    land(deviceController);
+                    //endProg();
+                    break;
+                }
+            }
+        }
+
+        //sleep(5);
         //roll(deviceController,20);
         
         //Test catchSig
+        sleep(1000);
 
         //Test Watchdog
         /*
@@ -253,6 +213,7 @@ controlDevice(&failed);
             //wait to be killed
         }*/
 
+        //pthread_join(threads, NULL);
     }
     
     
@@ -287,11 +248,12 @@ void callbackPilote(int index,int ifStop){
         if(deviceController != NULL && !NullError){
             //Affichage de la matrice dedécision
             
-            printf("STATE:\n");
+            //printf("STATE:\n");
             int i,j;
             for(i=0;i<4;i++){
                 printf("[%d , %d]\n",state[i][0],state[i][1]);
             }
+            printf("\n");
             
             //Arrêt de la commande en cour
             stop(deviceController);
@@ -325,7 +287,7 @@ void callbackPilote(int index,int ifStop){
                             if (state[i][POS_INTENSITE]==AXE)
                             {   
                                 StateZero++;
-                                if (StateZero>10)
+                                if (StateZero>20)
                                 {
                                     stop(deviceController);
                                     land(deviceController);
@@ -334,7 +296,7 @@ void callbackPilote(int index,int ifStop){
                                     myPrint("Fin\n");
 
                                     //pthread_cancel(threads);
-                                    endProg(); //MODIF STRAFF
+                                    //endProg(); //MODIF STRAFF
                                     break;
                                 }
                              
@@ -395,6 +357,66 @@ int choixPourcentage(int pos_intensite, int type){
                     return 0;
                     break;
                 }
+}
+
+void choiceParams(int *fps){
+
+    printf("\n Fly: oui(1), non(0)\n");
+    if(scanf("%d",&choice)==0 || (choice!=1 && choice!=0)){
+        printf("Entree non connue, no Fly par defaut\n");
+        choice = 0;
+        sleep(1);
+    }
+    if (choice==1)
+    {   
+        printf("Vol: oui");
+        fly=1;
+    }
+    else if(choice==0)
+    {
+        printf("Vol: non");
+        fly=0;
+    }
+
+    printf("\n Affichage caméra: oui(1), non(0)\n");
+    if(scanf("%d",&choice)==0 || (choice!=1 && choice!=0)){
+        printf("Entree non connue,  pas d'affichage par defaut\n");
+        choice = 0;
+        sleep(1);
+    }
+    if (choice==1)
+    {   
+        printf("Affichage caméra: oui\n\n");
+        display=1;
+    }
+    else if(choice==0)
+    {
+        printf("Affichage caméra: non\n\n");
+        display=0;
+    }
+    
+    printf("\nVideoCapture (0), mplayer(1) ou ffmpeg(2)?\n");
+    if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
+        printf("Entree non connue, VideoCapture par defaut\n");
+        choice = 0;
+        sleep(1);
+    }
+    else if(choice==1){
+        printf("mplayer\n");
+        sleep(1);
+    }
+    if(choice==2){
+        printf("FPS(1-24)?\n");
+        if(scanf("%d",fps)==0 || *fps>24 || *fps<1){
+            printf("Entree non connue, 2 fps par defaut\n");
+            fps = 2;
+            sleep(1);
+        }
+    } 
+    if(choice==0){
+        myPrint("VideoCapture\n");
+        sleep(1);
+    } 
 }
 
 void controlDevice(int *failed){
@@ -555,7 +577,6 @@ void endProg(){
             ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Disconnecting ...");
 
             error = ARCONTROLLER_Device_Stop (deviceController);
-
             if (error == ARCONTROLLER_OK)
             {
                 // wait state update update
