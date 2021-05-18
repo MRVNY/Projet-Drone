@@ -148,90 +148,116 @@ void erreur(int*** resultat){
     }
 }
 
-int video_reader_process(const char* infile) {
+void * video_reader_process(const char* infile) {
     
-    int ** resultat= (int**) malloc( 4 * sizeof (int*) );
-
-    if(resultat == NULL){
-        fprintf(stderr,"probleme d'allocation\n");
-        return 1;
-    }
-
-    for ( int i = 0 ; i < 4 ; ++i ) {     
-        resultat[i] = ( int * ) malloc( 2 * sizeof(int) ) ;       
-        if (  resultat[i]== NULL ){
-            fprintf(stderr,"probleme d'allocation\n");
-            return 1;
-        }   
-    }
-
-    String filename(infile); // necessaire?
-
     VideoCapture capture(infile,CAP_FFMPEG);
 
-    capture.set(CAP_PROP_FOURCC, VideoWriter::fourcc('H','2','6','4'));
-    capture.set(CAP_PROP_FRAME_WIDTH, 1280);
-    capture.set(CAP_PROP_FRAME_HEIGHT, 720);
-
-    if (!capture.isOpened()) {
-        printf("NOT OPENED\n");
-    }
-
-    cv::Mat frame;
-    int frameIndex=0;
-    int i=0;
-    while(!endProgState){
-
-        if(start){
-            clock_t begin_capture = clock();
-
-            if (!capture.read(frame)) {
-                exit(1);
-            }
-            clock_t end_capture = clock();
-
-            cv::Mat greyMat;
-            cv::cvtColor(frame, greyMat, COLOR_BGR2GRAY);
-
-            if(frameIndex%2==0){
-                
-                //Calcul temp de process d'image
-                clock_t begin_process = clock();
-
-                image_processing(greyMat,&resultat);
-
-                clock_t end_process = clock();
-
-                //Calcul temps analyse
-                clock_t begin_analyse = clock();
-
-                analyseInterpretation(resultat);
-
-                clock_t end_analyse = clock();
-
-                /*-------ECRITURE LOGS---------*/
-                double time_spent_proc = (double)(end_process - begin_process) / CLOCKS_PER_SEC;
-                double time_spent_anal = (double)(end_analyse - begin_analyse) / CLOCKS_PER_SEC;
-                double time_spent_capture = (double)(end_capture - begin_capture) / CLOCKS_PER_SEC;
-
-                if(i<NB_VALS_LOGS)
-                {
-                    tab_Logs.bas_niveau[i]=time_spent_proc;
-                    tab_Logs.pilotage_decsion[i]=time_spent_anal;
-                    tab_Logs.capture[i]=time_spent_capture;
-                    i++;
-                }
-                /*-----------------------------*/
+    try
+    {
         
-            }
+        int ** resultat= (int**) malloc( 4 * sizeof (int*) );
 
-            frameIndex++;
-
-            //cv::imshow("BAS NIVEAU", frame);
-            //cv::waitKey(30);
+        if(resultat == NULL){
+            fprintf(stderr,"probleme d'allocation\n");
+            return (void*) 1;
         }
+
+        for ( int i = 0 ; i < 4 ; ++i ) {     
+            resultat[i] = ( int * ) malloc( 2 * sizeof(int) ) ;       
+            if (  resultat[i]== NULL ){
+                fprintf(stderr,"probleme d'allocation\n");
+                return (void*) 1;
+            }   
+        }
+
+        String filename(infile); // necessaire?
+
+        //VideoCapture capture(infile,CAP_FFMPEG);
+
+        capture.set(CAP_PROP_FOURCC, VideoWriter::fourcc('H','2','6','4'));
+        capture.set(CAP_PROP_FRAME_WIDTH, 1280);
+        capture.set(CAP_PROP_FRAME_HEIGHT, 720);
+
+        if (!capture.isOpened()) {
+            printf("NOT OPENED\n");
+        }
+
+        cv::Mat frame;
+        int frameIndex=0;
+        int i=0;
+        while(!endProgState){
+
+            if(start){
+                /*-------TEST EXEPTION--------*/
+                std::cout<<"TestException\n";
+                throw "yee";
+                /*---------------------------*/
+
+                clock_t begin_capture = clock();
+
+                if (!capture.read(frame)) {
+                    std::cout<<"Erreur read frame"<<'\n';
+                    exit(1);
+                }
+                clock_t end_capture = clock();
+
+                cv::Mat greyMat;
+                cv::cvtColor(frame, greyMat, COLOR_BGR2GRAY);
+
+                if(frameIndex%2==0){
+                    
+                    //Calcul temp de process d'image
+                    clock_t begin_process = clock();
+
+                    image_processing(greyMat,&resultat);
+
+                    clock_t end_process = clock();
+
+                    //Calcul temps analyse
+                    clock_t begin_analyse = clock();
+
+                    analyseInterpretation(resultat);
+
+                    clock_t end_analyse = clock();
+
+                    /*-------ECRITURE LOGS---------*/
+                    double time_spent_proc = (double)(end_process - begin_process) / CLOCKS_PER_SEC;
+                    double time_spent_anal = (double)(end_analyse - begin_analyse) / CLOCKS_PER_SEC;
+                    double time_spent_capture = (double)(end_capture - begin_capture) / CLOCKS_PER_SEC;
+
+                    if(i<NB_VALS_LOGS)
+                    {
+                        tab_Logs.bas_niveau[i]=time_spent_proc;
+                        tab_Logs.pilotage_decsion[i]=time_spent_anal;
+                        tab_Logs.capture[i]=time_spent_capture;
+                        i++;
+                    }
+                    /*-----------------------------*/
+            
+                }
+
+                frameIndex++;
+
+                //cv::imshow("BAS NIVEAU", frame);
+                //cv::waitKey(30);
+            }
+        }
+        printf("Fin video_reader_process\n");    
     }
-    printf("Fin video_reader_process\n");
+    catch(/*const std::exception& e*/const char* msg)
+    {   
+        /*------Gestion de l'exception-----*/
+        std::cout<<"Exception cpp: arrêt commande"<<'\n';
+        callbackPilote(-1,-1);//Appel de la partie pilote pour arrêter la commande en cour
+        /*---------------------------------*/
+        std::cout<<"fin du thread vidéo"<<'\n';
+
+        fflush (videoOut);
+        fclose (videoOut);
+
+        return (void*)-1;
+    }
+    
 } 
 
 int video_reader_process2(const char* infile) {
@@ -667,7 +693,8 @@ void image_processing(cv::Mat image,int*** resultat){
         (*resultat)[2][1]=(*resultat)[3][1];;
         (*resultat)[3][1]=tmp2;
     }
-               
+          
+        if(display){     
     // affichage en couleurs pour tester nos resultats   
         cv::Mat3b grayBGR;
                             
@@ -705,7 +732,7 @@ void image_processing(cv::Mat image,int*** resultat){
                
             //cv::imwrite("image.jpg", image);
             //cv::imwrite("imagebgr.jpg", grayBGR);
-            if(display){
+            
                 cv::imshow("BAS NIVEAU", grayBGR);
                 cv::waitKey(1); 
             }

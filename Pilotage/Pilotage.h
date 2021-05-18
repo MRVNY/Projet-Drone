@@ -12,8 +12,8 @@
 
 /*--------------PARROT------------------*/
 #define ERROR_STR_LENGTH 2048
-//#define BEBOP_IP_ADDRESS "192.168.42.1"
-#define BEBOP_IP_ADDRESS "10.202.0.1"
+#define BEBOP_IP_ADDRESS "192.168.42.1"
+//#define BEBOP_IP_ADDRESS "10.202.0.1"
 #define BEBOP_DISCOVERY_PORT 44444
 #define DISPLAY_WITH_MPLAYER 1
 #define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
@@ -40,7 +40,7 @@
 
 /*---Watchdog et signaux---*/
 #define IFPRINT 1
-#define TIMEOUT 45000
+#define TIMEOUT 2000000
 #define CYCLE 83000
 /*-------------------------*/
 
@@ -83,7 +83,7 @@ extern "C" {
 /*
 functionPtr -> pointeur sur la fonction vidéo_reader_process en C++ de Bas_niveau
 */
-int main_Pilotage (int (*functionPtr)(const char*));
+int main_Pilotage (void * (*functionPtr)(const char*));
  
 #if defined (__cplusplus)
 }
@@ -141,7 +141,7 @@ int choixPourcentage(int pos_intensite, int type); //Définit selon le type de d
 /*-------------------------------------------------------------------------*/
 
 /*----------WATCHDOG et SIGNAUX--------------*/
-void watch_dog(); // Lancer watchdog chaque CYCLE et verifier si le decalage entre le counter et le temps reel est < TIMEOUT, sinon arreter le programme
+void watchdog(); // Lancer watchdog chaque CYCLE et verifier si le decalage entre le counter et le temps reel est < TIMEOUT, sinon arreter le programme
 void catchSig(); // Attraper tous les signaux sauf control-Z
 void myPrint(char *toPrint); // Afficher les infos supplementaires (pour debug)
 /*-------------------------------------------*/

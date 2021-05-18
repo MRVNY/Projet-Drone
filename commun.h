@@ -41,6 +41,9 @@ EXTERN int start;
 EXTERN int display;
 // Deplacement drone (effectue ou non les commandes)
 EXTERN int fly;
+// Vairables gestion du flux vidéo
+EXTERN char fifo_name[128];
+EXTERN FILE *videoOut;
 /*-------------------------------------------*/
 
 // La convention sur les états 

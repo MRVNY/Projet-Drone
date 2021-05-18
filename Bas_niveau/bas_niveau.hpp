@@ -240,7 +240,7 @@ bool is_triangle(SPoint p1, SPoint q1, SPoint p2);                              
 //                        Fonctions de traitement d'images                       //
 ///////////////////////////////////////////////////////////////////////////////////
 void erreur(int*** resultat);// METS LES POSITIONS DES POINTS A -1               //
-int video_reader_process(const char* infile);                                    //
+void * video_reader_process(const char* infile);                                    //
 int video_reader_process2(const char* infile);                                   //
 void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_ctx, AVFrame* av_frame, AVFrame* decrame); 
 //                                                                               // FONCTION DE DESALLOCATION

@@ -10,11 +10,11 @@ static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController
 /*--------------Variable globales---------------*/
 //Vars globales Parrot
 static char fifo_dir[] = FIFO_DIR_PATTERN;
-static char fifo_name[128] = "";
+//static char fifo_name[128] = "";
 int gIHMRun = 1;
 int choice;
 char gErrorStr[ERROR_STR_LENGTH];
-FILE *videoOut = NULL;
+//FILE *videoOut = NULL;
 ARCONTROLLER_Device_t *deviceController = NULL;
 ARSAL_Sem_t stateSem;
 ARDISCOVERY_Device_t *device = NULL;
@@ -24,7 +24,8 @@ eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 //Vars globales watchdog 
 struct timeval counter, watch;
 pid_t child = 0;
-pthread_t threads;
+pthread_t videoThread;
+pthread_t dogThread;
 char toPrint[100];
 
 //Tableau 2D contenant les valeurs d'amplitudes de mouvements pour chaque déplacements 
@@ -73,8 +74,10 @@ void catchSig(int sig){
     return 0;
 }
 
-int main_Pilotage (int (*functionPtr)(const char*))
+int main_Pilotage (void * (*functionPtr)(const char*))
 {
+    fifo_name[128] = "";
+    videoOut = NULL;
     //Local declaration
     int failed = 0;
     int fps;
@@ -115,7 +118,7 @@ int main_Pilotage (int (*functionPtr)(const char*))
     {
         if (DISPLAY_WITH_MPLAYER)
         {
-            if(choice==0) pthread_create(&threads, NULL, functionPtr, fifo_name);
+            if(choice==0) pthread_create(&videoThread, NULL, functionPtr, fifo_name);
 
             // fork the process to launch mplayer
             else if (choice!=0 && (child = fork()) == 0)
@@ -170,45 +173,23 @@ controlDevice(&failed);
         {
             takeOff(deviceController);
         }
+
+        pthread_create(&dogThread, NULL, watchdog,NULL);
         start=1;
 
-<<<<<<< HEAD
-        //Watchdog
-        while(1){
-            usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
-            if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
-                gettimeofday(&watch, NULL); //Recuperer le temps reel
-                //sprintf(toPrint,"watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec);
-                myPrint(toPrint);
-                if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
-                    myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
-                    land(deviceController);
-                    //endProg();
-                    break;
-                }
-            }
-        }
-
-        //sleep(5);
-        //roll(deviceController,20);
+        void * status;
         
-        //Test catchSig
-        sleep(1000);
-
-        //Test Watchdog
-        /*
-        for(i=0;i<200;i++){
-            usleep(125000); //3/24
-            callback(NULL,1);
+        /*-------REBOOT thread vidéo--------*/
+        while(!endProgState){
+            pthread_join(videoThread,&status);
+            printf("Reboot Thread Video\n");
+            videoOut = fopen(fifo_name, "w");
+            pthread_create(&videoThread, NULL, functionPtr, fifo_name);
         }
-        while(1){
-            //wait to be killed
-        }*/
-
-        //pthread_join(threads, NULL);
-=======
-        watchdog();
->>>>>>> 577c498a5b9c235d5231fb4dafc12c3fb8002e77
+        /*--------------------------------*/
+        //sleep(1);
+        //printf("%d\n",*(int*)status);   
+        endProg();
     }
     
     
@@ -230,6 +211,11 @@ controlDevice(&failed);
 int cpt =0;
 void callbackPilote(int index,int ifStop){
     
+    if(index==-1){
+        stop(deviceController);
+        return;
+    }
+
     int NullError=0;
     int (*state)[4] = tab_Sestimatin[index].matrice;
     if (state==NULL)
@@ -726,10 +712,11 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
         if (codec.type == ARCONTROLLER_STREAM_CODEC_TYPE_H264)
         {
             if (DISPLAY_WITH_MPLAYER)
-            {
+            {   
+                //printf("codecI\n");
                 fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
                 fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
-
+                //printf("codecF\n");
                 fflush (videoOut);
             }
         }
@@ -752,8 +739,9 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
         {
             if (DISPLAY_WITH_MPLAYER)
             {
+                //printf("start\n");
                 fwrite(frame->data, frame->used, 1, videoOut);
-
+                //printf("finish\n");
                 fflush (videoOut);
             }
         }

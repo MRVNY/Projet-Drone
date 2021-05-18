@@ -8,7 +8,7 @@ extern "C" {
 int main()
 {   
     //Pointeur de fonction pointant sur la fonction de "Bas_niveau" utilisant opencv 
-    int (*functionPtr)(const char*);
+    void * (*functionPtr)(const char*);
     functionPtr=&video_reader_process;
 
     //On le passe au main de la partie pilotage (C)
