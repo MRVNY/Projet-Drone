@@ -18,13 +18,10 @@
 
 
 // à définir avec le calibrage et la capacité de la partie imagerie (pour avancer_reculer)
-#define BORNE_FAR_BACK 3 
-#define BORNE_CLOSE_BACK 1
-#define BORNE_AXE 0.5
-#define BORNE_CLOSE_FRONT 0.3
-#define BORNE_FAR_FRONT 0.1 
-#define BORNE_EXTREM_FRONT 0
-#define BORNE_EXTREM_BACK  4  
+#define BORNE_FAR_BACK 90 // tres loin en arriere 
+#define BORNE_CLOSE_BACK 150 // un peu loin en arriere
+#define BORNE_CLOSE_FRONT 220 // proche
+
 
 // à définir avec le calibrage (pour ROTATION)
 #define BORNE_FAR_ROTATION 3/10 
@@ -43,18 +40,18 @@ int is_bottom(int a);
 void current_state_y(int **cordonnee);
 void current_state_x(int **cordonnee);
 int get_nb_pixel(int **cordonnee);
-void current_state_z(int **cordonnee, int **tab);
+void current_state_z(int **cordonnee);
 float calcul_ratio1( int a , int b , int c);
 float calcul_ratio2( int a , int b , int c);
 int is_much_turned(float ratio);
 int is_less_turned(float ratio);
 int get_direction( int a , int b );
 void direction_ratio( int **coordonnee, int *direction, float *ratio );
-void current_state_rotation(int **cordonnee,int **tab);
+void current_state_rotation(int **cordonnee);
 void isDefine(int **cordonnee, int *hirondelle_defined, int *nb_hirondelle_valide);
 void calcule_dx_dy(int **cordonnee, float *dx, float *dy);
 int analyseInterpretation_x_y(int **cordonnees);
 float calcule_dr(int **cordonnees);
-int analyseInterpretation_rotation(int **cordonnees,int **vecteur);
-int analyseInterpretation_z(int **cordonnees, int **vecteur);
+int analyseInterpretation_rotation(int **cordonnees);
+int analyseInterpretation_z(int **cordonnees);
 void analyseInterpretation(int **cordonnees);

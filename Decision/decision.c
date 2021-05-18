@@ -241,39 +241,36 @@ int get_nb_pixel(int **cordonnee)
 }
 
 void current_state_z(int **cordonnee)
-{
+{   printf("je suis dans current state z\n");
     // a ce stade normalement on voit toute la mire sous forme d'un carrée
     int nb_pixel = get_nb_pixel(cordonnee); // renvoie le nombre de pixels entre les hirondelles
 
-    if (nb_pixel >= BORNE_FAR_BACK)
+    if (nb_pixel <= BORNE_FAR_BACK)
     { // on est trop loin à l'arrière
+        printf("je suis très loin\n");
         tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE] = NEGATIF * FAR;
+        printf("%d\n",tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE]);
     }
     else
     {
-        if (nb_pixel >= BORNE_CLOSE_BACK)
-        { // on est trop loin à l'arrière
+        if (nb_pixel <= BORNE_CLOSE_BACK){
+            printf("jesuis un peuloi\n");
+             // on est trop loin à l'arrière
             tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE] = NEGATIF * CLOSE;
         }
         else
         {
-            if (nb_pixel >= BORNE_AXE)
-            { // on est trop loin à l'arrière
+            if (nb_pixel <= BORNE_CLOSE_FRONT){
+                printf("je suis dans l'axe\n");
+                 // axe
                 tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE] = AXE;
             }
             else
             {
-                if (nb_pixel >= BORNE_CLOSE_FRONT)
-                { // on est trop loin à l'arrière
-                    tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE] = POSITIF * CLOSE;
-                }
-                else
-                {
-                    if (nb_pixel >= BORNE_FAR_FRONT)
-                    { // on est trop loin à l'arrière
-                        tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE] = POSITIF * FAR;
-                    }
-                }
+                printf("jesuis proche\n");
+                tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE] = POSITIF * CLOSE;
+                
+               
             }
         }
     }
@@ -406,7 +403,7 @@ void current_state_rotation(int **cordonnee)
             }
             else
             {
-                tab_Sestimatin[index_courant].matrice,[ROTATION][POS_INTENSITE] = AXE;
+                tab_Sestimatin[index_courant].matrice[ROTATION][POS_INTENSITE] = AXE;
             }
         }
     }
@@ -598,7 +595,7 @@ int analyseInterpretation_z(int **cordonnees){
     //     dz_precedent= get_nb_pixel(cordonnees);
     // }
     int dz = get_nb_pixel(cordonnees);
-    if(stab_Sestimatin[index_historique].matrice[AVANT_ARRIERE][POS_INTENSITE]==tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE]&& tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE]!=AXE){ // on regarde si on est tjr dans la mm zone
+    if(tab_Sestimatin[index_historique].matrice[AVANT_ARRIERE][POS_INTENSITE]==tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE]&& tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE]!=AXE){ // on regarde si on est tjr dans la mm zone
         if(dz < dz_precedent){
             if(tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE]<0){ // SI ON EST DEJA EN ARRIRE  si la distance augmente on avance bien si elle diminue on avance mal
                 tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][EVALUATION] = BAD;
@@ -610,7 +607,7 @@ int analyseInterpretation_z(int **cordonnees){
         else{
             if(dz > dz_precedent){
                 if(tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE]<0){
-                    stab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][EVALUATION] = GOOD;
+                    tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][EVALUATION] = GOOD;
                 }else{
                     tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][EVALUATION] = BAD;
                 }
@@ -620,7 +617,7 @@ int analyseInterpretation_z(int **cordonnees){
         }
     }
     else{
-        tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE] = vecteur[AVANT_ARRIERE][POS_INTENSITE];
+        //tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE] = vecteur[AVANT_ARRIERE][POS_INTENSITE];
         tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][EVALUATION]=0;
 
     }
@@ -721,14 +718,10 @@ void analyseInterpretation(int **cordonnees)
 
 
                 if(analyseInterpretation_rotation(cordonnees)){
-                    int res_z = analyseInterpretation_z(cordonnees,vecteur);  // estimation de la position sur z
-                // }
+                    int res_z = analyseInterpretation_z(cordonnees);  // estimation de la position sur z
+                }
             }
         }
-        tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][POS_INTENSITE]=0;
-        tab_Sestimatin[index_courant].matrice[MONTER_DESCENDRE][EVALUATION]=0;
-        tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][POS_INTENSITE] = 0;
-        tab_Sestimatin[index_courant].matrice[AVANT_ARRIERE][EVALUATION] = 0;
         tab_Sestimatin[index_courant].matrice[ROTATION][POS_INTENSITE] = 0;
         tab_Sestimatin[index_courant].matrice[ROTATION][EVALUATION] = 0;
 
@@ -742,6 +735,19 @@ void analyseInterpretation(int **cordonnees)
         //     fprintf(fichier,"\n");
 
         // }
+        for(int i=0; i<TAILLE_SORTIE; i++){
+
+        printf("sortie[%d]\n",i);
+
+        for (int k=0; k<INFO_SORTIE;k++){
+
+            printf("%d ___",tab_Sestimatin[index_courant].matrice[i][k]);
+
+        }
+
+        printf("\n");
+
+       }
         
         if (index_courant == 0 && index_historique == 0){
             index_courant++;
@@ -765,6 +771,7 @@ void analyseInterpretation(int **cordonnees)
             }
         }
     }
+
 
 
 }
