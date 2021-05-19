@@ -243,7 +243,11 @@ void * video_reader_process(const char* infile) {
                 //cv::waitKey(30);
             }
         }
-        printf("Fin video_reader_process\n");    
+        printf("Fin video_reader_process\n");
+        capture.release();   
+        fflush (videoOut);
+        fclose (videoOut);
+        return (void*) EXIT_SUCCESS;  
     }
     catch(/*const std::exception& e*/const char* msg)
     {   
@@ -254,11 +258,10 @@ void * video_reader_process(const char* infile) {
         std::cout<<"fin du thread vidéo"<<'\n';
 
         capture.release();
-                
         fflush (videoOut);
-
         fclose (videoOut);
-        return (void*)-1;
+
+        return (void*) EXIT_FAILURE;
     }
     
 } 

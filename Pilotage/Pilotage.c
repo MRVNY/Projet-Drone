@@ -10,11 +10,9 @@ static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController
 /*--------------Variable globales---------------*/
 //Vars globales Parrot
 static char fifo_dir[] = FIFO_DIR_PATTERN;
-//static char fifo_name[128] = "";
 int gIHMRun = 1;
 int choice;
 char gErrorStr[ERROR_STR_LENGTH];
-//FILE *videoOut = NULL;
 ARCONTROLLER_Device_t *deviceController = NULL;
 ARSAL_Sem_t stateSem;
 ARDISCOVERY_Device_t *device = NULL;
@@ -111,8 +109,6 @@ int main_Pilotage (void * (*functionPtr)(const char*))
     }
 
     ARSAL_Sem_Init (&(stateSem), 0, 0);
-
-    //ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- Bebop 2 Test TakeOff and Landing --");
  
     if (!failed)
     {
@@ -180,6 +176,8 @@ controlDevice(&failed);
         void * status;
 
         pthread_join(videoThread,&status);
+
+        //REBOOT de thread
      
         endProg();
     }
@@ -200,7 +198,6 @@ controlDevice(&failed);
 /*Définitions des fonctions de pilotage*/
 
 //compteur pour ignorer un certain nombre de frames
-int cpt =0;
 void callbackPilote(int index,int ifStop){
     
     if(index==-1){
@@ -215,104 +212,104 @@ void callbackPilote(int index,int ifStop){
         NullError=1;
         myPrint("Erreur matrice nulle\n");
     }
-    if(1){
 
-        if(deviceController != NULL && !NullError){
-            //Affichage de la matrice dedécision
-            
-            printf("STATE:\n");
-            int i,j;
-            for(i=0;i<4;i++){
-                printf("[%d , %d]\n",state[i][0],state[i][1]);
-            }
-            printf("\n");
-            
-            //Arrêt de la commande en cour
-            stop(deviceController);
 
-            //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
-            if(ifStop==STOP){
-                myPrint("Stop");
-                //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
-                //endProg();
-                return;
-            }
+    if(deviceController != NULL && !NullError){
+        
+        //Affichage de la matrice dedécision
+        printf("STATE:\n");
+        int i,j;
+        for(i=0;i<4;i++){
+            printf("[%d , %d]\n",state[i][0],state[i][1]);
+        }
+        printf("\n");
+        
+        //Arrêt de la commande en cour
+        stop(deviceController);
 
-            //Tableau de la composition des mouvements
-            int composition[4]={0,0,0,0};    
-            int sum=0;
-            if(state){
-                //Parcour des différents mouvements
-                for(int i=STRAFER; i<=AVANT_ARRIERE; i++) { //MODIF STRAFF
+        //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
+        if(ifStop==STOP){
+            myPrint("Stop");
+            //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
+            //endProg();
+            return;
+        }
+
+        //Tableau de la composition des mouvements
+        int composition[4]={0,0,0,0};    
+        int sum=0;
+        if(state){
+            //Parcour des différents mouvements
+            for(int i=STRAFER; i<=AVANT_ARRIERE; i++) { //MODIF STRAFF
+                
+                sum+=abs(state[i][POS_INTENSITE]);
+                //Test de l'évaluation
+                if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
                     
-                    sum+=abs(state[i][POS_INTENSITE]);
-                    //Test de l'évaluation
-                    if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
-                        
-                        if(state[i][POS_INTENSITE]!=0){
-                            StateZero=0;
-                        }
-                        int sign=state[i][POS_INTENSITE]/abs(state[i][POS_INTENSITE]);
-                        sign=sign*-1;
-                        //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
-                        switch (i)
-                        {
-                        case STRAFER:
-                            //Modification pour ne prendre en compte que le STRAFF 
-                            /*if (state[i][POS_INTENSITE]==AXE)
-                            {   
-                                //StateZero++;
-                                if (StateZero>20)
-                                {
-                                    stop(deviceController);
-                                    land(deviceController);
-                                    //endProgState=1;
-                                    myPrint("Fin\n");
-                                    //endProg(); //MODIF STRAFF
-                                    break;
-                                }
-                             
-                            }*/
-                            //else if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
-                                //StateZero=0;
-                                composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
-                            //}
-                            break;
-                        case AVANT_ARRIERE:
-                            composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
-                            break;
-                        case MONTER_DESCENDRE:
-                            composition[MONTER_DESCENDRE]=sign*choixPourcentage(state[i][POS_INTENSITE],MONTER_DESCENDRE);
-                            break;
-                        case ROTATION:
-                            composition[ROTATION]=sign*choixPourcentage(state[i][POS_INTENSITE],ROTATION);
-                            break;
-                        default:
-                            break;
-                        }
+                    if(state[i][POS_INTENSITE]!=0){
+                        StateZero=0;
+                    }
+                    int sign=state[i][POS_INTENSITE]/abs(state[i][POS_INTENSITE]);
+                    sign=sign*-1;
+                    //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
+                    switch (i)
+                    {
+                    case STRAFER:
+                        //Modification pour ne prendre en compte que le STRAFF 
+                        /*if (state[i][POS_INTENSITE]==AXE)
+                        {   
+                            //StateZero++;
+                            if (StateZero>20)
+                            {
+                                stop(deviceController);
+                                land(deviceController);
+                                //endProgState=1;
+                                myPrint("Fin\n");
+                                //endProg(); //MODIF STRAFF
+                                break;
+                            }
+                            
+                        }*/
+                        //else if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
+                            //StateZero=0;
+                            composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
+                        //}
+                        break;
+                    case AVANT_ARRIERE:
+                        composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
+                        break;
+                    case MONTER_DESCENDRE:
+                        composition[MONTER_DESCENDRE]=sign*choixPourcentage(state[i][POS_INTENSITE],MONTER_DESCENDRE);
+                        break;
+                    case ROTATION:
+                        composition[ROTATION]=sign*choixPourcentage(state[i][POS_INTENSITE],ROTATION);
+                        break;
+                    default:
+                        break;
                     }
                 }
             }
-
-            if(sum==0){
-                StateZero++;
-                if(StateZero>20){
-                    land(deviceController);
-                }
-            }
-
-            //On compose les mouvement que l'on envoie au drone
-            roll(deviceController,composition[STRAFER]);
-            pitch(deviceController,composition[AVANT_ARRIERE]);
-            /*-------TEST AXE X (uniquement straffer)---------
-            pitch(deviceController,composition[AVANT_ARRIERE]); //MODIF STRAFF
-            gaz(deviceController,composition[MONTER_DESCENDRE]);
-            yaw(deviceController,composition[ROTATION]);
-            */
-            gettimeofday(&counter, NULL);
         }
+
+        //Condition attérissage et fin de programme
+        if(sum==0){
+            StateZero++;
+            if(StateZero>20){
+                land(deviceController);
+                endProgState=1;
+                return;
+            }
+        }
+
+        //On compose les mouvement que l'on envoie au drone
+        roll(deviceController,composition[STRAFER]);
+        pitch(deviceController,composition[AVANT_ARRIERE]);
+        /*gaz(deviceController,composition[MONTER_DESCENDRE]);
+        yaw(deviceController,composition[ROTATION]);*/
+        
+        gettimeofday(&counter, NULL);
     }
-    cpt++;
+
 }
 
 //Retourne la valeur de pourcentage d'angle/vitt selon le type de mouvement (cf Pilotage.h)
