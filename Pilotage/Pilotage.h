@@ -21,9 +21,9 @@
 /*---------------------------------------*/
 
 /*---Convention sur les amplitudes de déplacement---*/
-#define LOW_PITCH_ANGLE 10
-#define MID_PITCH_ANGLE 20  
-#define HIGH_PITCH_ANGLE 30
+#define LOW_PITCH_ANGLE 3
+#define MID_PITCH_ANGLE 7  
+#define HIGH_PITCH_ANGLE 10
                             //% d'Angle max (Roll et Pitch)
 #define LOW_ROLL_ANGLE 3
 #define MID_ROLL_ANGLE 7 

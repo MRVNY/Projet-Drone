@@ -150,11 +150,12 @@ void erreur(int*** resultat){
 
 void * video_reader_process(const char* infile) {
     
+    printf("Test\n");
     VideoCapture capture(infile,CAP_FFMPEG);
-
+    printf("ici\n");
     try
     {
-        
+
         int ** resultat= (int**) malloc( 4 * sizeof (int*) );
 
         if(resultat == NULL){
@@ -189,8 +190,8 @@ void * video_reader_process(const char* infile) {
 
             if(start){
                 /*-------TEST EXEPTION--------*/
-                std::cout<<"TestException\n";
-                throw "yee";
+                /*std::cout<<"TestException\n";
+                throw "yee";*/
                 /*---------------------------*/
 
                 clock_t begin_capture = clock();
@@ -252,9 +253,11 @@ void * video_reader_process(const char* infile) {
         /*---------------------------------*/
         std::cout<<"fin du thread vidéo"<<'\n';
 
+        capture.release();
+                
         fflush (videoOut);
-        fclose (videoOut);
 
+        fclose (videoOut);
         return (void*)-1;
     }
     

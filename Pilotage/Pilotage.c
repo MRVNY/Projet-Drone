@@ -37,7 +37,7 @@ int tabPrc[4][4]={
 };
 /*-------------------------------------------------*/
 int StateZero=0;
-
+ARCONTROLLER_Stream_Codec_t H264codec;
 
 /*****************************************
  *
@@ -178,17 +178,9 @@ controlDevice(&failed);
         start=1;
 
         void * status;
-        
-        /*-------REBOOT thread vidéo--------*/
-        while(!endProgState){
-            pthread_join(videoThread,&status);
-            printf("Reboot Thread Video\n");
-            videoOut = fopen(fifo_name, "w");
-            pthread_create(&videoThread, NULL, functionPtr, fifo_name);
-        }
-        /*--------------------------------*/
-        //sleep(1);
-        //printf("%d\n",*(int*)status);   
+
+        pthread_join(videoThread,&status);
+     
         endProg();
     }
     
@@ -248,15 +240,18 @@ void callbackPilote(int index,int ifStop){
 
             //Tableau de la composition des mouvements
             int composition[4]={0,0,0,0};    
-
+            int sum=0;
             if(state){
                 //Parcour des différents mouvements
-                for(int i=STRAFER; i<=STRAFER; i++) { //MODIF STRAFF
+                for(int i=STRAFER; i<=AVANT_ARRIERE; i++) { //MODIF STRAFF
                     
+                    sum+=abs(state[i][POS_INTENSITE]);
                     //Test de l'évaluation
                     if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
-                    //if(1){
-                        //Signe des déplacement (cf. common.h)
+                        
+                        if(state[i][POS_INTENSITE]!=0){
+                            StateZero=0;
+                        }
                         int sign=state[i][POS_INTENSITE]/abs(state[i][POS_INTENSITE]);
                         sign=sign*-1;
                         //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
@@ -264,28 +259,24 @@ void callbackPilote(int index,int ifStop){
                         {
                         case STRAFER:
                             //Modification pour ne prendre en compte que le STRAFF 
-                            if (state[i][POS_INTENSITE]==AXE)
+                            /*if (state[i][POS_INTENSITE]==AXE)
                             {   
-                                StateZero++;
+                                //StateZero++;
                                 if (StateZero>20)
                                 {
                                     stop(deviceController);
                                     land(deviceController);
                                     //endProgState=1;
-                                    //sleep(2);
                                     myPrint("Fin\n");
-
-                                    //pthread_cancel(threads);
                                     //endProg(); //MODIF STRAFF
                                     break;
                                 }
                              
-                            }
-                          
-                            else if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
-                                StateZero=0;
+                            }*/
+                            //else if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
+                                //StateZero=0;
                                 composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
-                            }
+                            //}
                             break;
                         case AVANT_ARRIERE:
                             composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
@@ -303,9 +294,16 @@ void callbackPilote(int index,int ifStop){
                 }
             }
 
+            if(sum==0){
+                StateZero++;
+                if(StateZero>20){
+                    land(deviceController);
+                }
+            }
+
             //On compose les mouvement que l'on envoie au drone
             roll(deviceController,composition[STRAFER]);
-
+            pitch(deviceController,composition[AVANT_ARRIERE]);
             /*-------TEST AXE X (uniquement straffer)---------
             pitch(deviceController,composition[AVANT_ARRIERE]); //MODIF STRAFF
             gaz(deviceController,composition[MONTER_DESCENDRE]);
@@ -706,7 +704,8 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
 
 
 eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, void *customData)
-{
+{   
+    H264codec=codec;
     if (videoOut != NULL)
     {
         if (codec.type == ARCONTROLLER_STREAM_CODEC_TYPE_H264)
@@ -752,7 +751,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     }
     else
     {
-        //ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
+        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
 
     return ARCONTROLLER_OK;
