@@ -203,10 +203,10 @@ extern "C" {
 #include <cmath>
 
 using namespace cv;
-#define VOISINAGE 3 /* Voisinage utilisé pour un pixel donnée : Si VOISINAGE=A , le voisinage utilisé est AxA */
-#define DISTANCE_MIN_ENTRE_PIXELS 1 /* distance minimum entre deux points, pour qu'ils ne soient pas dans le même point */
-#define DISTANCE_MAX_ENTRE_PIXELS 50
-#define MARGE_PIXEL_COLLINEAIRE 10
+#define VOISINAGE 3/* Voisinage utilisé pour un pixel donnée : Si VOISINAGE=A , le voisinage utilisé est AxA */
+#define DISTANCE_MIN_ENTRE_PIXELS 2 /* distance minimum entre deux points, pour qu'ils ne soient pas dans le même point */
+#define DISTANCE_MAX_ENTRE_PIXELS 150
+#define MARGE_PIXEL_COLLINEAIRE 0
 #define RAYON_CERCLES 5
 
 
