@@ -150,48 +150,45 @@ void erreur(int*** resultat){
 
 void * video_reader_process(const char* infile) {
     
-    printf("Test\n");
     VideoCapture capture(infile,CAP_FFMPEG);
-    printf("ici\n");
-    try
-    {
+    
+    int ** resultat= (int**) malloc( 4 * sizeof (int*) );
 
-        int ** resultat= (int**) malloc( 4 * sizeof (int*) );
+    if(resultat == NULL){
+        fprintf(stderr,"probleme d'allocation\n");
+        return (void*) 1;
+    }
 
-        if(resultat == NULL){
+    for ( int i = 0 ; i < 4 ; ++i ) {     
+        resultat[i] = ( int * ) malloc( 2 * sizeof(int) ) ;       
+        if (  resultat[i]== NULL ){
             fprintf(stderr,"probleme d'allocation\n");
             return (void*) 1;
-        }
+        }   
+    }
 
-        for ( int i = 0 ; i < 4 ; ++i ) {     
-            resultat[i] = ( int * ) malloc( 2 * sizeof(int) ) ;       
-            if (  resultat[i]== NULL ){
-                fprintf(stderr,"probleme d'allocation\n");
-                return (void*) 1;
-            }   
-        }
+    capture.set(CAP_PROP_FOURCC, VideoWriter::fourcc('H','2','6','4'));
+    capture.set(CAP_PROP_FRAME_WIDTH, 1280);
+    capture.set(CAP_PROP_FRAME_HEIGHT, 720);
 
-        String filename(infile); // necessaire?
+    if (!capture.isOpened()) {
+        printf("NOT OPENED\n");
+    }
 
-        //VideoCapture capture(infile,CAP_FFMPEG);
+    cv::Mat frame;
+    int frameIndex=0;
+    int i=0;
 
-        capture.set(CAP_PROP_FOURCC, VideoWriter::fourcc('H','2','6','4'));
-        capture.set(CAP_PROP_FRAME_WIDTH, 1280);
-        capture.set(CAP_PROP_FRAME_HEIGHT, 720);
-
-        if (!capture.isOpened()) {
-            printf("NOT OPENED\n");
-        }
-
-        cv::Mat frame;
-        int frameIndex=0;
-        int i=0;
-        while(!endProgState){
+    while(!endProgState){
+        try{
 
             if(start){
                 /*-------TEST EXEPTION--------*/
-                /*std::cout<<"TestException\n";
-                throw "yee";*/
+                if(frameIndex==5){
+                    frameIndex++;
+                    std::cout<<"TestException\n";
+                    throw "yee";
+                }
                 /*---------------------------*/
 
                 clock_t begin_capture = clock();
@@ -243,27 +240,28 @@ void * video_reader_process(const char* infile) {
                 //cv::waitKey(30);
             }
         }
-        printf("Fin video_reader_process\n");
-        capture.release();   
-        fflush (videoOut);
-        fclose (videoOut);
-        return (void*) EXIT_SUCCESS;  
-    }
-    catch(/*const std::exception& e*/const char* msg)
-    {   
-        /*------Gestion de l'exception-----*/
-        std::cout<<"Exception cpp: arrêt commande"<<'\n';
-        callbackPilote(-1,-1);//Appel de la partie pilote pour arrêter la commande en cour
-        /*---------------------------------*/
-        std::cout<<"fin du thread vidéo"<<'\n';
+        catch(/*const std::exception& e*/const char* msg){
+            if(!strcmp("yee",msg)){
+                printf("Caught yee\n");
+                continue;
+            }
+            else{
+                /*------Gestion de l'exception-----*/
+                std::cout<<"Exception cpp: arrêt commande"<<'\n';
+                callbackPilote(-1,-1);//Appel de la partie pilote pour arrêter la commande en cour
+                /*---------------------------------*/
+                std::cout<<"fin du thread vidéo"<<'\n';
 
-        capture.release();
-        fflush (videoOut);
-        fclose (videoOut);
+                fflush (videoOut);
+                fclose (videoOut);
 
-        return (void*) EXIT_FAILURE;
+                return (void*)-1;
+            }
+        }
     }
-    
+    printf("Fin video_reader_process\n");
+    fflush (videoOut);
+    fclose (videoOut);
 } 
 
 int video_reader_process2(const char* infile) {
