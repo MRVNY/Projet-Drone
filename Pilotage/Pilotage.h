@@ -29,13 +29,13 @@
 #define MID_ROLL_ANGLE 7 
 #define HIGH_ROLL_ANGLE 10
                             //GAZ= MONTER/DESCENDRE , ROLL=GAUCHE/DROITE , PITCH=AVANT/ARRIERE , ROT=ROTATION
-#define HIGH_GAZ_SPEED 10
-#define MID_GAZ_SPEED 20 
-#define LOW_GAZ_SPEED 30
+#define HIGH_GAZ_SPEED 5
+#define MID_GAZ_SPEED 10 
+#define LOW_GAZ_SPEED 12
                             //% de vitesse max (Gaz et rotation)
-#define HIGH_ROT_SPEED 10
-#define MID_ROT_SPEED 20 
-#define LOW_ROT_SPEED 30
+#define HIGH_ROT_SPEED 3
+#define MID_ROT_SPEED 7 
+#define LOW_ROT_SPEED 10
 /*--------------------------------------------------*/
 
 /*---Watchdog et signaux---*/

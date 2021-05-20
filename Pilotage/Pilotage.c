@@ -76,11 +76,13 @@ int main_Pilotage (void * (*functionPtr)(const char*))
 {
     fifo_name[128] = "";
     videoOut = NULL;
+    captCreate=1;
     //Local declaration
     int failed = 0;
     int fps;
     int frameNb = 0;
     int isBebop2 = 1;
+
 
     //Initialisation de enProg
     endProgState=0;
@@ -174,12 +176,13 @@ controlDevice(&failed);
         start=1;
 
         void * status;
-
         pthread_join(videoThread,&status);
 
         //REBOOT de thread
+        if((int)status==EXIT_SUCCESS){
+            endProg();
+        }
      
-        endProg();
     }
     
     
@@ -205,8 +208,23 @@ void callbackPilote(int index,int ifStop){
         return;
     }
 
+    /*if(ifStop==STOP){
+        myPrint("STOP\n");
+        land(deviceController);
+        endProgState==1;
+        return;
+    }*/
+
     int NullError=0;
-    int (*state)[4] = tab_Sestimatin[index].matrice;
+    int state[4][2]; 
+    for (int i = 0; i < TAILLE_SORTIE; i++)
+    {
+        for (int j = 0;j < INFO_SORTIE; j++)
+        {
+           state[i][j]=tab_Sestimatin[index].matrice[i][j];
+        }        
+    }
+
     if (state==NULL)
     {
         NullError=1;
@@ -228,27 +246,33 @@ void callbackPilote(int index,int ifStop){
         stop(deviceController);
 
         //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
-        if(ifStop==STOP){
+        /*if(ifStop==STOP){
             myPrint("Stop");
             //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
             //endProg();
             return;
-        }
+        }*/
 
         //Tableau de la composition des mouvements
-        int composition[4]={0,0,0,0};    
+        int composition[4]={0,0,0,0};
+
         int sum=0;
         if(state){
             //Parcour des différents mouvements
-            for(int i=STRAFER; i<=AVANT_ARRIERE; i++) { //MODIF STRAFF
+            for(int i=STRAFER; i<=ROTATION; i++) { //MODIF STRAFF
                 
-                sum+=abs(state[i][POS_INTENSITE]);
+                if(i!=MONTER_DESCENDRE||(state[i][EVALUATION]!=0/*&&state[i][EVALUATION]!=-1*/)){
+                    sum+=abs(state[i][POS_INTENSITE]);
+                }
                 //Test de l'évaluation
-                if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
+                if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0 ){
                     
-                    if(state[i][POS_INTENSITE]!=0){
-                        StateZero=0;
+                    if(state[i][POS_INTENSITE]!=0 /*&& i!=MONTER_DESCENDRE*/){
+                        if(i!=MONTER_DESCENDRE||(state[i][EVALUATION]!=0)){
+                            StateZero=0;
+                        }
                     }
+
                     int sign=state[i][POS_INTENSITE]/abs(state[i][POS_INTENSITE]);
                     sign=sign*-1;
                     //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
@@ -272,7 +296,7 @@ void callbackPilote(int index,int ifStop){
                         }*/
                         //else if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
                             //StateZero=0;
-                            composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
+                        composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
                         //}
                         break;
                     case AVANT_ARRIERE:
@@ -294,7 +318,7 @@ void callbackPilote(int index,int ifStop){
         //Condition attérissage et fin de programme
         if(sum==0){
             StateZero++;
-            if(StateZero>20){
+            if(StateZero>15){
                 land(deviceController);
                 endProgState=1;
                 return;
@@ -304,8 +328,8 @@ void callbackPilote(int index,int ifStop){
         //On compose les mouvement que l'on envoie au drone
         roll(deviceController,composition[STRAFER]);
         pitch(deviceController,composition[AVANT_ARRIERE]);
-        /*gaz(deviceController,composition[MONTER_DESCENDRE]);
-        yaw(deviceController,composition[ROTATION]);*/
+        gaz(deviceController,composition[MONTER_DESCENDRE]);
+        //yaw(deviceController,composition[ROTATION]);
         
         gettimeofday(&counter, NULL);
     }
