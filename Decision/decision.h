@@ -251,3 +251,108 @@ int is_much_turned(float ratio);
         int : O si le drone n'est pas trop tourné 
               1 sinon 
 */
+
+int is_less_turned(float ratio);
+/*
+    Une fonction pour savoir si le drone est un peu tourné 
+    args : 
+        ratio (float) : le rapport de déformation 
+    return :
+        int : O si le drone n'est pas un peu tourné 
+              1 sinon 
+*/
+
+float calcule_dr(int **cordonnees);
+/*
+    Une fonction pour evaluer le déplacement selon la rotation
+    args : 
+        cordonnee(int[4][2]) : la cordonnée reçues. 
+        
+    Return  : 
+        (float) : distance entre les coordonnées selon y de deux hirondelles
+*/
+
+float calcul_ratio1( int a , int b , int c);
+/*
+    Une fonction pour calucler le rapport de déformation selon la formule : |a - b| / |a - c|
+    Args : 
+        a(int): Une coordonnées selon x d'une hirondelles
+        b(int): Une coordonnées selon x d'une hirondelles
+        c(int): Une coordonnées selon x d'une hirondelles
+
+    Return : 
+        (float) : le ratio 
+
+*/
+
+float calcul_ratio2( int a , int b , int c);
+
+/*
+    Une fonction pour calucler le rapport de déformation selon la formule : |a - b| / (2 * |a - b| + |b - c|)
+    Args : 
+        a(int): Une coordonnées selon x d'une hirondelles
+        b(int): Une coordonnées selon x d'une hirondelles
+        c(int): Une coordonnées selon x d'une hirondelles
+
+    Return : 
+        (float) : le ratio 
+
+*/
+
+int get_direction( int a , int b );
+/*
+    Une fonction pour retrouver la direction de la rotation ( rotation gauche ou rotation droite)
+    Args : 
+        a(int) : la coordonnée selon x d'une hirondelle
+        b(int) : la coordonnée selon x d'une hirondelle
+
+    Return : 
+        (int) : -1 si c'est une rotation à gauche 
+                 1 si c'est une rotaiton à droite 
+*/
+
+void direction_ratio( int **coordonnee, int *direction, float *ratio );
+/*
+    Une fonction pour retrouver la direction ainsi que le rapport de déformation
+
+    Args:   
+        coordonnee(int[4][2]): les hirondelles reçues 
+        direction(int *)     : la direction de rotation (1 ou -1)
+        ratio(float *)       : le rapport de déformation     
+*/
+
+void current_state_rotation(int **cordonnee);
+/*
+    Une fonction pour estimer la position actuelle du drone selon l'axe de rotation
+    Args: 
+        cordonnee(int[4][2]): les hirondelles reçues
+*/
+
+int analyseInterpretation_rotation(int **cordonnees);
+/*
+    Une fonction pour estimer la position du drone et evaluer son deplacement selon la rotation 
+    Args : 
+    cordonnees(int [4][2])  : les hirondelles reçues
+
+    Return (int): 
+        0: si il est dans l'axe selon la rotation
+        1 sinon 
+*/
+
+
+
+// *********************************************** LA FONCTION PRINCIPALE  ********************************************************************
+
+void analyseInterpretation(int **cordonnees);
+/*
+    La fonction principale de la partie decision; elle renvoie la position selon tous les axes( x, y et z) et selon la rotation. 
+    Elle renvoie aussi l'evaluation du déplacement . 
+    Le résultat sera dirrectement reporté dans la variable partagée de type Sestimation. 
+
+    Args : 
+        cordonnees (int[4][2]): les hirondelelles reçues.
+
+
+
+
+*/

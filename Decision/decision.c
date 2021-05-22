@@ -3,7 +3,7 @@
 #include "decision.h"
 #include <math.h>
 #include "./commun.h"
-// #include "../Pilotage/Pilotage.h"
+#include "../Pilotage/Pilotage.h"
 
 
 // ****************************************** VARIABLES GLOBALES ********************************************************************************
@@ -755,18 +755,18 @@ void analyseInterpretation(int **cordonnees)
     */
 
     // _______________________________________________________FICHIER DE TESTE__________________________________________________
-    // FILE* fichier = fopen("test_decision.txt", "a");
-    // fprintf(fichier," les coordonnées reçues \n");
+    FILE* fichier = fopen("test_decision.txt", "a");
+    fprintf(fichier," les coordonnées reçues \n");
     for(int i=0; i<4; i++){
         for (int k=0; k<2;k++){
-            printf("[%d]",cordonnees[i][k]);
-            // fprintf(fichier,"[%d] ",cordonnees[i][k]);
+            //printf("[%d]",cordonnees[i][k]);
+            fprintf(fichier,"[%d] ",cordonnees[i][k]);
         }
-        //fprintf(fichier,"\n");
-        printf("\n");
+        fprintf(fichier,"\n");
+        //printf("\n");
     }
-    // fprintf(fichier,"\n");
-    printf("\n");
+    fprintf(fichier,"\n");
+    //printf("\n");
 
 
 
@@ -807,21 +807,21 @@ void analyseInterpretation(int **cordonnees)
             }
             
 
-            // callbackPilote(index_courant,STOP); // on s'arrête un instant 
-           //fprintf(fichier," on est perdu \n");
+            callbackPilote(index_courant,STOP); // on s'arrête un instant 
+            fprintf(fichier," on est perdu \n");
 
             
         }
         else{
-            // callbackPilote(index_historique,1);
-            // fprintf(fichier,"le résulat d'analyse \n"); 
-            // for(int i=0; i<TAILLE_SORTIE; i++){
-            //     fprintf(fichier,"sortie[%d]\n",i);
-            //     for (int k=0; k<INFO_SORTIE;k++){
-            //         fprintf(fichier,"%d ___",tab_Sestimatin[index_historique].matrice[i][k]);
-            //     }
-            //     fprintf(fichier,"\n");
-            // }
+            callbackPilote(index_historique,1);
+            fprintf(fichier,"le résulat d'analyse \n"); 
+            for(int i=0; i<TAILLE_SORTIE; i++){
+                fprintf(fichier,"sortie[%d]\n",i);
+                for (int k=0; k<INFO_SORTIE;k++){
+                    fprintf(fichier,"%d ___",tab_Sestimatin[index_historique].matrice[i][k]);
+                }
+                fprintf(fichier,"\n");
+            }
         }
 
 
@@ -842,35 +842,35 @@ void analyseInterpretation(int **cordonnees)
         }
         
         if (res_R){
-            // callbackPilote(index_courant,2);
+            callbackPilote(index_courant,2);
         }
         else{
-            // callbackPilote(index_courant,1);
+            callbackPilote(index_courant,1);
         }
         
         // _______________________________________________________FICHIER DE TESTE__________________________________________________
 
-        // fprintf(fichier,"le résulat d'analyse \n"); 
-        // for(int i=0; i<TAILLE_SORTIE; i++){
-        //     fprintf(fichier,"sortie[%d]\n",i);
-        //     for (int k=0; k<INFO_SORTIE;k++){
-        //         fprintf(fichier,"%d ___",tab_Sestimatin[index_courant].matrice[i][k]);
-        //     }
-        //     fprintf(fichier,"\n");
+        fprintf(fichier,"le résulat d'analyse \n"); 
+        for(int i=0; i<TAILLE_SORTIE; i++){
+            fprintf(fichier,"sortie[%d]\n",i);
+            for (int k=0; k<INFO_SORTIE;k++){
+                fprintf(fichier,"%d ___",tab_Sestimatin[index_courant].matrice[i][k]);
+            }
+            fprintf(fichier,"\n");
 
-        // }
+        }
         
 
-        for(int i=0; i<TAILLE_SORTIE; i++){
+        // for(int i=0; i<TAILLE_SORTIE; i++){
 
-            printf("sortie[%d]\n",i);
+        //     printf("sortie[%d]\n",i);
 
-            for (int k=0; k<INFO_SORTIE;k++){
-                printf("%d ___",tab_Sestimatin[index_courant].matrice[i][k]);
+        //     for (int k=0; k<INFO_SORTIE;k++){
+        //         printf("%d ___",tab_Sestimatin[index_courant].matrice[i][k]);
 
-            }
-            printf("\n");   
-        }
+        //     }
+        //     printf("\n");   
+        // }
 
         if (index_courant == 0 && index_historique == 0){
             index_courant++;
