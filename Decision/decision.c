@@ -16,7 +16,7 @@ int nb_hirondelle_valide = 0;                                                 //
 int index_courant = 0;                                                        // l'indice de la case du tableau à lire
 int index_historique = 0;                                                     // l'indice de la case du tableau qui contient l'historique
 int compteur_indefined = 10;                                                  // a fixer avec les résultat de l'algo de bas niveau
-
+int res_R=0;
 
 
 // ****************************************** FONCTION EN COMMUN  ********************************************************************************
@@ -779,7 +779,7 @@ void analyseInterpretation(int **cordonnees)
             tab_Sestimatin[index_courant].matrice[i][j] = 0;
         }
     }
-    int res_R=0;
+    
 
 
 
@@ -841,7 +841,7 @@ void analyseInterpretation(int **cordonnees)
             }
         }
         
-        if (res_R){
+        if (res_R == 1){
             callbackPilote(index_courant,2);
         }
         else{
