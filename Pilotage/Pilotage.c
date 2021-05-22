@@ -10,7 +10,6 @@ static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController
 /*--------------Variable globales---------------*/
 //Vars globales Parrot
 static char fifo_dir[] = FIFO_DIR_PATTERN;
-int gIHMRun = 1;
 int choice;
 char gErrorStr[ERROR_STR_LENGTH];
 ARCONTROLLER_Device_t *deviceController = NULL;
@@ -21,7 +20,6 @@ eARCONTROLLER_DEVICE_STATE deviceState = ARCONTROLLER_DEVICE_STATE_MAX;
 
 //Vars globales watchdog 
 struct timeval counter, watch;
-pid_t child = 0;
 pthread_t videoThread;
 pthread_t dogThread;
 char toPrint[100];
@@ -69,7 +67,6 @@ void catchSig(int sig){
     sprintf(toPrint,"CAUGHT %d\n",sig);
     myPrint(toPrint);
     endProg();
-    return 0;
 }
 
 int main_Pilotage (void * (*functionPtr)(const char*))
@@ -78,21 +75,18 @@ int main_Pilotage (void * (*functionPtr)(const char*))
     videoOut = NULL;
     //Local declaration
     int failed = 0;
-    int fps;
-    int frameNb = 0;
-    int isBebop2 = 1;
 
     //Initialisation de enProg
     endProgState=0;
     start=0;
-   // catch signaux
+    // catch signaux
     int i;
     for(i = 1; i <=SIGRTMIN ; i++){
         if(i != SIGTSTP) signal(i,catchSig);
     }
 
     /*---------Choix paramètre programme------------*/
-    choiceParams(&fps);
+    choiceParams();
     /*------------------------------------------------------*/
 
     if (mkdtemp(fifo_dir) == NULL)
@@ -112,31 +106,8 @@ int main_Pilotage (void * (*functionPtr)(const char*))
  
     if (!failed)
     {
-        if (DISPLAY_WITH_MPLAYER)
-        {
-            if(choice==0) pthread_create(&videoThread, NULL, functionPtr, fifo_name);
-
-            // fork the process to launch mplayer
-            else if (choice!=0 && (child = fork()) == 0)
-            {
-                if(choice==2){
-                    char str[5];
-                    sprintf(str,"%d",fps);
-                    execlp("ffmpeg", "ffmpeg", "-f", "h264", "-i", fifo_name, "-vf", "scale=-1:720", "-r",str, "outputs/%04d.jpeg", NULL);
-                    //execlp("ffmpeg", "ffmpeg", "-f", "h264", "-i", fifo_name,"-vcodec","copy","-vf", "scale=-1:720", "-acodec","none", "/tmp/test.mp4", NULL);
-                }
-                if(choice==1){
-                    execlp("xterm", "xterm", "-e", "mplayer", "-demuxer",  "h264es", fifo_name, "-benchmark", "-really-quiet", NULL);
-                    ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Missing mplayer, you will not see the video. Please install mplayer and xterm.");
-                }
-                return -1;
-                //(*functionPtr)(fifo_name);
-            }
-        }
-        if (DISPLAY_WITH_MPLAYER)
-        {
-            videoOut = fopen(fifo_name, "w");
-        }
+        if(choice==0) pthread_create(&videoThread, NULL, functionPtr, fifo_name);
+        videoOut = fopen(fifo_name, "w");
     }
 
 
@@ -147,7 +118,7 @@ int main_Pilotage (void * (*functionPtr)(const char*))
  *
  *****************************************/
 
-discoverDevice(&failed,isBebop2);
+discoverDevice(&failed);
 
 controlDevice(&failed);
 
@@ -167,7 +138,7 @@ controlDevice(&failed);
         
         if(fly)
         {
-            takeOff(deviceController);
+            takeOff();
         }
 
         pthread_create(&dogThread, NULL, watchdog,NULL);
@@ -179,7 +150,6 @@ controlDevice(&failed);
 
         //REBOOT de thread
      
-        endProg();
     }
     
     
@@ -189,8 +159,7 @@ controlDevice(&failed);
  *             de pilotage :
  *
  *****************************************/
-
-// we are here because of a disconnection or user has quit IHM, so safely delete everything
+    endProg();
     return EXIT_SUCCESS;
 }
 
@@ -201,31 +170,33 @@ controlDevice(&failed);
 void callbackPilote(int index,int ifStop){
     
     if(index==-1){
-        stop(deviceController);
+        stop();
         return;
     }
 
-    int NullError=0;
     int (*state)[4] = tab_Sestimatin[index].matrice;
-    if (state==NULL)
-    {
-        NullError=1;
+    if (state==NULL){
         myPrint("Erreur matrice nulle\n");
+        return;
     }
 
 
-    if(deviceController != NULL && !NullError){
+    if(deviceController != NULL && state != NULL){
         
+        int i, sign;
+        int composition[4] = {0,0,0,0}; //Tableau de la composition des mouvements
+        int sum = 0;
+
         //Affichage de la matrice dedécision
-        printf("STATE:\n");
-        int i,j;
-        for(i=0;i<4;i++){
-            printf("[%d , %d]\n",state[i][0],state[i][1]);
+        if(IFPRINT){
+            printf("STATE:\n");
+            for(i=0;i<4;i++)
+                printf("[%d , %d]\n",state[i][0],state[i][1]);
+            printf("\n");
         }
-        printf("\n");
         
-        //Arrêt de la commande en cour
-        stop(deviceController);
+        //Arrêt de la commande en cours
+        stop();
 
         //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
         if(ifStop==STOP){
@@ -235,59 +206,16 @@ void callbackPilote(int index,int ifStop){
             return;
         }
 
-        //Tableau de la composition des mouvements
-        int composition[4]={0,0,0,0};    
-        int sum=0;
-        if(state){
-            //Parcour des différents mouvements
-            for(int i=STRAFER; i<=AVANT_ARRIERE; i++) { //MODIF STRAFF
-                
-                sum+=abs(state[i][POS_INTENSITE]);
-                //Test de l'évaluation
-                if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
-                    
-                    if(state[i][POS_INTENSITE]!=0){
-                        StateZero=0;
-                    }
-                    int sign=state[i][POS_INTENSITE]/abs(state[i][POS_INTENSITE]);
-                    sign=sign*-1;
-                    //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
-                    switch (i)
-                    {
-                    case STRAFER:
-                        //Modification pour ne prendre en compte que le STRAFF 
-                        /*if (state[i][POS_INTENSITE]==AXE)
-                        {   
-                            //StateZero++;
-                            if (StateZero>20)
-                            {
-                                stop(deviceController);
-                                land(deviceController);
-                                //endProgState=1;
-                                myPrint("Fin\n");
-                                //endProg(); //MODIF STRAFF
-                                break;
-                            }
-                            
-                        }*/
-                        //else if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
-                            //StateZero=0;
-                            composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
-                        //}
-                        break;
-                    case AVANT_ARRIERE:
-                        composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
-                        break;
-                    case MONTER_DESCENDRE:
-                        composition[MONTER_DESCENDRE]=sign*choixPourcentage(state[i][POS_INTENSITE],MONTER_DESCENDRE);
-                        break;
-                    case ROTATION:
-                        composition[ROTATION]=sign*choixPourcentage(state[i][POS_INTENSITE],ROTATION);
-                        break;
-                    default:
-                        break;
-                    }
-                }
+        //Parcour des différents mouvements
+        for(i=STRAFER; i<=AVANT_ARRIERE; i++) {
+            
+            sum += abs(state[i][POS_INTENSITE]);
+            //Test de l'évaluation
+            if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
+
+                //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
+                sign = -state[i][POS_INTENSITE] / abs(state[i][POS_INTENSITE]);
+                composition[i] = sign * tabPrc[i][abs(state[i][POS_INTENSITE])];
             }
         }
 
@@ -295,46 +223,76 @@ void callbackPilote(int index,int ifStop){
         if(sum==0){
             StateZero++;
             if(StateZero>20){
-                land(deviceController);
+                land();
                 endProgState=1;
                 return;
             }
         }
+        else StateZero = 0;
 
         //On compose les mouvement que l'on envoie au drone
-        roll(deviceController,composition[STRAFER]);
-        pitch(deviceController,composition[AVANT_ARRIERE]);
-        /*gaz(deviceController,composition[MONTER_DESCENDRE]);
-        yaw(deviceController,composition[ROTATION]);*/
+        roll(composition[STRAFER]);
+        pitch(composition[AVANT_ARRIERE]);
+        /*gaz(composition[MONTER_DESCENDRE]);
+        yaw(composition[ROTATION]);*/
         
         gettimeofday(&counter, NULL);
     }
 
 }
 
-//Retourne la valeur de pourcentage d'angle/vitt selon le type de mouvement (cf Pilotage.h)
-int choixPourcentage(int pos_intensite, int type){
-    switch (abs(pos_intensite))
-                {
-                case AXE:
-                    return tabPrc[type][AXE];
-                    break;
-                case CLOSE:
-                    return tabPrc[type][CLOSE];
-                    break;
-                case FAR:
-                    return tabPrc[type][FAR];
-                    break;
-                case EXTREME:
-                    return tabPrc[type][EXTREME];
-                    break;
-                default:
-                    return 0;
-                    break;
-                }
+void endProg(){
+    /*------LOGS-------*/
+    FILE *fp1 = fopen("Logs.csv", "w");// création du
+    fprintf(fp1, "%s%s%s%s%s","Bas_nivea",",","Pilotage_decision",",","FrameCapture");
+    fprintf(fp1,"\n");
+
+    for (int i = 0; i<NB_VALS_LOGS;i++){
+        if(tab_Logs.bas_niveau[i]!=0&&tab_Logs.pilotage_decsion[i]!=0&&tab_Logs.capture[i]!=0){
+            fprintf(fp1, "%f%s%f%s%f",tab_Logs.bas_niveau[i],",",tab_Logs.pilotage_decsion[i],",",tab_Logs.capture[i]);
+            fprintf(fp1,"\n");
+        }
+    }
+    fclose(fp1);
+    /*-----------------*/
+    if (deviceController != NULL)
+    {
+        stop(deviceController);
+        sleep(2);
+        land(deviceController);
+
+        deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
+        if ((error == ARCONTROLLER_OK) && (deviceState != ARCONTROLLER_DEVICE_STATE_STOPPED))
+        {
+            ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Disconnecting ...");
+
+            error = ARCONTROLLER_Device_Stop (deviceController);
+            if (error == ARCONTROLLER_OK)
+            {
+                // wait state update update
+                ARSAL_Sem_Wait (&(stateSem));
+            }
+        }
+
+        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "ARCONTROLLER_Device_Delete ...");
+        ARCONTROLLER_Device_Delete (&deviceController);
+    }
+
+    fflush (videoOut);
+    fclose (videoOut);
+
+    ARSAL_Sem_Destroy (&(stateSem));
+
+    unlink(fifo_name);
+    rmdir(fifo_dir);
+
+    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
+
+    //END Watch Dog
+    //pthread_join(threads, NULL);
 }
 
-void choiceParams(int *fps){
+void choiceParams(){
 
     printf("\n Fly: oui(1), non(0)\n");
     if(scanf("%d",&choice)==0 || (choice!=1 && choice!=0)){
@@ -370,28 +328,7 @@ void choiceParams(int *fps){
         display=0;
     }
     
-    printf("\nVideoCapture (0), mplayer(1) ou ffmpeg(2)?\n");
-    if(scanf("%d",&choice)==0 || (choice!=2 && choice!=1 && choice!=0)){
-        printf("Entree non connue, VideoCapture par defaut\n");
-        choice = 0;
-        sleep(1);
-    }
-    else if(choice==1){
-        printf("mplayer\n");
-        sleep(1);
-    }
-    if(choice==2){
-        printf("FPS(1-24)?\n");
-        if(scanf("%d",fps)==0 || *fps>24 || *fps<1){
-            printf("Entree non connue, 2 fps par defaut\n");
-            fps = 2;
-            sleep(1);
-        }
-    } 
-    if(choice==0){
-        myPrint("VideoCapture\n");
-        sleep(1);
-    } 
+    choice = 0; //VideoCapture
 }
 
 void controlDevice(int *failed){
@@ -490,7 +427,7 @@ void controlDevice(int *failed){
     }
 }
 
-void discoverDevice(int *failed,int isBebop2){
+void discoverDevice(int *failed){
     if (!*failed)
     {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ... ");
@@ -503,14 +440,7 @@ void discoverDevice(int *failed,int isBebop2){
             ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "    - ARDISCOVERY_Device_InitWifi ...");
             // create a Bebop drone discovery device (ARDISCOVERY_PRODUCT_ARDRONE)
 
-            if(isBebop2)
-            {
-                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
-            }
-            else
-            {
-                errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_ARDRONE, "bebop", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
-            }
+            errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
 
             if (errorDiscovery != ARDISCOVERY_OK)
             {
@@ -524,66 +454,6 @@ void discoverDevice(int *failed,int isBebop2){
             failed = 1;
         }
     }
-}
-
-void endProg(){
-    /*------LOGS-------*/
-    FILE *fp1 = fopen("Logs.csv", "w");// création du
-    fprintf(fp1, "%s%s%s%s%s","Bas_nivea",",","Pilotage_decision",",","FrameCapture");
-    fprintf(fp1,"\n");
-
-    for (int i = 0; i<NB_VALS_LOGS;i++){
-        if(tab_Logs.bas_niveau[i]!=0&&tab_Logs.pilotage_decsion[i]!=0&&tab_Logs.capture[i]!=0){
-            fprintf(fp1, "%f%s%f%s%f",tab_Logs.bas_niveau[i],",",tab_Logs.pilotage_decsion[i],",",tab_Logs.capture[i]);
-            fprintf(fp1,"\n");
-        }
-    }
-    fclose(fp1);
-    /*-----------------*/
-    if (deviceController != NULL)
-    {
-        stop(deviceController);
-        sleep(2);
-        land(deviceController);
-
-        deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
-        if ((error == ARCONTROLLER_OK) && (deviceState != ARCONTROLLER_DEVICE_STATE_STOPPED))
-        {
-            ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Disconnecting ...");
-
-            error = ARCONTROLLER_Device_Stop (deviceController);
-            if (error == ARCONTROLLER_OK)
-            {
-                // wait state update update
-                ARSAL_Sem_Wait (&(stateSem));
-            }
-        }
-
-        ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "ARCONTROLLER_Device_Delete ...");
-        ARCONTROLLER_Device_Delete (&deviceController);
-
-        if (DISPLAY_WITH_MPLAYER)
-        {
-            fflush (videoOut);
-            fclose (videoOut);
-
-            if (child > 0)
-            {
-                kill(child, SIGKILL);
-            }
-        }
-    }
-
-    ARSAL_Sem_Destroy (&(stateSem));
-
-    unlink(fifo_name);
-    rmdir(fifo_dir);
-
-    ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
-
-    //END Watch Dog
-    //pthread_join(threads, NULL);
-    exit(0);
 }
 
 static void cmdBatteryStateChangedRcv(ARCONTROLLER_Device_t *deviceController, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary)
@@ -661,8 +531,6 @@ void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR erro
     {
     case ARCONTROLLER_DEVICE_STATE_STOPPED:
         ARSAL_Sem_Post (&(stateSem));
-        //stop
-        gIHMRun = 0;
 
         break;
 
@@ -674,8 +542,6 @@ void stateChanged (eARCONTROLLER_DEVICE_STATE newState, eARCONTROLLER_ERROR erro
         break;
     }
 }
-
-
 
 // called when a command has been received from the drone
 void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICTIONARY_ELEMENT_t *elementDictionary, void *customData)
@@ -699,7 +565,6 @@ void commandReceived (eARCONTROLLER_DICTIONARY_KEY commandKey, ARCONTROLLER_DICT
     }
 }
 
-
 eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, void *customData)
 {   
     H264codec=codec;
@@ -707,14 +572,9 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
     {
         if (codec.type == ARCONTROLLER_STREAM_CODEC_TYPE_H264)
         {
-            if (DISPLAY_WITH_MPLAYER)
-            {   
-                //printf("codecI\n");
-                fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
-                fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
-                //printf("codecF\n");
-                fflush (videoOut);
-            }
+            fwrite(codec.parameters.h264parameters.spsBuffer, codec.parameters.h264parameters.spsSize, 1, videoOut);
+            fwrite(codec.parameters.h264parameters.ppsBuffer, codec.parameters.h264parameters.ppsSize, 1, videoOut);
+            fflush (videoOut);
         }
 
     }
@@ -726,20 +586,14 @@ eARCONTROLLER_ERROR decoderConfigCallback (ARCONTROLLER_Stream_Codec_t codec, vo
     return ARCONTROLLER_OK;
 }
 
-
 eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *customData)
 {
     if (videoOut != NULL)
     {
         if (frame != NULL)
         {
-            if (DISPLAY_WITH_MPLAYER)
-            {
-                //printf("start\n");
-                fwrite(frame->data, frame->used, 1, videoOut);
-                //printf("finish\n");
-                fflush (videoOut);
-            }
+            fwrite(frame->data, frame->used, 1, videoOut);
+            fflush (videoOut);
         }
         else
         {
@@ -753,7 +607,6 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
 
     return ARCONTROLLER_OK;
 }
-
 
 int customPrintCallback (eARSAL_PRINT_LEVEL level, const char *tag, const char *format, va_list va)
 {
@@ -793,7 +646,7 @@ eARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE getFlyingState(ARCON
     return flyingState ;
 }
 
-void takeOff(ARCONTROLLER_Device_t *deviceController)
+void takeOff()
 {
     if (deviceController == NULL)
     {
@@ -805,7 +658,7 @@ void takeOff(ARCONTROLLER_Device_t *deviceController)
     }
 }
 
-void land(ARCONTROLLER_Device_t *deviceController)
+void land()
 {
     if (deviceController == NULL)
     {
@@ -818,36 +671,36 @@ void land(ARCONTROLLER_Device_t *deviceController)
     }
 }
 
-void gaz(ARCONTROLLER_Device_t *deviceController,int valeur){
+void gaz(int valeur){
     
     deviceController->aRDrone3->setPilotingPCMDGaz(deviceController->aRDrone3, valeur);
 }
 
-void yaw(ARCONTROLLER_Device_t *deviceController,int valeur){
+void yaw(int valeur){
     
     deviceController->aRDrone3->setPilotingPCMDYaw(deviceController->aRDrone3, valeur);    
 }
 
-void roll(ARCONTROLLER_Device_t *deviceController,int valeur){
+void roll(int valeur){
     
     deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
     deviceController->aRDrone3->setPilotingPCMDRoll(deviceController->aRDrone3, valeur);
 }
 
-void pitch(ARCONTROLLER_Device_t *deviceController,int valeur){
+void pitch(int valeur){
 
     deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
     deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, valeur);
 }
 
-void stop(ARCONTROLLER_Device_t *deviceController){
+void stop(){
     deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
 }
 
-void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur){
+void setMaxVerticalSpeed(int valeur){
     deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,valeur);
 }
 
-void setMaxRotationSpeed(ARCONTROLLER_Device_t *deviceController,int valeur){
+void setMaxRotationSpeed(int valeur){
     deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, valeur); 
 }
