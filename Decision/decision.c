@@ -843,6 +843,8 @@ void analyseInterpretation(int **cordonnees)
         
         if (res_R == 1){
             callbackPilote(index_courant,2);
+            fprintf(fichier,"################## on a envoyer 2 ################################################## \n"); 
+
         }
         else{
             callbackPilote(index_courant,1);
