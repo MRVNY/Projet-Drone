@@ -17,6 +17,7 @@ int index_courant = 0;                                                        //
 int index_historique = 0;                                                     // l'indice de la case du tableau qui contient l'historique
 int compteur_indefined = 10;                                                  // a fixer avec les résultat de l'algo de bas niveau
 int res_R=0;
+int res_Z =0;
 
 
 // ****************************************** FONCTION EN COMMUN  ********************************************************************************
@@ -833,8 +834,8 @@ void analyseInterpretation(int **cordonnees)
         }
         else{
             if (analyseInterpretation_y(cordonnees)){ // si on est dans l'AXE sur les axes x et y on peut faire la rotation
-               if(analyseInterpretation_x(cordonnees)){
-                    if(analyseInterpretation_z(cordonnees)){
+               if(res_Z==1 || analyseInterpretation_x(cordonnees)){
+                    if(res_Z = analyseInterpretation_z(cordonnees)){
                         res_R = analyseInterpretation_rotation(cordonnees);  // estimation de la position sur z                                                 
                     }
                 }
@@ -843,6 +844,8 @@ void analyseInterpretation(int **cordonnees)
         
         if (res_R == 1){
             callbackPilote(index_courant,2);
+            fprintf(fichier,"################## on a envoyer 2 ################################################## \n"); 
+
         }
         else{
             callbackPilote(index_courant,1);
