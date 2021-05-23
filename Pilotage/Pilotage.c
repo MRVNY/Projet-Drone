@@ -9,6 +9,7 @@ static void cmdSensorStateListChangedRcv(ARCONTROLLER_Device_t *deviceController
 
 /*--------------Variable globales---------------*/
 //Vars globales Parrot
+int failed = 0;
 static char fifo_dir[] = FIFO_DIR_PATTERN;
 int choice;
 char gErrorStr[ERROR_STR_LENGTH];
@@ -47,15 +48,21 @@ void myPrint(char *toPrint){
 }
 
 void watchdog(){
-    while(1){
+    while(endProgState < ENDING){
+
         usleep(CYCLE); //Lancer watchdog chaque CYCLE secondes
+
         if(counter.tv_sec!=0){ //Commencer a verifier apres le counter a ete modifie
+
             gettimeofday(&watch, NULL); //Recuperer le temps reel
+
             if(((watch.tv_sec - counter.tv_sec) * 1000000 + watch.tv_usec - counter.tv_usec)>TIMEOUT){
+
                 myPrint("WATCHDOG\n"); //S'il y a TIMEOUT secondes de decalage, endProg
                 sprintf(toPrint,"watch: %lus %lums, counter: %lus %lums, diff: %lums\n",watch.tv_sec,watch.tv_usec, counter.tv_sec,counter.tv_usec, (watch.tv_sec - counter.tv_sec)*1000000+ watch.tv_usec - counter.tv_usec);
                 myPrint(toPrint);
-                endProg();
+                
+                if(endProgState < ENDING) endProg();
                 break;
             }
         }
@@ -66,18 +73,17 @@ void watchdog(){
 void catchSig(int sig){
     sprintf(toPrint,"CAUGHT %d\n",sig);
     myPrint(toPrint);
-    endProg();
+
+    if(endProgState < ENDING) endProg();
 }
 
 int main_Pilotage (void * (*functionPtr)(const char*))
 {
     fifo_name[128] = "";
     videoOut = NULL;
-    //Local declaration
-    int failed = 0;
 
     //Initialisation de enProg
-    endProgState=0;
+    endProgState = RUNNING;
     start=0;
     // catch signaux
     int i;
@@ -118,9 +124,9 @@ int main_Pilotage (void * (*functionPtr)(const char*))
  *
  *****************************************/
 
-discoverDevice(&failed);
+discoverDevice();
 
-controlDevice(&failed);
+controlDevice();
 
     
 /*****************************************
@@ -136,20 +142,18 @@ controlDevice(&failed);
         deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,1 );
         deviceController->aRDrone3->sendSpeedSettingsMaxRotationSpeed(deviceController->aRDrone3, 85);
         
-        if(fly)
-        {
-            takeOff();
-        }
+        if(fly) takeOff();
+        myPrint("TAKEN OFF\n");
 
-        pthread_create(&dogThread, NULL, watchdog,NULL);
+        //pthread_create(&dogThread, NULL, watchdog,NULL);
         start=1;
+        watchdog();
 
+        //pthread_join(dogThread, NULL);
+
+        //join threads
         void * status;
-
         pthread_join(videoThread,&status);
-
-        //REBOOT de thread
-     
     }
     
     
@@ -159,7 +163,10 @@ controlDevice(&failed);
  *             de pilotage :
  *
  *****************************************/
-    endProg();
+    //while (!endProgState){}
+    //myPrint("TO_END\n");
+    
+    if(endProgState < ENDING) endProg();
     return EXIT_SUCCESS;
 }
 
@@ -169,6 +176,8 @@ controlDevice(&failed);
 //compteur pour ignorer un certain nombre de frames
 void callbackPilote(int index,int ifStop){
     
+    if(!endProgState == ENDING) return;
+
     if(index==-1){
         stop();
         return;
@@ -200,7 +209,7 @@ void callbackPilote(int index,int ifStop){
 
         //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
         if(ifStop==STOP){
-            myPrint("Stop");
+            myPrint("Stop\n");
             //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
             //endProg();
             return;
@@ -208,13 +217,16 @@ void callbackPilote(int index,int ifStop){
 
         //Parcour des différents mouvements
         for(i=STRAFER; i<=AVANT_ARRIERE; i++) {
+            composition[i] = 0;
             
             sum += abs(state[i][POS_INTENSITE]);
             //Test de l'évaluation
-            if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
+            if(state[i][EVALUATION]==GOOD/*||state[i][EVALUATION]==0*/){
 
                 //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
-                sign = -state[i][POS_INTENSITE] / abs(state[i][POS_INTENSITE]);
+                    if(state[i][POS_INTENSITE]!=0) 
+                        sign = -state[i][POS_INTENSITE] / abs(state[i][POS_INTENSITE]);
+                    else sign = 0;
                 composition[i] = sign * tabPrc[i][abs(state[i][POS_INTENSITE])];
             }
         }
@@ -224,7 +236,7 @@ void callbackPilote(int index,int ifStop){
             StateZero++;
             if(StateZero>20){
                 land();
-                endProgState=1;
+                endProgState = TO_END;
                 return;
             }
         }
@@ -232,7 +244,7 @@ void callbackPilote(int index,int ifStop){
 
         //On compose les mouvement que l'on envoie au drone
         roll(composition[STRAFER]);
-        pitch(composition[AVANT_ARRIERE]);
+        pitch(-composition[AVANT_ARRIERE]);
         /*gaz(composition[MONTER_DESCENDRE]);
         yaw(composition[ROTATION]);*/
         
@@ -242,6 +254,9 @@ void callbackPilote(int index,int ifStop){
 }
 
 void endProg(){
+    endProgState = ENDING;
+    myPrint("ENDING\n");
+
     /*------LOGS-------*/
     FILE *fp1 = fopen("Logs.csv", "w");// création du
     fprintf(fp1, "%s%s%s%s%s","Bas_nivea",",","Pilotage_decision",",","FrameCapture");
@@ -255,6 +270,7 @@ void endProg(){
     }
     fclose(fp1);
     /*-----------------*/
+
     if (deviceController != NULL)
     {
         stop(deviceController);
@@ -276,8 +292,8 @@ void endProg(){
 
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "ARCONTROLLER_Device_Delete ...");
         ARCONTROLLER_Device_Delete (&deviceController);
-    }
 
+    }
     fflush (videoOut);
     fclose (videoOut);
 
@@ -288,12 +304,12 @@ void endProg(){
 
     ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "-- END --");
 
-    //END Watch Dog
-    //pthread_join(threads, NULL);
+    endProgState = ENDED;
+    myPrint("ENDED\n");
 }
 
 void choiceParams(){
-
+    /*
     printf("\n Fly: oui(1), non(0)\n");
     if(scanf("%d",&choice)==0 || (choice!=1 && choice!=0)){
         printf("Entree non connue, no Fly par defaut\n");
@@ -326,13 +342,15 @@ void choiceParams(){
     {
         printf("Affichage caméra: non\n\n");
         display=0;
-    }
+    }*/
     
+    fly = 1;
+    display = 0;
     choice = 0; //VideoCapture
 }
 
-void controlDevice(int *failed){
-    if (!*failed)
+void controlDevice(){
+    if (!failed)
     {
         deviceController = ARCONTROLLER_Device_New (device, &error);
 
@@ -344,14 +362,14 @@ void controlDevice(int *failed){
        
     }
 
-    if (!*failed)
+    if (!failed)
     {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- delete discovey device ... ");
         ARDISCOVERY_Device_Delete (&device);
     }
 
     // add the state change callback to be informed when the device controller starts, stops...
-    if (!*failed)
+    if (!failed)
     {
         error = ARCONTROLLER_Device_AddStateChangedCallback (deviceController, stateChanged, deviceController);
 
@@ -363,7 +381,7 @@ void controlDevice(int *failed){
     }
 
     // add the command received callback to be informed when a command has been received from the device
-    if (!*failed)
+    if (!failed)
     {
         error = ARCONTROLLER_Device_AddCommandReceivedCallback (deviceController, commandReceived, deviceController);
 
@@ -375,7 +393,7 @@ void controlDevice(int *failed){
     }
 
     // add the frame received callback to be informed when a streaming frame has been received from the device
-    if (!*failed)
+    if (!failed)
     {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- set Video callback ... ");
         error = ARCONTROLLER_Device_SetVideoStreamCallbacks (deviceController, decoderConfigCallback, didReceiveFrameCallback, NULL , NULL);
@@ -387,7 +405,7 @@ void controlDevice(int *failed){
         }
     }
 
-    if (!*failed)
+    if (!failed)
     {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "Connecting ...");
         error = ARCONTROLLER_Device_Start (deviceController);
@@ -399,7 +417,7 @@ void controlDevice(int *failed){
         }
     }
 
-    if (!*failed)
+    if (!failed)
     {
         // wait state update update
         ARSAL_Sem_Wait (&(stateSem));
@@ -415,7 +433,7 @@ void controlDevice(int *failed){
     }
 
     // send the command that tells to the Bebop to begin its streaming
-    if (!*failed)
+    if (!failed)
     {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- send StreamingVideoEnable ... ");
         error = deviceController->aRDrone3->sendMediaStreamingVideoEnable (deviceController->aRDrone3, 1);
@@ -427,8 +445,8 @@ void controlDevice(int *failed){
     }
 }
 
-void discoverDevice(int *failed){
-    if (!*failed)
+void discoverDevice(){
+    if (!failed)
     {
         ARSAL_PRINT(ARSAL_PRINT_INFO, TAG, "- init discovey device ... ");
         eARDISCOVERY_ERROR errorDiscovery = ARDISCOVERY_OK;

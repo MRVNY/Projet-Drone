@@ -12,8 +12,8 @@
 
 /*--------------PARROT------------------*/
 #define ERROR_STR_LENGTH 2048
-#define BEBOP_IP_ADDRESS "192.168.42.1"
-//#define BEBOP_IP_ADDRESS "10.202.0.1"
+//#define BEBOP_IP_ADDRESS "192.168.42.1"
+#define BEBOP_IP_ADDRESS "10.202.0.1"
 #define BEBOP_DISCOVERY_PORT 44444
 #define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
 #define FIFO_NAME "arsdk_fifo"
@@ -125,8 +125,8 @@ void choiceParams(); //Selection des paramètre du programme (alumage des moteur
 
 /*-----------Gestion de la liaison avec le drone---------*/
 void endProg(); // Suite d'instructions (arrêt, atterrissage, déconection ...) terminant le programme
-void discoverDevice(int *failed); //Connection au dronen (Parrot)
-void controlDevice(int *failed); //Création de l'interface de control du drone (Parrot)
+void discoverDevice(); //Connection au dronen (Parrot)
+void controlDevice(); //Création de l'interface de control du drone (Parrot)
 /*-------------------------------------------------------*/
 
 
