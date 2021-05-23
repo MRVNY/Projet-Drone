@@ -44,6 +44,8 @@ EXTERN int fly;
 // Vairables gestion du flux vidéo
 EXTERN char fifo_name[128];
 EXTERN FILE *videoOut;
+
+EXTERN int captCreate;
 /*-------------------------------------------*/
 
 // La convention sur les états 

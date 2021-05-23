@@ -192,7 +192,6 @@ void * video_reader_process(const char* infile) {
                 /*---------------------------*/
 
                 clock_t begin_capture = clock();
-
                 if (!capture.read(frame)) {
                     std::cout<<"Erreur read frame"<<'\n';
                     exit(1);

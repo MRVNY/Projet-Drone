@@ -200,22 +200,17 @@ controlDevice(&failed);
 
 /*Définitions des fonctions de pilotage*/
 
-//compteur pour ignorer un certain nombre de frames
+//compteur pour ignorer un certain nombre de framest 
+int cpt=0;
+
 void callbackPilote(int index,int ifStop){
+    cpt++;
     
-    if(index==-1){
+     if(index==-1){
         stop(deviceController);
         return;
     }
 
-    /*if(ifStop==STOP){
-        myPrint("STOP\n");
-        land(deviceController);
-        endProgState==1;
-        return;
-    }*/
-
-    int NullError=0;
     int state[4][2]; 
     for (int i = 0; i < TAILLE_SORTIE; i++)
     {
@@ -224,114 +219,116 @@ void callbackPilote(int index,int ifStop){
            state[i][j]=tab_Sestimatin[index].matrice[i][j];
         }        
     }
-
-    if (state==NULL)
-    {
-        NullError=1;
-        myPrint("Erreur matrice nulle\n");
+    
+    printf("STATE:\n");
+    int i,j;
+    for(i=0;i<4;i++){
+        printf("[%d , %d]\n",state[i][0],state[i][1]);
     }
 
+   
 
-    if(deviceController != NULL && !NullError){
+    if(fly&&cpt>50){
         
-        //Affichage de la matrice dedécision
-        printf("STATE:\n");
-        int i,j;
-        for(i=0;i<4;i++){
-            printf("[%d , %d]\n",state[i][0],state[i][1]);
-        }
-        printf("\n");
-        
-        //Arrêt de la commande en cour
-        stop(deviceController);
 
-        //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
-        /*if(ifStop==STOP){
-            myPrint("Stop");
-            //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
-            //endProg();
+        printf("ifStop: %d\n",ifStop);
+        if(ifStop==2){
+            myPrint("STOP\n");
+            land(deviceController);
+            endProgState==1;
             return;
-        }*/
+        }    
 
-        //Tableau de la composition des mouvements
-        int composition[4]={0,0,0,0};
+        
 
-        int sum=0;
-        if(state){
-            //Parcour des différents mouvements
-            for(int i=STRAFER; i<=ROTATION; i++) { //MODIF STRAFF
-                
-                if(i!=MONTER_DESCENDRE||(state[i][EVALUATION]!=0/*&&state[i][EVALUATION]!=-1*/)){
-                    sum+=abs(state[i][POS_INTENSITE]);
-                }
-                //Test de l'évaluation
-                if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0 ){
+
+        if(deviceController != NULL && state!=NULL){       
+            
+            //Arrêt de la commande en cour
+            stop(deviceController);
+
+            //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
+
+            //Tableau de la composition des mouvements
+            int composition[4]={0,0,0,0};
+
+            int sum=0;
+            if(state){
+                //Parcour des différents mouvements
+                for(int i=STRAFER; i<=ROTATION; i++) { //MODIF STRAFF
                     
-                    if(state[i][POS_INTENSITE]!=0 /*&& i!=MONTER_DESCENDRE*/){
-                        if(i!=MONTER_DESCENDRE||(state[i][EVALUATION]!=0)){
-                            StateZero=0;
+                    if(/*i!=MONTER_DESCENDRE||*/(state[i][EVALUATION]!=0/*&&state[i][EVALUATION]!=-1*/)){
+                        sum+=abs(state[i][POS_INTENSITE]);
+                    }
+                    //Test de l'évaluation
+                    if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0 ){
+                        
+                        if(state[i][POS_INTENSITE]!=0 /*&& i!=MONTER_DESCENDRE*/){
+                            if(/*i!=MONTER_DESCENDRE||*/(state[i][EVALUATION]!=0)){
+                                StateZero=0;
+                            }
+                        }
+
+                        int sign=state[i][POS_INTENSITE]/abs(state[i][POS_INTENSITE]);
+                        sign=sign*-1;
+                        //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
+                        switch (i)
+                        {
+                        case STRAFER:
+                            //Modification pour ne prendre en compte que le STRAFF 
+                            /*if (state[i][POS_INTENSITE]==AXE)
+                            {   
+                                //StateZero++;
+                                if (StateZero>20)
+                                {
+                                    stop(deviceController);
+                                    land(deviceController);
+                                    //endProgState=1;
+                                    myPrint("Fin\n");
+                                    //endProg(); //MODIF STRAFF
+                                    break;
+                                }
+                                
+                            }*/
+                            //else if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
+                                //StateZero=0;
+                            composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
+                            //}
+                            break;
+                        case AVANT_ARRIERE:
+                            composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
+                            break;
+                        case MONTER_DESCENDRE:
+                            composition[MONTER_DESCENDRE]=sign*choixPourcentage(state[i][POS_INTENSITE],MONTER_DESCENDRE);
+                            break;
+                        case ROTATION:
+                            composition[ROTATION]=sign*choixPourcentage(state[i][POS_INTENSITE],ROTATION);
+                            break;
+                        default:
+                            break;
                         }
                     }
-
-                    int sign=state[i][POS_INTENSITE]/abs(state[i][POS_INTENSITE]);
-                    sign=sign*-1;
-                    //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
-                    switch (i)
-                    {
-                    case STRAFER:
-                        //Modification pour ne prendre en compte que le STRAFF 
-                        /*if (state[i][POS_INTENSITE]==AXE)
-                        {   
-                            //StateZero++;
-                            if (StateZero>20)
-                            {
-                                stop(deviceController);
-                                land(deviceController);
-                                //endProgState=1;
-                                myPrint("Fin\n");
-                                //endProg(); //MODIF STRAFF
-                                break;
-                            }
-                            
-                        }*/
-                        //else if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
-                            //StateZero=0;
-                        composition[STRAFER]=sign*choixPourcentage(state[i][POS_INTENSITE],STRAFER);
-                        //}
-                        break;
-                    case AVANT_ARRIERE:
-                        composition[AVANT_ARRIERE]=sign*choixPourcentage(state[i][POS_INTENSITE],AVANT_ARRIERE);
-                        break;
-                    case MONTER_DESCENDRE:
-                        composition[MONTER_DESCENDRE]=sign*choixPourcentage(state[i][POS_INTENSITE],MONTER_DESCENDRE);
-                        break;
-                    case ROTATION:
-                        composition[ROTATION]=sign*choixPourcentage(state[i][POS_INTENSITE],ROTATION);
-                        break;
-                    default:
-                        break;
-                    }
                 }
             }
-        }
 
-        //Condition attérissage et fin de programme
-        if(sum==0){
-            StateZero++;
-            if(StateZero>15){
-                land(deviceController);
-                endProgState=1;
-                return;
-            }
-        }
+            //Condition attérissage et fin de programme
+            /*if(sum==0){
+                StateZero++;
+                if(StateZero>10){
+                    land(deviceController);
+                    endProgState=1;
+                    return;
+                }
+            }*/
 
-        //On compose les mouvement que l'on envoie au drone
-        roll(deviceController,composition[STRAFER]);
-        pitch(deviceController,composition[AVANT_ARRIERE]);
-        gaz(deviceController,composition[MONTER_DESCENDRE]);
-        //yaw(deviceController,composition[ROTATION]);
-        
-        gettimeofday(&counter, NULL);
+            //On compose les mouvement que l'on envoie au drone
+            roll(deviceController,composition[STRAFER]);
+            pitch(deviceController,composition[AVANT_ARRIERE]);
+            gaz(deviceController,composition[MONTER_DESCENDRE]);
+            //yaw(deviceController,composition[ROTATION]);
+            
+            gettimeofday(&counter, NULL);
+        }
     }
 
 }
