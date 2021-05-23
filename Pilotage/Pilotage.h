@@ -12,18 +12,17 @@
 
 /*--------------PARROT------------------*/
 #define ERROR_STR_LENGTH 2048
-#define BEBOP_IP_ADDRESS "192.168.42.1"
-//#define BEBOP_IP_ADDRESS "10.202.0.1"
+//#define BEBOP_IP_ADDRESS "192.168.42.1"
+#define BEBOP_IP_ADDRESS "10.202.0.1"
 #define BEBOP_DISCOVERY_PORT 44444
-#define DISPLAY_WITH_MPLAYER 1
 #define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
 #define FIFO_NAME "arsdk_fifo"
 /*---------------------------------------*/
 
 /*---Convention sur les amplitudes de déplacement---*/
-#define LOW_PITCH_ANGLE 1
-#define MID_PITCH_ANGLE 3  
-#define HIGH_PITCH_ANGLE 5
+#define LOW_PITCH_ANGLE 3
+#define MID_PITCH_ANGLE 7
+#define HIGH_PITCH_ANGLE 10
                             //% d'Angle max (Roll et Pitch)
 #define LOW_ROLL_ANGLE 2
 #define MID_ROLL_ANGLE 5
@@ -105,37 +104,37 @@ et les instruction on passée a travers celui-ci.
 int valeur ->  Entier représentant le % de vitesse/angle max de la commande de déplacement assocsiée
 */
 
-void takeOff(ARCONTROLLER_Device_t *deviceController);
+void takeOff();
 
-void land(ARCONTROLLER_Device_t *deviceController);
+void land();
 
-void gaz(ARCONTROLLER_Device_t *deviceController,int valeur);
+void gaz(int valeur); //UP-DOWN
 
-void yaw(ARCONTROLLER_Device_t *deviceController,int valeur);
+void yaw(int valeur); //ROTATION
 
-void roll(ARCONTROLLER_Device_t *deviceController,int valeur);
+void roll(int valeur); //LEFT-RIGHT
 
-void pitch(ARCONTROLLER_Device_t *deviceController,int valeur);
+void pitch(int valeur); //FRONT-BACK
 
-void stop(ARCONTROLLER_Device_t *deviceController);
+void stop();
 /*--------------------------------------------------------------*/
 
 /*---------------------UI------------------*/
-void choiceParams(int *fps); //Selection des paramètre du programme (alumage des moteur/affichage caméra)
+void choiceParams(); //Selection des paramètre du programme (alumage des moteur/affichage caméra)
 /*-----------------------------------------*/
 
 /*-----------Gestion de la liaison avec le drone---------*/
 void endProg(); // Suite d'instructions (arrêt, atterrissage, déconection ...) terminant le programme
-void discoverDevice(int *failed,int isBebop2); //Connection au dronen (Parrot)
-void controlDevice(int *failed); //Création de l'interface de control du drone (Parrot)
+void discoverDevice(); //Connection au dronen (Parrot)
+void controlDevice(); //Création de l'interface de control du drone (Parrot)
 /*-------------------------------------------------------*/
 
 
 /*----------Setter des vitesses de rotation/translation--------------*/
-void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
-void setMaxRotationSpeed(ARCONTROLLER_Device_t *deviceController,int valeur);
+void setMaxVerticalSpeed(int valeur);
+void setMaxRotationSpeed(int valeur);
 
-int choixPourcentage(int pos_intensite, int type); //Définit selon le type de déplacement l'intensité a assoscié
+//int choixPourcentage(int pos_intensite, int type); //Définit selon le type de déplacement l'intensité a assoscié
 /* PARAMETRES:  int pos_intensité -> distance a la mire (cf commun.h)
                 int type -> type de déplacement (cf commun.h)
 /*-------------------------------------------------------------------------*/
