@@ -120,7 +120,7 @@ void stop();
 /*--------------------------------------------------------------*/
 
 /*---------------------UI------------------*/
-void choiceParams(int *fps); //Selection des paramètre du programme (alumage des moteur/affichage caméra)
+void choiceParams(); //Selection des paramètre du programme (alumage des moteur/affichage caméra)
 /*-----------------------------------------*/
 
 /*-----------Gestion de la liaison avec le drone---------*/
