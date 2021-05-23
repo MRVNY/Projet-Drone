@@ -187,7 +187,7 @@ void callbackPilote(int index,int ifStop){
         return;
     }
 
-    int (*state)[4] = tab_Sestimation[index].matrice;
+    int (*state)[4] = tab_Sestimatin[index].matrice;
     if (state==NULL){
         myPrint("Erreur matrice nulle\n");
         return;
@@ -234,7 +234,7 @@ void callbackPilote(int index,int ifStop){
                     else sign = 0;
                 composition[i] = sign * tabPrc[i][abs(state[i][POS_INTENSITE])];
             }
-
+        }
         //Condition attérissage et fin de programme
         if(sum==0){
             StateZero++;

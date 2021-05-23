@@ -30,7 +30,7 @@ typedef struct{
 #define  EXTERN  extern
 #endif
 // le tableau des structures
-EXTERN Sestimation tab_Sestimation[TAILLE_SEQ];
+EXTERN Sestimation tab_Sestimatin[TAILLE_SEQ];
 // Logs temps d'execution
 EXTERN Logs tab_Logs;  
 // Indicateur de fin de programe             
