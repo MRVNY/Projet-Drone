@@ -464,25 +464,7 @@ void discoverDevice(){
 
             errorDiscovery = ARDISCOVERY_Device_InitWifi (device, ARDISCOVERY_PRODUCT_BEBOP_2, "bebop2", BEBOP_IP_ADDRESS, BEBOP_DISCOVERY_PORT);
 
-            if (errorDisce3->setPilotingPCMDRoll(deviceController->aRDrone3, valeur);
-}
-
-void pitch(ARCONTROLLER_Device_t *deviceController,int valeur){
-
-    deviceController->aRDrone3->setPilotingPCMDFlag(deviceController->aRDrone3, 1);
-    deviceController->aRDrone3->setPilotingPCMDPitch(deviceController->aRDrone3, valeur);
-}
-
-void stop(ARCONTROLLER_Device_t *deviceController){
-    deviceController->aRDrone3->setPilotingPCMD(deviceController->aRDrone3, 0, 0, 0, 0, 0, 0);
-}
-
-void setMaxVerticalSpeed(ARCONTROLLER_Device_t *deviceController,int valeur){
-    deviceController->aRDrone3->sendSpeedSettingsMaxVerticalSpeed(deviceController->aRDrone3,valeur);
-}
-
-void setMaxRotationSpeed(ARCONTROLLER_Device_t *deviceController,int valeur){
-overy != ARDISCOVERY_OK)
+            if (errorDiscovery != ARDISCOVERY_OK)
             {
                 failed = 1;
                 ARSAL_PRINT(ARSAL_PRINT_ERROR, TAG, "Discovery error :%s", ARDISCOVERY_Error_ToString(errorDiscovery));
