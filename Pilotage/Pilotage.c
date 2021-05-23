@@ -174,7 +174,7 @@ void callbackPilote(int index,int ifStop){
         return;
     }
 
-    int (*state)[4] = tab_Sestimatin[index].matrice;
+    int (*state)[4] = tab_Sestimation[index].matrice;
     if (state==NULL){
         myPrint("Erreur matrice nulle\n");
         return;

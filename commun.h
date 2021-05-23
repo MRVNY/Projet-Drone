@@ -21,7 +21,7 @@ typedef struct{
     int matrice[TAILLE_SORTIE][INFO_SORTIE];
 }Sestimation; 
 
-// la taille du tableau tab_Sestimatin
+// la taille du tableau tab_Sestimation
 #define TAILLE_SEQ 2
 
 
@@ -30,7 +30,7 @@ typedef struct{
 #define  EXTERN  extern
 #endif
 // le tableau des structures
-EXTERN Sestimation tab_Sestimatin[TAILLE_SEQ];
+EXTERN Sestimation tab_Sestimation[TAILLE_SEQ];
 // Logs temps d'execution
 EXTERN Logs tab_Logs;  
 // Indicateur de fin de programe             
