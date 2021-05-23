@@ -125,7 +125,7 @@ void choiceParams(int *fps); //Selection des paramètre du programme (alumage de
 
 /*-----------Gestion de la liaison avec le drone---------*/
 void endProg(); // Suite d'instructions (arrêt, atterrissage, déconection ...) terminant le programme
-void discoverDevice(int *failed,int isBebop2); //Connection au dronen (Parrot)
+void discoverDevice(int *failed); //Connection au dronen (Parrot)
 void controlDevice(int *failed); //Création de l'interface de control du drone (Parrot)
 /*-------------------------------------------------------*/
 
