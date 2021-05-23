@@ -179,7 +179,8 @@ void * video_reader_process(const char* infile) {
     int frameIndex=0;
     int i=0;
 
-    while(!endProgState){
+    while(endProgState == RUNNING){
+        
         try{
 
             if(start){
@@ -252,16 +253,15 @@ void * video_reader_process(const char* infile) {
                 /*---------------------------------*/
                 std::cout<<"fin du thread vidéo"<<'\n';
 
-                fflush (videoOut);
-                fclose (videoOut);
-
-                return (void*)-1;
+                break;
+                //return (void*)-1;
             }
         }
     }
     printf("Fin video_reader_process\n");
     fflush (videoOut);
     fclose (videoOut);
+    return (void*)0;
 } 
 
 int video_reader_process2(const char* infile) {

@@ -46,8 +46,14 @@ EXTERN char fifo_name[128];
 EXTERN FILE *videoOut;
 /*-------------------------------------------*/
 
+// Les etats de endProgState
+#define RUNNING 0
+#define TO_END 1
+#define ENDING 2
+#define ENDED 3
+
 // La convention sur les états 
-#define STOP 0  
+#define STOP 0
 #define NEGATIF -1  // pour gauche , en bas  , rotation à gauche  et  arrière
 #define POSITIF  1  // pour droite , haut    , rotation à droite  et  avancer
 
