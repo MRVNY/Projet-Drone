@@ -180,14 +180,28 @@ int cpt=0;
 void callbackPilote(int index,int ifStop){
     cpt++;
     
-    if(!endProgState == ENDING) return;
+    if(!endProgState == ENDING){
+        stop();
+        land();
+        return;
+    } 
 
     if(index==-1){
         stop();
         return;
     }
-
-    int (*state)[4] = tab_Sestimatin[index].matrice;
+    
+    int state[4][2];
+    //int (*state)[4] = tab_Sestimatin[index].matrice; BUG
+    for (int i = 0; i < TAILLE_SORTIE; i++)
+    {
+        for (int j = 0; j < TAILLE_SEQ; j++)
+        {
+            state[i][j]= tab_Sestimatin[index].matrice[i][j];
+        }
+        
+    }
+    
     if (state==NULL){
         myPrint("Erreur matrice nulle\n");
         return;
@@ -213,30 +227,33 @@ void callbackPilote(int index,int ifStop){
         stop();
 
         //Erreur dans les traitements précédents, mise en sécurité de l'appareil 
-        if(ifStop==STOP){
+        if(ifStop==2){
             myPrint("Stop\n");
+            land();
+            endProgState=TO_END;
             //MAJ de la partie décision, le ifstop==STOP ne termine pas le programme
             //endProg();
             return;
         }    
 
         //Parcour des différents mouvements
-        for(i=STRAFER; i<=AVANT_ARRIERE; i++) {
+        for(i=STRAFER; i<=MONTER_DESCENDRE; i++) {
             composition[i] = 0;
             
             sum += abs(state[i][POS_INTENSITE]);
             //Test de l'évaluation
-            if(state[i][EVALUATION]==GOOD/*||state[i][EVALUATION]==0*/){
+            if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
 
                 //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
                     if(state[i][POS_INTENSITE]!=0) 
-                        sign = -state[i][POS_INTENSITE] / abs(state[i][POS_INTENSITE]);
+                        sign = state[i][POS_INTENSITE] / abs(state[i][POS_INTENSITE]);
                     else sign = 0;
+                sign=-1*sign;
                 composition[i] = sign * tabPrc[i][abs(state[i][POS_INTENSITE])];
             }
         }
         //Condition attérissage et fin de programme
-        if(sum==0){
+        /*if(sum==0){
             StateZero++;
             if(StateZero>20){
                 land();
@@ -244,13 +261,13 @@ void callbackPilote(int index,int ifStop){
                 return;
             }
         }
-        else StateZero = 0;
+        else StateZero = 0;*/
 
         //On compose les mouvement que l'on envoie au drone
         roll(composition[STRAFER]);
-        pitch(-composition[AVANT_ARRIERE]);
-        /*gaz(composition[MONTER_DESCENDRE]);
-        yaw(composition[ROTATION]);*/
+        pitch(composition[AVANT_ARRIERE]);
+        gaz(composition[MONTER_DESCENDRE]);
+        //yaw(composition[ROTATION]);*/
         
         gettimeofday(&counter, NULL);
     }
@@ -330,7 +347,7 @@ void choiceParams(){
         printf("Vol: non");
         fly=0;
     }
-
+    */
     printf("\n Affichage caméra: oui(1), non(0)\n");
     if(scanf("%d",&choice)==0 || (choice!=1 && choice!=0)){
         printf("Entree non connue,  pas d'affichage par defaut\n");
@@ -346,10 +363,10 @@ void choiceParams(){
     {
         printf("Affichage caméra: non\n\n");
         display=0;
-    }*/
+    }
     
     fly = 1;
-    display = 0;
+    //display = 0;
     choice = 0; //VideoCapture
 }
 

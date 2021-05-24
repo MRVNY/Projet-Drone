@@ -20,17 +20,17 @@
 /*---------------------------------------*/
 
 /*---Convention sur les amplitudes de déplacement---*/
-#define LOW_PITCH_ANGLE 3
-#define MID_PITCH_ANGLE 7
-#define HIGH_PITCH_ANGLE 10
+#define LOW_PITCH_ANGLE 2
+#define MID_PITCH_ANGLE 3
+#define HIGH_PITCH_ANGLE 5
                             //% d'Angle max (Roll et Pitch)
 #define LOW_ROLL_ANGLE 2
 #define MID_ROLL_ANGLE 5
 #define HIGH_ROLL_ANGLE 7
                             //GAZ= MONTER/DESCENDRE , ROLL=GAUCHE/DROITE , PITCH=AVANT/ARRIERE , ROT=ROTATION
-#define HIGH_GAZ_SPEED 1
-#define MID_GAZ_SPEED 3 
-#define LOW_GAZ_SPEED 5
+#define HIGH_GAZ_SPEED 3
+#define MID_GAZ_SPEED 5 
+#define LOW_GAZ_SPEED 7
                             //% de vitesse max (Gaz et rotation)
 #define HIGH_ROT_SPEED 1
 #define MID_ROT_SPEED 3 
