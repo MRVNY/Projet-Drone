@@ -12,8 +12,8 @@
 
 /*--------------PARROT------------------*/
 #define ERROR_STR_LENGTH 2048
-//#define BEBOP_IP_ADDRESS "192.168.42.1"
-#define BEBOP_IP_ADDRESS "10.202.0.1"
+#define BEBOP_IP_ADDRESS "192.168.42.1"
+//#define BEBOP_IP_ADDRESS "10.202.0.1"
 #define BEBOP_DISCOVERY_PORT 44444
 #define FIFO_DIR_PATTERN "/tmp/arsdk_XXXXXX"
 #define FIFO_NAME "arsdk_fifo"

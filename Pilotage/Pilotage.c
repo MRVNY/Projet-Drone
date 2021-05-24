@@ -168,6 +168,7 @@ controlDevice();
     //myPrint("TO_END\n");
     
     if(endProgState < ENDING) endProg();
+    myPrint("DONE\n");
     return EXIT_SUCCESS;
 }
 
@@ -180,7 +181,7 @@ int cpt=0;
 void callbackPilote(int index,int ifStop){
     cpt++;
     
-    if(!endProgState == ENDING){
+    if(endProgState >= TO_END){
         stop();
         land();
         return;
@@ -245,9 +246,9 @@ void callbackPilote(int index,int ifStop){
             if(state[i][EVALUATION]==GOOD||state[i][EVALUATION]==0){
 
                 //On va définir l'amplitude de mouvement a appliquer pour chaque mvmts
-                    if(state[i][POS_INTENSITE]!=0) 
-                        sign = state[i][POS_INTENSITE] / abs(state[i][POS_INTENSITE]);
-                    else sign = 0;
+                if(state[i][POS_INTENSITE]!=0) 
+                    sign = state[i][POS_INTENSITE] / abs(state[i][POS_INTENSITE]);
+                else sign = 0;
                 sign=-1*sign;
                 composition[i] = sign * tabPrc[i][abs(state[i][POS_INTENSITE])];
             }
@@ -315,8 +316,11 @@ void endProg(){
         ARCONTROLLER_Device_Delete (&deviceController);
 
     }
-    fflush (videoOut);
-    fclose (videoOut);
+    if(videoOut){
+        fflush (videoOut);
+        fclose (videoOut);
+        videoOut = NULL;
+    }
 
     ARSAL_Sem_Destroy (&(stateSem));
 
@@ -641,7 +645,7 @@ eARCONTROLLER_ERROR didReceiveFrameCallback (ARCONTROLLER_Frame_t *frame, void *
     }
     else
     {
-        ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
+        //ARSAL_PRINT(ARSAL_PRINT_WARNING, TAG, "videoOut is NULL.");
     }
 
     return ARCONTROLLER_OK;

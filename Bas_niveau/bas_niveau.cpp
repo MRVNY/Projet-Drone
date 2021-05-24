@@ -184,6 +184,7 @@ void * video_reader_process(const char* infile) {
         try{
 
             if(start){
+                if(videoOut == NULL) break;
                 /*-------TEST EXEPTION--------*/
                 if(frameIndex==5){
                     frameIndex++;
@@ -258,8 +259,12 @@ void * video_reader_process(const char* infile) {
         }
     }
     printf("Fin video_reader_process\n");
-    fflush (videoOut);
-    fclose (videoOut);
+    if(videoOut){
+        fflush (videoOut);
+        fclose (videoOut);
+        videoOut = NULL;
+    }
+
     return (void*)0;
 } 
 
