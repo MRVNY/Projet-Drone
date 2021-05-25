@@ -20,9 +20,9 @@
 
 
 // à définir avec le calibrage et la capacité de la partie imagerie (pour avancer_reculer)
-#define BORNE_FAR_BACK 63 // tres loin en arriere 
-#define BORNE_CLOSE_BACK 85 // un peu loin en arriere
-#define BORNE_CLOSE_FRONT 130 // proche
+#define BORNE_FAR_BACK 31 // tres loin en arriere 
+#define BORNE_CLOSE_BACK 42 // un peu loin en arriere
+#define BORNE_CLOSE_FRONT 65 // proche
 
 
 // à définir avec le calibrage (pour ROTATION)
