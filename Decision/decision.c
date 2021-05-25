@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include "decision.h"
 #include <math.h>
-#include "./commun.h"
+#include "../commun.h"
 #include "../Pilotage/Pilotage.h"
 
 
@@ -567,28 +567,28 @@ float calcule_dr(int **cordonnees)
 
 float calcul_ratio1(int a, int b, int c)
 {
-    printf("je suis dans ratio1 \n");
-    printf("a= %d\n",a);
-    printf("b= %d\n",b);
-    printf("c= %d\n",c);
+    // printf("je suis dans ratio1 \n");
+    // printf("a= %d\n",a);
+    // printf("b= %d\n",b);
+    // printf("c= %d\n",c);
     return ((float)abs(a - b) / abs(a - c));
 }
 
 float calcul_ratio2(int a, int b, int c)
 {
-    printf("je suis dans ratio2 \n");
-    printf("%d\n",a);
-    printf("%d\n",b);
-    printf("%d\n",c);
+    // printf("je suis dans ratio2 \n");
+    // printf("%d\n",a);
+    // printf("%d\n",b);
+    // printf("%d\n",c);
     return (float)abs(a - b) / (2 * abs(a - b) + abs(b - c));
 }
 
 int get_direction(int a, int b)
 {
     // printf("je suis dans get direction\n");
-    printf("je suis dans get direction \n");
-    printf("a= %d\n",a);
-    printf("b= %d\n",b);
+    // printf("je suis dans get direction \n");
+    // printf("a= %d\n",a);
+    // printf("b= %d\n",b);
     if (a < b)
     {
         return  POSITIF;
@@ -685,12 +685,12 @@ void current_state_rotation(int **cordonnee)
     // cette fonction marche que dans le cas ou on a recu 4 ou 3 cordonnées
     int direction;
     float ratio;
-    printf("var1 %f \n",BORNE_FAR_ROTATION);
-    printf("var2 %f \n",BORNE_CLOSE_ROTATION);
-    printf("var3 %d \n",BORNE_AXE_ROTATION);   
+    // printf("var1 %f \n",BORNE_FAR_ROTATION);
+    // printf("var2 %f \n",BORNE_CLOSE_ROTATION);
+    // printf("var3 %d \n",BORNE_AXE_ROTATION);   
     direction_ratio(cordonnee, &direction, &ratio);
-    printf("direction=%d\n",direction);
-    printf("ratio=%f\n", ratio);
+    // printf("direction=%d\n",direction);
+    // printf("ratio=%f\n", ratio);
     if (direction == AXE)
     {
         tab_Sestimatin[index_courant].matrice[ROTATION][POS_INTENSITE] = AXE;
@@ -749,12 +749,6 @@ int analyseInterpretation_rotation(int **cordonnees){
 void analyseInterpretation(int **cordonnees)
 {
 
-    /*
-        Cette fonction renvoie la commande à transmettre selon l'état du drone 
-        vecteur : le résultat de la partie 
-        cordonnees: les cordonnées des hirondelles 
-    */
-
     // _______________________________________________________FICHIER DE TESTE__________________________________________________
     FILE* fichier = fopen("test_decision.txt", "a");
     fprintf(fichier," les coordonnées reçues \n");
@@ -790,7 +784,7 @@ void analyseInterpretation(int **cordonnees)
     // _________________________________________0 points reçus________________________________________________________
     if (nb_hirondelle_valide == 0){
         compteur_indefined--; 
-        if(compteur_indefined == 0){
+        if(compteur_indefined == 0){// si on arrive à 10 frames sans avoir d'informations, on envoie à la partie pilotage dans ifStop un 0 et on remet tous l'historique à 0   
             compteur_indefined= 10; 
             index_courant = 0;
             index_historique = 0;
@@ -810,10 +804,9 @@ void analyseInterpretation(int **cordonnees)
 
             callbackPilote(index_courant,STOP); // on s'arrête un instant 
             fprintf(fichier," on est perdu \n");
-
-            
         }
         else{
+            // si le nombre de frame sans information est < 10
             callbackPilote(index_historique,1);
             fprintf(fichier,"le résulat d'analyse \n"); 
             for(int i=0; i<TAILLE_SORTIE; i++){
@@ -834,9 +827,17 @@ void analyseInterpretation(int **cordonnees)
         }
         else{
             if (analyseInterpretation_y(cordonnees)){ // si on est dans l'AXE sur les axes x et y on peut faire la rotation
-               if(res_Z==1 || analyseInterpretation_x(cordonnees)){
+                fprintf(fichier,"dans l'axe par rapport à ______________Y____________\n");
+                if(res_Z==1 || analyseInterpretation_x(cordonnees)){
+                    fprintf(fichier,"dans l'axe par rapport à ______________X____________\n");
+
                     if(res_Z = analyseInterpretation_z(cordonnees)){
-                        res_R = analyseInterpretation_rotation(cordonnees);  // estimation de la position sur z                                                 
+                        fprintf(fichier,"dans l'axe par rapport à ______________Z____________\n");
+
+                        res_R = analyseInterpretation_rotation(cordonnees);  // estimation de la position sur z      
+                        if (res_R == 1){
+                            fprintf(fichier,"dans l'axe par rapport à _______________R______________\n");
+                        }                                          
                     }
                 }
             }
