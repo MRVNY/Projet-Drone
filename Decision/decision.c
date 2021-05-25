@@ -828,7 +828,8 @@ void analyseInterpretation(int **cordonnees)
         else{
             if (analyseInterpretation_y(cordonnees)){ // si on est dans l'AXE sur les axes x et y on peut faire la rotation
                 fprintf(fichier,"dans l'axe par rapport à ______________Y____________\n");
-                if(res_Z==1 || analyseInterpretation_x(cordonnees)){
+                int nb_pixel_z= get_nb_pixel(cordonnees);
+                if(nb_pixel_z >=BORNE_CLOSE_BACK || analyseInterpretation_x(cordonnees)){
                     fprintf(fichier,"dans l'axe par rapport à ______________X____________\n");
 
                     if(res_Z = analyseInterpretation_z(cordonnees)){
