@@ -468,6 +468,52 @@ int get_nb_pixel(int **cordonnee)
     }
 }
 
+
+int get_nb_pixel_2(int **cordonnee)
+{
+    int n,m;
+    if (hirondelle_defined[0] == 1 && hirondelle_defined[1] == 1)
+    {
+        n = abs(cordonnee[0][1] - cordonnee[1][1]);
+    }
+    
+    if (hirondelle_defined[2] == 1 && hirondelle_defined[3] == 1){
+        m =abs(cordonnee[2][1] - cordonnee[3][1]);
+        if(m>n){
+            n=m;
+        }
+    }
+    if (hirondelle_defined[0] == 1 && hirondelle_defined[2] == 1){
+        m =abs(cordonnee[0][0] - cordonnee[2][0]);
+        if(m>n){
+            n=m;
+        }
+    }   
+         
+    m= abs(cordonnee[1][0] - cordonnee[3][0]);
+    if(m>n){
+            n=m;
+    }
+    return n;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void current_state_z(int **cordonnee)
 {   
     // a ce stade normalement on voit toute la mire sous forme d'un carrée
@@ -828,8 +874,10 @@ void analyseInterpretation(int **cordonnees)
         else{
             if (analyseInterpretation_y(cordonnees)){ // si on est dans l'AXE sur les axes x et y on peut faire la rotation
                 fprintf(fichier,"dans l'axe par rapport à ______________Y____________\n");
-                int nb_pixel_z= get_nb_pixel(cordonnees);
-                if(nb_pixel_z >=BORNE_CLOSE_BACK || analyseInterpretation_x(cordonnees)){
+                int nb_pixel_z= get_nb_pixel_2(cordonnees);
+                fprintf(fichier,"nb_pixel = %d \n",nb_pixel_z);
+                
+                if(nb_pixel_z >= BORNE_CLOSE_BACK || analyseInterpretation_x(cordonnees)){
                     fprintf(fichier,"dans l'axe par rapport à ______________X____________\n");
 
                     if(res_Z = analyseInterpretation_z(cordonnees)){
@@ -850,7 +898,7 @@ void analyseInterpretation(int **cordonnees)
 
         }
         else{
-            callbackPilote(index_courant,1);
+           callbackPilote(index_courant,1);
         }
         
         // _______________________________________________________FICHIER DE TESTE__________________________________________________
@@ -903,4 +951,9 @@ void analyseInterpretation(int **cordonnees)
 
 
 }
+
+
+    
+
+     
 

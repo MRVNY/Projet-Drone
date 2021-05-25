@@ -20,10 +20,12 @@
 
 
 // à définir avec le calibrage et la capacité de la partie imagerie (pour avancer_reculer)
-#define BORNE_FAR_BACK 31 // tres loin en arriere 
-#define BORNE_CLOSE_BACK 42 // un peu loin en arriere
-#define BORNE_CLOSE_FRONT 65 // proche
-
+#define BORNE_FAR_BACK 22  //31 // tres loin en arriere 
+// 63
+#define BORNE_CLOSE_BACK  35//42 // un peu loin en arriere
+// 85
+#define BORNE_CLOSE_FRONT 55 //65 // proche
+// 130
 
 // à définir avec le calibrage (pour ROTATION)
 #define BORNE_FAR_ROTATION 0.3
@@ -211,6 +213,17 @@ int analyseInterpretation_x(int **cordonnees);
 int get_nb_pixel(int **cordonnee);
 /*
     Une fonction pour evaluer le déplacement sur z: solon la différence des pixels
+    args : 
+        cordonnee(int[4][2]) : la cordonnée reçues. 
+
+    Return: 
+        (int) : le nombre de pixels de différence entre deux hirondelles
+
+*/
+
+int get_nb_pixel_2(int **cordonnee);
+/*
+    Une fonction pour evaluer le déplacement sur z: solon la différence maximum des pixels
     args : 
         cordonnee(int[4][2]) : la cordonnée reçues. 
 
