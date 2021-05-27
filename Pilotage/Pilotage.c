@@ -297,6 +297,12 @@ void endProg(){
     {
         stop(deviceController);
         sleep(2);
+
+        while (getFlyingState(deviceController) == ARCOMMANDS_ARDRONE3_PILOTINGSTATE_FLYINGSTATECHANGED_STATE_TAKINGOFF){
+            myPrint("TAKING OFF\n");
+            sleep(5);
+        }
+
         land(deviceController);
 
         deviceState = ARCONTROLLER_Device_GetState (deviceController, &error);
