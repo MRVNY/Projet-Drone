@@ -28,8 +28,8 @@
 // 130
 
 // à définir avec le calibrage (pour ROTATION)
-#define BORNE_FAR_ROTATION 0.3
-#define BORNE_CLOSE_ROTATION 0.1
+#define BORNE_FAR_ROTATION 0.075
+#define BORNE_CLOSE_ROTATION 0.045
 #define BORNE_AXE_ROTATION 0
 
 
