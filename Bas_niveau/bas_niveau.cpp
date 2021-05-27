@@ -259,6 +259,9 @@ void * video_reader_process(const char* infile) {
         }
     }
     printf("Fin video_reader_process\n");
+
+    if(display) cv::destroyAllWindows();
+
     if(videoOut){
         fflush (videoOut);
         fclose (videoOut);
