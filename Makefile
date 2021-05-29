@@ -9,7 +9,7 @@ help:
 	@echo make compile: compile
 	@echo make run: lancer
 	@echo make compirun: compile et lancer
-	@echo make proto KEY=Projet-Drone
+	@echo make rapports: generer les pdf des rapports
 	@echo
 
 connect:
@@ -26,10 +26,6 @@ compirun:
 	$(ROOT)/out/arsdk-native/staging/native-wrapper.sh $(ROOT)/out/arsdk-native/staging/usr/bin/$(TEST)
 	#$(ROOT)/out/arsdk-native/staging/native-darwin-wrapper.sh $(ROOT)/out/arsdk-native/staging/usr/bin/$(TEST)
 
-doc:
-	cd src/Rapports; for i in *.tex; do pdflatex $i;done
-
-runproto:
-	echo $(ls Proto | grep $(KEY))
-	#$(ROOT)/build.sh -p native -A $(TEST)
-	echo $(PROTO)
+rapports:
+	pdflatex --jobname=RapportPartiel Doc/Rapports/RapportPartiel/Doc1.tex
+	pdflatex --jobname=RapportFinal Doc/Rapports/RapportFinal/Doc1.tex
