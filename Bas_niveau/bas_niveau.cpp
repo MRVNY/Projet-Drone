@@ -283,8 +283,8 @@ void * video_reader_process(const char* infile) {
             }
         }
         catch(/*const std::exception& e*/const char* msg){
-            if(!strcmp("yee",msg)){
-                printf("Caught yee\n");
+            if(!strcmp("yee",msg) || capture.isOpened()){
+                printf("Caught %s, but continue\n",msg);
                 continue;
             }
             else{
