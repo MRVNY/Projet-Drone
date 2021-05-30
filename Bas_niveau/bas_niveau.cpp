@@ -6,6 +6,8 @@
 #include <string.h>
 #include <ctime>
    
+unsigned long int tableau[HEIGHT][WIDTH];
+
 int intervalle (int x1,int y1,int x2,int y2,int distance){
     /*Fonction qui retourne true si les deux coordonnées sont éloignées d'une distance passée en parametre */
     
@@ -85,16 +87,6 @@ int is_quadrilateral(SPoint p1, SPoint p2, SPoint p3, SPoint p4){
     if (coll == false){     
          return 0;    
     }
-         
-      //verifient si c'est un quadrilateral convexe
-     /* int check = 1;
-    
-      if (doIntersect(p1, p2, p3, p4))
-          check = 0;
-      if (doIntersect(p1, p3, p2, p4))
-          check = 0;
-      if (doIntersect(p1, p2, p4, p3))
-          check = 0; */     //a tester
     
     return 1;
 }
@@ -139,6 +131,30 @@ void voisinage(int voisin,int i, int j,int* S0,int* S1,int* S2,int* S3,cv::Mat i
 
 }
 
+void voisinage_integrale(int voisin,int i, int j,unsigned long  int* Z0,unsigned long  int* Z1,unsigned long  int* Z2,unsigned long  int* Z3,unsigned long int tab[1080][1920]){
+    //Permet de calculer la somme des pixels voisin au pixel de la positions i,j
+    
+    (*Z0)=0;
+    (*Z1)=0;
+    (*Z2)=0;
+    (*Z3)=0;
+    unsigned long  int p1 = tab[i][j];
+    unsigned long  int p2 = tab[i-voisin][j];
+    
+    unsigned long  int p3 = tab[i-voisin][j-voisin];
+    unsigned long  int p4 = tab[i][j-voisin];
+    (*Z0)= p1 - p2 - p4 + p3 ;
+    unsigned long  int p5 = tab[i][j+voisin];
+    unsigned long  int p6 = tab[i-voisin][j+voisin];
+    (*Z1)= p5 - p6 - p1 + p2 ;
+    unsigned long  int p7 = tab[i+voisin][j];
+    unsigned long  int p8 = tab[i+voisin][j-voisin];
+    (*Z2)= p7 - p1 - p8 + p4 ;
+    unsigned long  int p9 = tab[i+voisin][j+voisin];
+    (*Z3)= p9 - p5 - p7 + p1;
+
+}
+
 void erreur(int*** resultat){
     //Mets la position de tout les points resultants a la valeurs -1 pour indiquer la non-detection des points
     for( int i=0;i<4;i++){
@@ -159,12 +175,12 @@ void * video_reader_process(const char* infile) {
         return (void*) 1;
     }
 
-    for ( int i = 0 ; i < 4 ; ++i ) {     
-        resultat[i] = ( int * ) malloc( 2 * sizeof(int) ) ;       
+    for ( int i = 0 ; i < 4 ; ++i ) {
+        resultat[i] = ( int * ) malloc( 2 * sizeof(int) ) ;
         if (  resultat[i]== NULL ){
             fprintf(stderr,"probleme d'allocation\n");
             return (void*) 1;
-        }   
+        }
     }
 
     capture.set(CAP_PROP_FOURCC, VideoWriter::fourcc('H','2','6','4'));
@@ -206,8 +222,33 @@ void * video_reader_process(const char* infile) {
                 if(frameIndex%2==0){
                     
                     //Calcul temp de process d'image
+                    
+                    
                     clock_t begin_process = clock();
-
+                    for( int a=0 ; a<HEIGHT ; a++ ){
+                        for( int b=0 ; b<WIDTH; b++ ){
+                            tableau[a][b] = (unsigned long  int)greyMat.ptr<uchar>(a)[b] ;
+                                }
+                            }
+                    
+                    //Construction de l'image integrale
+                    unsigned long int s = 0;
+                    for( int a=0 ; a<HEIGHT ; a++ ){
+                        s = 0;
+                        for( int b=0 ; b<WIDTH; b++ ){
+                                            
+                            s = s + tableau[a][b] ;
+                            tableau[a][b]= s ;
+                            }
+                    }
+                    for( int a=0 ; a<WIDTH ; a++ ){
+                        s = 0;
+                        for( int b=0 ; b<HEIGHT; b++ ){
+                            s = s + tableau[b][a] ;
+                            tableau[b][a]= s ;
+                            }
+                    }
+                    
                     image_processing(greyMat,&resultat);
 
                     clock_t end_process = clock();
@@ -269,7 +310,9 @@ void * video_reader_process(const char* infile) {
     }
 
     return (void*)0;
-} 
+}
+
+
 
 int video_reader_process2(const char* infile) {
 
@@ -390,13 +433,31 @@ int video_reader_process2(const char* infile) {
         sws_scale(swsctx, decframe->data, decframe->linesize, 0, decframe->height, frame->data, frame->linesize);
         {
         cv::Mat image(dst_height, dst_width, CV_8UC1, framebuf.data(), frame->linesize[0]);
-
+            for( int a=0 ; a<HEIGHT ; a++ ){
+                for( int b=0 ; b<WIDTH; b++ ){
+                    tableau[a][b] = (unsigned long  int)image.ptr<uchar>(a)[b] ;
+                        }
+                    }
+                    
+            unsigned long int s = 0;
+            for( int a=0 ; a<HEIGHT ; a++ ){
+                s = 0;
+                for( int b=0 ; b<WIDTH; b++ ){
+                                    
+                    s = s + tableau[a][b] ;
+                    tableau[a][b]= s ;
+                    }
+            }
+            for( int a=0 ; a<WIDTH ; a++ ){
+                s = 0;
+                for( int b=0 ; b<HEIGHT; b++ ){
+                    s = s + tableau[b][a] ;
+                    tableau[b][a]= s ;
+                    }
+            }
             image_processing(image,&resultat);
-            analyseInterpretation(resultat);
-        //    int* straffer= analyseInterpretation(resultat);
-        //    affichage_haut_niveau_straffer(image,straffer);
-        //     cv::imshow("BAS NIVEAU", image);
-        //     cv::waitKey(1);
+            //analyseInterpretation(resultat);
+        
         }
         
             ++nb_frames;
@@ -428,17 +489,13 @@ void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_c
 
 void image_processing(cv::Mat image,int*** resultat){
     
-    int width = image.rows;
-    int height = image.cols;
-    
-
     int somme=0; //Somme relative aux hirondelles du haut
     int somme2=0; //Somme relative aux hirondelles du bas
  
-    int S0=0;
-    int S1=0;
-    int S2=0;
-    int S3=0;
+    unsigned long  int Z0=0;
+    unsigned long  int Z1=0;
+    unsigned long  int Z2=0;
+    unsigned long  int Z3=0;
 
     struct SPoint res[6];
     for (int i=0;i<6;i++){
@@ -448,7 +505,7 @@ void image_processing(cv::Mat image,int*** resultat){
         res[i].score=0; 
 
     }
-    // initialisation
+    // initialisation du resultat
     for (int i=0;i<4;i++){
          (*resultat)[i][0]=-1;
          (*resultat)[i][1]=-1;
@@ -458,10 +515,9 @@ void image_processing(cv::Mat image,int*** resultat){
                    for( int x=VOISINAGE ; x<image.rows-VOISINAGE  ; x++ ){ //image.rows-VOISINAGE et image.cols-VOISINAGE pour eviter les bordures
                        for( int y=VOISINAGE ; y<image.cols-VOISINAGE ; y++ ){
                            
-                        voisinage(VOISINAGE,x,y,&S0,&S1,&S2,&S3,image);
-                        
-                        somme=255*(VOISINAGE*VOISINAGE*2)+S0-S1-S2+S3;
-                        somme2=255*(VOISINAGE*VOISINAGE*2)-S0+S1+S2-S3;
+                        voisinage_integrale(VOISINAGE,x,y,&Z0,&Z1,&Z2,&Z3,tableau);
+                        somme=255*(VOISINAGE*VOISINAGE*2)+ (int) (Z0-Z1-Z2+Z3);
+                        somme2=255*(VOISINAGE*VOISINAGE*2)+ (int)(-Z0+Z1+Z2-Z3);
                            
                            
                            if(somme <= res[0].somme && intervalle(x,y,res[1].x,res[1].y,DISTANCE_MIN_ENTRE_PIXELS) && intervalle(x,y,res[0].x,res[0].y,DISTANCE_MIN_ENTRE_PIXELS) ) {
@@ -704,8 +760,19 @@ void image_processing(cv::Mat image,int*** resultat){
         (*resultat)[2][1]=(*resultat)[3][1];;
         (*resultat)[3][1]=tmp2;
     }
+    
+    if(intervalle((*resultat)[0][0],(*resultat)[0][1],(*resultat)[1][0],(*resultat)[1][1],DISTANCE_MIN_ENTRE_PIXELS)==0){//enlever les points proches si ils sont issue du motif inverse
+        (*resultat)[1][0]=-1;
+        (*resultat)[1][1]=-1;
+        
+    }
+     if(intervalle((*resultat)[2][0],(*resultat)[2][1],(*resultat)[3][0],(*resultat)[3][1],DISTANCE_MIN_ENTRE_PIXELS)==0){//enlever les points proches si ils sont issue du motif inverse
+        (*resultat)[3][0]=-1;
+        (*resultat)[3][1]=-1;
+    }
+       
           
-        if(display){     
+        if(display){
     // affichage en couleurs pour tester nos resultats   
         cv::Mat3b grayBGR;
                             
@@ -747,7 +814,7 @@ void image_processing(cv::Mat image,int*** resultat){
                 cv::imshow("BAS NIVEAU", grayBGR);
                 cv::waitKey(1); 
             }
-            //std::this_thread::sleep_for(std::chrono::milliseconds(500) );
+            //std::this_thread::sleep_for(std::chrono::milliseconds(150) );
               
 }
 
@@ -808,16 +875,3 @@ void H264ToRGB(unsigned char* data, unsigned int dataSize, unsigned char* outBuf
 }
 
 
-void affichage_haut_niveau_straffer(cv::Mat image,int* straffer){
-    if (straffer[0]==1)
-        ellipse(image, Point(image.cols-80,30),Size(RAYON_CERCLES*2,RAYON_CERCLES*2), 0, 0,360, Scalar(0, 255, 0),-1, LINE_AA); //dodger blue
-
-    if (straffer[0]==2)
-        ellipse(image, Point(image.cols-80,30),Size(RAYON_CERCLES*2,RAYON_CERCLES*2), 0, 0,360, Scalar(255, 0, 0),-1, LINE_AA); //dodger blue
-
-    if (straffer[0]==-1)
-        ellipse(image, Point(80,30),Size(RAYON_CERCLES*2,RAYON_CERCLES*2), 0, 0,360, Scalar(0, 255, 0),-1, LINE_AA); //dodger blue
-
-    if (straffer[0]==-2)
-        ellipse(image, Point(80,30),Size(RAYON_CERCLES*2,RAYON_CERCLES*2), 0, 0,360, Scalar(255, 0, 0),-1, LINE_AA); //dodg
-}

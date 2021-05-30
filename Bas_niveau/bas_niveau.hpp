@@ -3,15 +3,15 @@
 //                                                                           //
 //                       par Meziane Mohamed & Saichi Lina                   //
 //                                                                           //
-//    But principal: DétéCtion de la mire                                    //
+//    But principal: Detéction de la mire                                    //
 //                                                                           //
 //*****-----------------------------------------------------------------*****//
 //                                                                           //
 //      Comme première solution, notre partie du projet va prendre en entrée //
 // un nom de fichier qui représente le flux video qui nous sera remis par la //
-// partie pilotage. Ensuite, nous décomposons le flux en frames grace a      //
-// FFMPEG puis avec la bibliothèque de OPENCV on transforme chaque matrice de// 
-// couleur en niveau de gris. On parcours chaque matrice et on tente de      //
+// partie pilotage. Ensuite, nous décomposons le flux en frames grace a la   //
+// fonction VideoCapture de la bibliothèque OPENCV, ensuite on transforme les//
+// images en images en niveau de gris. On parcours chaque matrice pour       //
 // détecter les quatres hirondelles de la mire en sommant les pixels voisins //
 // de chaque pixels de la matrice de manière a obtenir les minimums qui vont //
 // représenter le motif des hirondelles. Ainsi dans cette première solution, //
@@ -21,21 +21,9 @@
 //                                                                           //
 //*****-----------------------------------------------------------------*****//
 //                                                                           //
-//       Par souçis d'optimisation, nous deçidons d'implementer une deuxieme //
-// solution qui consiste a récuperer les donnes brutes de chaque frame par   // 
-// les pilotes, ensuite nous decodons grace a FFMPEG chaque frame recue qui  //
-// sera de format H264 vers le format RGB requis pour le traitement de openCV//
-// , ensuite nous tranformons chaque frame en niveau de gris et pour le reste//
-// nous procedons de la même manière que la première sollution.              //
-// Dans cette solution nous prenons donc une seule frame en entrée qui nous  // 
-// sera transmise par la partie pilotage, de ce fait la boucle               //
-// evennementielle sera dans le main et pour chaque tour de boucle il y'aura //
-// un appel de notre partie qui va traiter une seule frame.                  //  
-//*****-----------------------------------------------------------------*****//
-//                                                                           //
-//        Dans un premier temps, nous avons d'abors implémenté une fonction  //
+//        Dans un premier temps, nous avons d'abord implémenté une fonction  //
 // video_reader_process2 qui sera utilisé uniquement pour les tests que nous //
-// effectuons sur des vidéos deja enregistré, pour le flux video en direct   //
+// effectuons sur des vidéos deja enregistrés, pour le flux video en direct  //
 // nous implementons la fonction video_reader_process(explication ci-dessous)//
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
@@ -203,51 +191,64 @@ extern "C" {
 #include <cmath>
 
 using namespace cv;
-#define VOISINAGE 3/* Voisinage utilisé pour un pixel donnée : Si VOISINAGE=A , le voisinage utilisé est AxA */
-#define DISTANCE_MIN_ENTRE_PIXELS 2 /* distance minimum entre deux points, pour qu'ils ne soient pas dans le même point */
-#define DISTANCE_MAX_ENTRE_PIXELS 150
-#define MARGE_PIXEL_COLLINEAIRE 0
-#define RAYON_CERCLES 5
+
+//Taille de l'image
+ #define HEIGHT 540
+ #define WIDTH 960
+
+//Taille de l'image pour les videos de test
+//#define HEIGHT 1080
+//#define WIDTH 1920
+
+#define VOISINAGE 3   /* Voisinage utilisé pour un pixel donnée : Si VOISINAGE=A , le voisinage utilisé est AxA */
+#define DISTANCE_MIN_ENTRE_PIXELS 2 /* distance minimum entre deux points */
+
+#define DISTANCE_MAX_ENTRE_PIXELS 150 /* distance minimum entre deux points */
+
+#define MARGE_PIXEL_COLLINEAIRE 5 /* distance entre un segment et un point pour qu'ils ne soient pas collineaires */
+
+#define RAYON_CERCLES 5 /* Pour l'affichage des cercles sur l'image */
 
 
-//////*****-----------------------------------------------------------------*****//
-//                         Structure des points                                  //
-///////////////////////////////////////////////////////////////////////////////////
-/**/struct SPoint                                                                //
-/**/{                                                                            //
-/**/   int x, y,somme,score;                                                     //
-/**/};                                                                           //
-/**////////////////////////////////////////////////////////////////////////////////
+/* structure utilisée : */
+struct SPoint
+{
+  int x, y,somme,score; /*cordonnées X et y du point, et la somme calculée pour ce point*/
+};
 
 
 
-//////*****-----------------------------------------------------------------*****//
-//                      Fonctions intèrmediaires de robustesse                   //
-///////////////////////////////////////////////////////////////////////////////////
-int intervalle (int x1,int y1,int x2,int y2);                                    // 
-int orientation(SPoint p, SPoint q, SPoint r);                                   //
+
+
+                      /*   Fonctions intèrmediaires de robustesse     */
+
+int intervalle (int x1,int y1,int x2,int y2);
+int orientation(SPoint p, SPoint q, SPoint r);
 void voisinage(int voisin,int i, int j,int* S0,int* S1,int* S2,int* S3,cv::Mat image);
-bool doIntersect(SPoint p1, SPoint q1, SPoint p2, SPoint q2);                    //
-bool not_similar(SPoint p1, SPoint p2);                                          //
-bool not_collinear(SPoint p1, SPoint p2, SPoint p3);                             //
-int is_quadrilateral(SPoint p1, SPoint p2, SPoint p3, SPoint p4);                //
-bool is_triangle(SPoint p1, SPoint q1, SPoint p2);                               //
-///////////////////////////////////////////////////////////////////////////////////
+bool doIntersect(SPoint p1, SPoint q1, SPoint p2, SPoint q2);
+bool not_similar(SPoint p1, SPoint p2);
+bool not_collinear(SPoint p1, SPoint p2, SPoint p3);
+int is_quadrilateral(SPoint p1, SPoint p2, SPoint p3, SPoint p4);
+bool is_triangle(SPoint p1, SPoint q1, SPoint p2);
+void erreur(int*** resultat);// METS LES POSITIONS DES POINTS A -1
 
 
 
-//////*****-----------------------------------------------------------------*****//
-//                        Fonctions de traitement d'images                       //
-///////////////////////////////////////////////////////////////////////////////////
-void erreur(int*** resultat);// METS LES POSITIONS DES POINTS A -1               //
-void * video_reader_process(const char* infile);                                    //
-int video_reader_process2(const char* infile);                                   //
-void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_ctx, AVFrame* av_frame, AVFrame* decrame); 
-//                                                                               // FONCTION DE DESALLOCATION
-void image_processing(cv::Mat image,int*** resultat);                            //
-void affichage_haut_niveau_straffer(cv::Mat image,int* straffer);                // fonction partie HAUT NIVEAU
-void H264ToRGB(unsigned char* data, unsigned int dataSize, unsigned char* outBuffer);
-///////////////////////////////////////////////////////////////////////////////////
+
+                     
+                      /*   Fonctions de lecture du flux     */
+
+void * video_reader_process(const char* infile);
+int video_reader_process2(const char* infile);
+
+
+                       /*   Fonctions de désallocation      */
+void video_reader_close(SwsContext* sws_scaler_ctx, AVFormatContext* av_format_ctx, AVFrame* av_frame, AVFrame* decrame);
+
+
+
+                       /*   Fonction de traitement d'images     */
+void image_processing(cv::Mat image,int*** resultat);
 
 
 #endif /* bas_niveau_hpp */
